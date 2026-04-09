@@ -1,5 +1,5 @@
 <?php
-namespace hg\apidoc;
+namespace erikwang2013\apidoc;
 /**
  * Webman Install
  */

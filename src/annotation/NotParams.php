@@ -1,13 +1,13 @@
 <?php
 
-namespace hg\apidoc\annotation;
+namespace erikwang2013\apidoc\annotation;
 
 use Attribute;
-use hg\apidoc\utils\AbstractAnnotation;
+use erikwang2013\apidoc\utils\AbstractAnnotation;
 
 /**
  * 不使用配置中的全局请求Body参数
- * @package hg\apidoc\annotation
+ * @package erikwang2013\apidoc\annotation
  * @Annotation
  * @Target({"METHOD"})
  */

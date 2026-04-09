@@ -1,17 +1,17 @@
 <?php
 declare(strict_types = 1);
 
-namespace hg\apidoc\utils;
+namespace erikwang2013\apidoc\utils;
 
 //use Doctrine\Common\Annotations\AnnotationReader;
-use hg\apidoc\parses\ParseAnnotation;
-use hg\apidoc\utils\Helper;
+use erikwang2013\apidoc\parses\ParseAnnotation;
+use erikwang2013\apidoc\utils\Helper;
 use ReflectionClass;
-use hg\apidoc\annotation\Url;
-use hg\apidoc\annotation\Method;
-use hg\apidoc\annotation\RouteMiddleware;
-use hg\apidoc\parses\ParseApiDetail;
-use hg\apidoc\parses\ParseApiMenus;
+use erikwang2013\apidoc\annotation\Url;
+use erikwang2013\apidoc\annotation\Method;
+use erikwang2013\apidoc\annotation\RouteMiddleware;
+use erikwang2013\apidoc\parses\ParseApiDetail;
+use erikwang2013\apidoc\parses\ParseApiMenus;
 
 class AutoRegisterRouts
 {

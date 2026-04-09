@@ -1,14 +1,14 @@
 <?php
 declare(strict_types = 1);
 
-namespace hg\apidoc\parses;
+namespace erikwang2013\apidoc\parses;
 
 use Doctrine\Common\Annotations\AnnotationReader;
-use hg\apidoc\exception\ErrorException;
-use hg\apidoc\generator\ParseTemplate;
-use hg\apidoc\utils\DirAndFile;
-use hg\apidoc\utils\Helper;
-use hg\apidoc\utils\Lang;
+use erikwang2013\apidoc\exception\ErrorException;
+use erikwang2013\apidoc\generator\ParseTemplate;
+use erikwang2013\apidoc\utils\DirAndFile;
+use erikwang2013\apidoc\utils\Helper;
+use erikwang2013\apidoc\utils\Lang;
 
 class ParseCodeTemplate
 {

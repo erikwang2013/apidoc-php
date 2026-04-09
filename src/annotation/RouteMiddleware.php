@@ -1,14 +1,14 @@
 <?php
 
-namespace hg\apidoc\annotation;
+namespace erikwang2013\apidoc\annotation;
 
 use Attribute;
 use Doctrine\Common\Annotations\Annotation;
-use hg\apidoc\utils\AbstractAnnotation;
+use erikwang2013\apidoc\utils\AbstractAnnotation;
 
 /**
  * 路由中间件，自动注册路由时有效
- * @package hg\apidoc\annotation
+ * @package erikwang2013\apidoc\annotation
  * @Annotation
  * @Target({"METHOD","CLASS"})
  */

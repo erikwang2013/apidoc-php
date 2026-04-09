@@ -1,10 +1,10 @@
 <?php
 declare(strict_types = 1);
 
-namespace hg\apidoc\utils;
+namespace erikwang2013\apidoc\utils;
 
-use hg\apidoc\exception\ErrorException;
-use hg\apidoc\parses\ParseMarkdown;
+use erikwang2013\apidoc\exception\ErrorException;
+use erikwang2013\apidoc\parses\ParseMarkdown;
 
 class Helper
 {

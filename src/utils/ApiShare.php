@@ -1,11 +1,11 @@
 <?php
 declare(strict_types=1);
 
-namespace hg\apidoc\utils;
+namespace erikwang2013\apidoc\utils;
 
-use hg\apidoc\Auth;
-use hg\apidoc\exception\ErrorException;
-use hg\apidoc\parses\ParseApiMenus;
+use erikwang2013\apidoc\Auth;
+use erikwang2013\apidoc\exception\ErrorException;
+use erikwang2013\apidoc\parses\ParseApiMenus;
 
 class ApiShare
 {

@@ -1,9 +1,9 @@
 <?php
 
-namespace hg\apidoc\middleware;
+namespace erikwang2013\apidoc\middleware;
 
-use hg\apidoc\providers\BaseService;
-use hg\apidoc\utils\ConfigProvider;
+use erikwang2013\apidoc\providers\BaseService;
+use erikwang2013\apidoc\utils\ConfigProvider;
 use Hyperf\DbConnection\Db;
 use Psr\Http\Message\ResponseInterface;
 use Psr\Http\Message\ServerRequestInterface;

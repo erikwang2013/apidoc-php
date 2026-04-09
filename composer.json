@@ -1,5 +1,5 @@
 {
-    "name": "hg/apidoc",
+    "name": "erikwang2013/apidoc",
     "description": "根据注解生成API文档，兼容Laravel、ThinkPHP、Hyperf、Webman等框架；在线调试、Markdown文档、多应用/多版本、Mock数据、授权访问、接口生成器、代码生成器等众多实用功能",
     "keywords": [
         "apidoc",
@@ -11,7 +11,7 @@
         "api文档",
         "Markdown",
         "注解"
-      ],
+    ],
     "require": {
         "php": "^7.1 || ^8.0",
         "doctrine/annotations": "^1 || ^2"
@@ -19,31 +19,33 @@
     "license": "MIT",
     "authors": [
         {
-            "name": "hg-code",
-            "email": "376401263@qq.com"
+            "name": "erik",
+            "email": "erik@erik.xyz",
+            "homepage": "https://erik.xyz",
+            "role": "Developer"
         }
     ],
     "autoload": {
         "psr-4": {
-            "hg\\apidoc\\": "src/"
+            "erikwang2013\\apidoc\\": "src/"
         }
     },
     "extra": {
         "laravel": {
             "providers": [
-                "hg\\apidoc\\providers\\LaravelService"
+                "erikwang2013\\apidoc\\providers\\LaravelService"
             ]
         },
         "think": {
             "services": [
-                "hg\\apidoc\\providers\\ThinkPHPService"
+                "erikwang2013\\apidoc\\providers\\ThinkPHPService"
             ],
             "config": {
                 "apidoc": "src/config.php"
             }
         },
         "hyperf": {
-            "config": "hg\\apidoc\\ConfigProvider"
+            "config": "erikwang2013\\apidoc\\ConfigProvider"
         }
     },
     "minimum-stability": "dev"

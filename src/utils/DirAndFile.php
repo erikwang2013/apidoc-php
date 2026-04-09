@@ -1,6 +1,6 @@
 <?php
 
-namespace hg\apidoc\utils;
+namespace erikwang2013\apidoc\utils;
 
 class DirAndFile
 {

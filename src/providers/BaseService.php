@@ -1,11 +1,11 @@
 <?php
 
-namespace hg\apidoc\providers;
+namespace erikwang2013\apidoc\providers;
 
-use hg\apidoc\utils\AutoRegisterRouts;
-use hg\apidoc\utils\Cache;
-use hg\apidoc\utils\ConfigProvider;
-use hg\apidoc\utils\Helper;
+use erikwang2013\apidoc\utils\AutoRegisterRouts;
+use erikwang2013\apidoc\utils\Cache;
+use erikwang2013\apidoc\utils\ConfigProvider;
+use erikwang2013\apidoc\utils\Helper;
 
 trait BaseService
 {
@@ -150,7 +150,7 @@ trait BaseService
      */
     static public function registerApidocRoutes($routeFun=null){
         $routes = static::$routes;
-        $controller_namespace = '\hg\apidoc\Controller@';
+        $controller_namespace = '\erikwang2013\apidoc\Controller@';
         $route_prefix = "/apidoc";
         $config = self::getApidocConfig();
         if (!empty($config) && !empty($config['route_prefix'])){

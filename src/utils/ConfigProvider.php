@@ -1,8 +1,8 @@
 <?php
 
-namespace hg\apidoc\utils;
+namespace erikwang2013\apidoc\utils;
 
-use hg\apidoc\exception\ErrorException;
+use erikwang2013\apidoc\exception\ErrorException;
 
 class ConfigProvider
 {

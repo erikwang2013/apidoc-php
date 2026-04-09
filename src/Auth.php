@@ -1,11 +1,11 @@
 <?php
 declare(strict_types = 1);
 
-namespace hg\apidoc;
+namespace erikwang2013\apidoc;
 
-use hg\apidoc\exception\ErrorException;
-use hg\apidoc\utils\ConfigProvider;
-use hg\apidoc\utils\Helper;
+use erikwang2013\apidoc\exception\ErrorException;
+use erikwang2013\apidoc\utils\ConfigProvider;
+use erikwang2013\apidoc\utils\Helper;
 
 class Auth
 {

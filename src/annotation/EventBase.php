@@ -1,8 +1,8 @@
 <?php
 
-namespace hg\apidoc\annotation;
+namespace erikwang2013\apidoc\annotation;
 
-use hg\apidoc\utils\AbstractAnnotation;
+use erikwang2013\apidoc\utils\AbstractAnnotation;
 
 abstract class EventBase extends AbstractAnnotation
 {

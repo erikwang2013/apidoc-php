@@ -1,11 +1,11 @@
 <?php
 
 
-namespace hg\apidoc\exception;
+namespace erikwang2013\apidoc\exception;
 
 
-use hg\apidoc\utils\ConfigProvider;
-use hg\apidoc\utils\Helper;
+use erikwang2013\apidoc\utils\ConfigProvider;
+use erikwang2013\apidoc\utils\Helper;
 
 class ErrorException extends HttpException
 {

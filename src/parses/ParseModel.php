@@ -1,15 +1,15 @@
 <?php
 declare(strict_types=1);
 
-namespace hg\apidoc\parses;
+namespace erikwang2013\apidoc\parses;
 
 use Doctrine\Common\Annotations\Reader;
-use hg\apidoc\exception\ErrorException;
-use hg\apidoc\annotation\Field;
-use hg\apidoc\annotation\WithoutField;
-use hg\apidoc\annotation\AddField;
-use hg\apidoc\utils\Helper;
-use hg\apidoc\utils\Lang;
+use erikwang2013\apidoc\exception\ErrorException;
+use erikwang2013\apidoc\annotation\Field;
+use erikwang2013\apidoc\annotation\WithoutField;
+use erikwang2013\apidoc\annotation\AddField;
+use erikwang2013\apidoc\utils\Helper;
+use erikwang2013\apidoc\utils\Lang;
 
 
 class ParseModel

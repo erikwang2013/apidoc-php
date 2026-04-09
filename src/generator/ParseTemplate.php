@@ -1,10 +1,10 @@
 <?php
 declare(strict_types = 1);
 
-namespace hg\apidoc\generator;
-use hg\apidoc\Utils;
-use hg\apidoc\utils\DirAndFile;
-use hg\apidoc\utils\Helper;
+namespace erikwang2013\apidoc\generator;
+use erikwang2013\apidoc\Utils;
+use erikwang2013\apidoc\utils\DirAndFile;
+use erikwang2013\apidoc\utils\Helper;
 use think\facade\App;
 
 class ParseTemplate

@@ -1,10 +1,10 @@
 <?php
 
-namespace hg\apidoc\generator;
-use hg\apidoc\exception\ErrorException;
-use hg\apidoc\generator\ParseTemplate;
-use hg\apidoc\utils\DirAndFile;
-use hg\apidoc\utils\Helper;
+namespace erikwang2013\apidoc\generator;
+use erikwang2013\apidoc\exception\ErrorException;
+use erikwang2013\apidoc\generator\ParseTemplate;
+use erikwang2013\apidoc\utils\DirAndFile;
+use erikwang2013\apidoc\utils\Helper;
 
 class Index
 {

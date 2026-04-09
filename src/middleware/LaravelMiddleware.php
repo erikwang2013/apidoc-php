@@ -1,8 +1,8 @@
 <?php
 
-namespace hg\apidoc\middleware;
+namespace erikwang2013\apidoc\middleware;
 
-use hg\apidoc\utils\ConfigProvider;
+use erikwang2013\apidoc\utils\ConfigProvider;
 
 class LaravelMiddleware
 {

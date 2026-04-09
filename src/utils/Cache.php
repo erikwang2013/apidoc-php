@@ -2,7 +2,7 @@
 
 declare (strict_types = 1);
 
-namespace hg\apidoc\utils;
+namespace erikwang2013\apidoc\utils;
 
 use FilesystemIterator;
 

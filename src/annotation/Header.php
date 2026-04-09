@@ -1,12 +1,12 @@
 <?php
 
-namespace hg\apidoc\annotation;
+namespace erikwang2013\apidoc\annotation;
 
 use Attribute;
 
 /**
  * 请求头
- * @package hg\apidoc\annotation
+ * @package erikwang2013\apidoc\annotation
  * @Annotation
  * @Target({"METHOD"})
  */

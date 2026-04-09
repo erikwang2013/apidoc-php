@@ -1,11 +1,11 @@
 <?php
 
-namespace hg\apidoc\providers;
+namespace erikwang2013\apidoc\providers;
 
-use hg\apidoc\utils\ConfigProvider;
-use hg\apidoc\utils\Helper;
+use erikwang2013\apidoc\utils\ConfigProvider;
+use erikwang2013\apidoc\utils\Helper;
 use Webman\Route;
-use hg\apidoc\middleware\WebmanMiddleware;
+use erikwang2013\apidoc\middleware\WebmanMiddleware;
 
 class WebmanService
 {

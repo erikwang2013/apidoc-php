@@ -1,13 +1,13 @@
 <?php
 
-namespace hg\apidoc\annotation;
+namespace erikwang2013\apidoc\annotation;
 
 use Attribute;
-use hg\apidoc\utils\AbstractAnnotation;
+use erikwang2013\apidoc\utils\AbstractAnnotation;
 
 /**
  * 分组
- * @package hg\apidoc\annotation
+ * @package erikwang2013\apidoc\annotation
  * @Annotation
  * @Target({"CLASS"})
  */

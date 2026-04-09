@@ -1,13 +1,13 @@
 <?php
 
-namespace hg\apidoc\annotation;
+namespace erikwang2013\apidoc\annotation;
 
 use Attribute;
 use Doctrine\Common\Annotations\Annotation;
 
 /**
  * 成功响应体
- * @package hg\apidoc\annotation
+ * @package erikwang2013\apidoc\annotation
  * @Annotation
  * @Target({"METHOD","ANNOTATION"})
  */

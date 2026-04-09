@@ -1,21 +1,21 @@
 <?php
 declare(strict_types=1);
 
-namespace hg\apidoc;
+namespace erikwang2013\apidoc;
 
-use hg\apidoc\parses\ParseApiDetail;
-use hg\apidoc\parses\ParseCodeTemplate;
-use hg\apidoc\parses\ParseApiMenus;
-use hg\apidoc\parses\ParseMarkdown;
-use hg\apidoc\utils\ApiShare;
-use hg\apidoc\utils\Cache;
-use hg\apidoc\utils\ConfigProvider;
-use hg\apidoc\utils\DirAndFile;
-use hg\apidoc\utils\Helper;
-use hg\apidoc\utils\Lang;
-use hg\apidoc\utils\Request;
-use hg\apidoc\exception\ErrorException;
-use hg\apidoc\export\ExportSwagger;
+use erikwang2013\apidoc\parses\ParseApiDetail;
+use erikwang2013\apidoc\parses\ParseCodeTemplate;
+use erikwang2013\apidoc\parses\ParseApiMenus;
+use erikwang2013\apidoc\parses\ParseMarkdown;
+use erikwang2013\apidoc\utils\ApiShare;
+use erikwang2013\apidoc\utils\Cache;
+use erikwang2013\apidoc\utils\ConfigProvider;
+use erikwang2013\apidoc\utils\DirAndFile;
+use erikwang2013\apidoc\utils\Helper;
+use erikwang2013\apidoc\utils\Lang;
+use erikwang2013\apidoc\utils\Request;
+use erikwang2013\apidoc\exception\ErrorException;
+use erikwang2013\apidoc\export\ExportSwagger;
 
 class Controller
 {

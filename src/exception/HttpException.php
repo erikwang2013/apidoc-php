@@ -1,7 +1,7 @@
 <?php
 declare (strict_types=1);
 
-namespace hg\apidoc\exception;
+namespace erikwang2013\apidoc\exception;
 
 use Exception;
 

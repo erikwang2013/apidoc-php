@@ -1,13 +1,13 @@
 <?php
 
-namespace hg\apidoc\annotation;
+namespace erikwang2013\apidoc\annotation;
 
 use Attribute;
 use Doctrine\Common\Annotations\Annotation;
 
 /**
  * 接口调试前置事件
- * @package hg\apidoc\annotation
+ * @package erikwang2013\apidoc\annotation
  * @Annotation
  * @Target({"METHOD","ANNOTATION"})
  */

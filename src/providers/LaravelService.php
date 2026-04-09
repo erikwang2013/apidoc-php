@@ -1,15 +1,15 @@
 <?php
 
-namespace hg\apidoc\providers;
+namespace erikwang2013\apidoc\providers;
 
-use hg\apidoc\middleware\LaravelMiddleware;
-use hg\apidoc\utils\Helper;
+use erikwang2013\apidoc\middleware\LaravelMiddleware;
+use erikwang2013\apidoc\utils\Helper;
 use Illuminate\Support\Facades\Lang;
 use Illuminate\Support\Facades\Request;
 use Illuminate\Support\ServiceProvider;
 use Illuminate\Support\Facades\Route;
 use Exception;
-use hg\apidoc\utils\ApiCrossDomain;
+use erikwang2013\apidoc\utils\ApiCrossDomain;
 use Illuminate\Support\Facades\DB;
 
 class LaravelService extends ServiceProvider

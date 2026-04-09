@@ -1,15 +1,15 @@
 <?php
 
-namespace hg\apidoc\providers;
+namespace erikwang2013\apidoc\providers;
 
-use hg\apidoc\utils\ConfigProvider;
-use hg\apidoc\utils\Helper;
+use erikwang2013\apidoc\utils\ConfigProvider;
+use erikwang2013\apidoc\utils\Helper;
 use Hyperf\DbConnection\Db;
 use Hyperf\HttpServer\Router\Router;
 use Psr\Http\Message\ResponseInterface;
 use Psr\Http\Message\ServerRequestInterface;
 use Psr\Http\Server\RequestHandlerInterface;
-use hg\apidoc\middleware\HyperfMiddleware;
+use erikwang2013\apidoc\middleware\HyperfMiddleware;
 
 
 

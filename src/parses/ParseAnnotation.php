@@ -1,12 +1,12 @@
 <?php
 declare(strict_types = 1);
 
-namespace hg\apidoc\parses;
+namespace erikwang2013\apidoc\parses;
 
 use Doctrine\Common\Annotations\AnnotationReader;
-use hg\apidoc\utils\Helper;
+use erikwang2013\apidoc\utils\Helper;
 use ReflectionAttribute;
-use hg\apidoc\exception\ErrorException;
+use erikwang2013\apidoc\exception\ErrorException;
 use ReflectionMethod;
 use ReflectionParameter;
 use support\Log;

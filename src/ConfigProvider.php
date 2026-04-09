@@ -3,7 +3,7 @@ declare(strict_types=1);
 /**
  * Hyperf the Config Provider
  */
-namespace hg\apidoc;
+namespace erikwang2013\apidoc;
 
 class ConfigProvider
 {

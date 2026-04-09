@@ -1,9 +1,9 @@
 <?php
 
-namespace hg\apidoc\providers;
+namespace erikwang2013\apidoc\providers;
 
-use hg\apidoc\middleware\ThinkPHPMiddleware;
-use hg\apidoc\utils\Helper;
+use erikwang2013\apidoc\middleware\ThinkPHPMiddleware;
+use erikwang2013\apidoc\utils\Helper;
 use think\facade\App;
 use think\facade\Route;
 use think\facade\Request;

@@ -1,8 +1,8 @@
 <?php
 
-namespace hg\apidoc\providers;
+namespace erikwang2013\apidoc\providers;
 
-use hg\apidoc\utils\ConfigProvider;
+use erikwang2013\apidoc\utils\ConfigProvider;
 
 class CommonService
 {
