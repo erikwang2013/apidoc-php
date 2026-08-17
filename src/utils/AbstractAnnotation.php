@@ -4,8 +4,6 @@ declare (strict_types=1);
 
 namespace erikwang2013\apidoc\utils;
 
-use Doctrine\Common\Annotations\Annotation;
-
 abstract class AbstractAnnotation
 {
 

@@ -3,9 +3,7 @@ declare(strict_types = 1);
 
 namespace erikwang2013\apidoc\parses;
 
-use Doctrine\Common\Annotations\AnnotationReader;
 use erikwang2013\apidoc\utils\Helper;
-use ReflectionAttribute;
 use erikwang2013\apidoc\exception\ErrorException;
 use ReflectionMethod;
 use ReflectionParameter;
@@ -14,16 +12,8 @@ use support\Log;
 class ParseAnnotation
 {
 
-    protected $parser;
-
     public function __construct($config)
     {
-        $this->parser = new AnnotationReader();
-        if (!empty($config['ignored_annitation'])){
-            foreach ($config['ignored_annitation'] as $item) {
-                AnnotationReader::addGlobalIgnoredName($item);
-            }
-        }
     }
     /**
      * 解析非@注解的文本注释
@@ -72,36 +62,26 @@ class ParseAnnotation
         $attrs = [];
         foreach ($attrList as $item) {
             $value = "";
-            if ($item instanceof ReflectionAttribute) {
-                $attributeName = $item->getName();
-                if (strpos($attributeName, 'apidoc') === false){
-                    continue;
-                }
-                $name    = $this->getClassName($attributeName);
-                $params = $item->getArguments();
-                if (!empty($params)){
-                    if (is_array($params) && !empty($params[0]) && is_string($params[0]) && count($params)===1){
-                        $value = $params[0];
-                    }else{
-                        if (isset($params[0])){
-                            $paramObj = [];
-                            foreach ($params as $k=>$value) {
-                                $key = $k===0?'name':$k;
-                                $paramObj[$key]=$value;
-                            }
-                        }else{
-                            $paramObj = $params;
-                        }
-                        $value = $paramObj;
-                    }
-                }
-            }else{
-                $name    = $this->getClassName(get_class($item));
-                $valueObj = Helper::objectToArray($item);
-                if (array_key_exists('name',$valueObj) && count($valueObj)===1){
-                    $value = $valueObj['name']===null?true: $valueObj['name'];
+            $attributeName = $item->getName();
+            if (strpos($attributeName, 'apidoc') === false){
+                continue;
+            }
+            $name    = $this->getClassName($attributeName);
+            $params = $item->getArguments();
+            if (!empty($params)){
+                if (is_array($params) && !empty($params[0]) && is_string($params[0]) && count($params)===1){
+                    $value = $params[0];
                 }else{
-                    $value = $valueObj;
+                    if (isset($params[0])){
+                        $paramObj = [];
+                        foreach ($params as $k=>$value) {
+                            $key = $k===0?'name':$k;
+                            $paramObj[$key]=$value;
+                        }
+                    }else{
+                        $paramObj = $params;
+                    }
+                    $value = $paramObj;
                 }
             }
             if (!empty($attrs[$name]) && is_array($attrs[$name]) && Helper::arrayKeyFirst($attrs[$name])===0){
@@ -121,13 +101,7 @@ class ParseAnnotation
      * @return array
      */
     public function getClassAnnotation($refClass){
-        if (method_exists($refClass,'getAttributes')){
-            $attributes = $refClass->getAttributes();
-        }else{
-            $attributes = [];
-        }
-        $readerAttributes = $this->parser->getClassAnnotations($refClass);
-        return $this->getParameters(array_merge($attributes,$readerAttributes));
+        return $this->getParameters($refClass->getAttributes());
     }
 
     /**
@@ -136,13 +110,7 @@ class ParseAnnotation
      * @return array
      */
     public function getMethodAnnotation(ReflectionMethod $refMethod){
-        if (method_exists($refMethod,'getAttributes')){
-            $attributes = $refMethod->getAttributes();
-        }else{
-            $attributes = [];
-        }
-        $readerAttributes = $this->parser->getMethodAnnotations($refMethod);
-        return $this->getParameters(array_merge($attributes,$readerAttributes));
+        return $this->getParameters($refMethod->getAttributes());
     }
 
     /**
@@ -151,13 +119,7 @@ class ParseAnnotation
      * @return array
      */
     public function getPropertyAnnotation($property){
-        if (method_exists($property,'getAttributes')){
-            $attributes = $property->getAttributes();
-        }else{
-            $attributes = [];
-        }
-        $readerAttributes = $this->parser->getPropertyAnnotations($property);
-        return $this->getParameters(array_merge($attributes,$readerAttributes));
+        return $this->getParameters($property->getAttributes());
     }
 
     /**

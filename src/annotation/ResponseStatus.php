@@ -3,14 +3,11 @@
 namespace erikwang2013\apidoc\annotation;
 
 use Attribute;
-use Doctrine\Common\Annotations\Annotation;
 use erikwang2013\apidoc\utils\AbstractAnnotation;
 
 /**
  * 成功响应体
  * @package erikwang2013\apidoc\annotation
- * @Annotation
- * @Target({"METHOD","ANNOTATION"})
  */
 #[Attribute(Attribute::TARGET_METHOD | \Attribute::IS_REPEATABLE)]
 class ResponseStatus extends AbstractAnnotation

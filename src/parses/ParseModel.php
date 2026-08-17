@@ -3,7 +3,6 @@ declare(strict_types=1);
 
 namespace erikwang2013\apidoc\parses;
 
-use Doctrine\Common\Annotations\Reader;
 use erikwang2013\apidoc\exception\ErrorException;
 use erikwang2013\apidoc\annotation\Field;
 use erikwang2013\apidoc\annotation\WithoutField;

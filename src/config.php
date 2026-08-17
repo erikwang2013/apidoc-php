@@ -94,11 +94,6 @@ return [
     'default_method'=>'GET',
     //（选配）允许跨域访问
     'allowCrossDomain'=>false,
-    /**
-     * （选配）解析时忽略带@注解的关键词，当注解中存在带@字符并且非Apidoc注解，如 @key test，此时Apidoc页面报类似以下错误时:
-     * [Semantical Error] The annotation "@key" in method xxx() was never imported. Did you maybe forget to add a "use" statement for this annotation?
-     */
-    'ignored_annitation'=>[],
 
     // （选配）解析时忽略的方法
     'ignored_methods'=>[],

@@ -2,7 +2,6 @@
 
 namespace erikwang2013\apidoc\annotation;
 
-use Doctrine\Common\Annotations\Annotation;
 use erikwang2013\apidoc\utils\AbstractAnnotation;
 
 abstract class ParamBase extends AbstractAnnotation

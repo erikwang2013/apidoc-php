@@ -7,8 +7,6 @@ use Attribute;
 /**
  * 返回参数
  * @package erikwang2013\apidoc\annotation
- * @Annotation
- * @Target({"METHOD","ANNOTATION"})
  */
 #[Attribute(Attribute::TARGET_METHOD | \Attribute::IS_REPEATABLE)]
 class Returned extends ParamBase

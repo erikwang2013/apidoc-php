@@ -8,8 +8,6 @@ use erikwang2013\apidoc\utils\AbstractAnnotation;
 /**
  * 分组
  * @package erikwang2013\apidoc\annotation
- * @Annotation
- * @Target({"CLASS"})
  */
 #[Attribute(Attribute::TARGET_CLASS | \Attribute::IS_REPEATABLE)]
 class Group extends AbstractAnnotation

@@ -3,14 +3,11 @@
 namespace erikwang2013\apidoc\annotation;
 
 use Attribute;
-use Doctrine\Common\Annotations\Annotation;
 use erikwang2013\apidoc\utils\AbstractAnnotation;
 
 /**
  * 添加模型的字段
  * @package erikwang2013\apidoc\annotation
- * @Annotation
- * @Target({"METHOD"})
  */
 #[Attribute(Attribute::TARGET_METHOD | \Attribute::IS_REPEATABLE)]
 class AddField extends ParamBase

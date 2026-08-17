@@ -6,8 +6,6 @@ use Attribute;
 
 /**
  * 请求参数
- * @Annotation
- * @Target({"METHOD","ANNOTATION"})
  */
 #[Attribute(Attribute::TARGET_METHOD | \Attribute::IS_REPEATABLE)]
 class Param extends ParamBase

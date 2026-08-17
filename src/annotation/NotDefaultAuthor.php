@@ -8,8 +8,6 @@ use erikwang2013\apidoc\utils\AbstractAnnotation;
 /**
  * 不使用默认作者
  * @package erikwang2013\apidoc\annotation
- * @Annotation
- * @Target({"METHOD"})
  */
 #[Attribute(Attribute::TARGET_METHOD | \Attribute::IS_REPEATABLE)]
 class NotDefaultAuthor extends AbstractAnnotation

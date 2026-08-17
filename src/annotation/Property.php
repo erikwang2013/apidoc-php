@@ -6,8 +6,6 @@ use Attribute;
 
 /**
  * 类的属性
- * @Annotation
- * @Target({"METHOD","ANNOTATION","PROPERTY"})
  */
 #[Attribute(Attribute::TARGET_METHOD | Attribute::IS_REPEATABLE | Attribute::TARGET_PROPERTY)]
 class Property extends ParamBase

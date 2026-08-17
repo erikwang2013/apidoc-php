@@ -7,8 +7,6 @@ use Attribute;
 /**
  * 路由参数
  * @package erikwang2013\apidoc\annotation
- * @Annotation
- * @Target({"METHOD"})
  */
 #[Attribute(Attribute::TARGET_METHOD | \Attribute::IS_REPEATABLE)]
 class RouteParam extends ParamBase

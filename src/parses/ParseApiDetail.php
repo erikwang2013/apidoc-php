@@ -706,9 +706,9 @@ class ParseApiDetail
 
     public function handleEventAnnotation($annotation,$type){
         $config      = $this->config;
-        if (!empty($annotation->ref)){
-            if (strpos($annotation->ref, '\\') === false && !empty($config['definitions']) ) {
-                $refPath     = $config['definitions'] . '\\' . $annotation->ref;
+        if (!empty($annotation['ref'])){
+            if (strpos($annotation['ref'], '\\') === false && !empty($config['definitions']) ) {
+                $refPath     = $config['definitions'] . '\\' . $annotation['ref'];
                 $data        = $this->renderService($refPath);
                 if (!empty($data[$type])){
                     return $data[$type];
@@ -716,11 +716,11 @@ class ParseApiDetail
                 return [];
             }
         }
-        if (!empty($annotation->value) && is_array($annotation->value)){
-            $beforeInfo = Helper::objectToArray($annotation);
+        if (!empty($annotation['value']) && is_array($annotation['value'])){
+            $beforeInfo = $annotation;
             $valueList = [];
-            foreach ($annotation->value as $valueItem){
-                $valueItemInfo = Helper::objectToArray($valueItem);
+            foreach ($annotation['value'] as $valueItem){
+                $valueItemInfo = $valueItem;
                 if ($valueItem instanceof Before){
                     $valueItemInfo['type'] = "before";
                 }else if ($valueItem instanceof After){
@@ -730,16 +730,6 @@ class ParseApiDetail
             }
             $beforeInfo['value'] = $valueList;
             return [$beforeInfo];
-        }
-        else if (!empty($annotation->value) && is_object($annotation->value)){
-            $valueItemInfo = Helper::objectToArray($annotation->value);
-            if ($annotation->value instanceof Before){
-                $valueItemInfo['type'] = "before";
-            }else if ($annotation->value instanceof After){
-                $valueItemInfo['type'] = "after";
-            }
-            $annotation->value = [$valueItemInfo];
-            return [$annotation];
         }else{
             return [$annotation];
         }

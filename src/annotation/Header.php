@@ -7,8 +7,6 @@ use Attribute;
 /**
  * 请求头
  * @package erikwang2013\apidoc\annotation
- * @Annotation
- * @Target({"METHOD"})
  */
 #[Attribute(Attribute::TARGET_METHOD | \Attribute::IS_REPEATABLE)]
 class Header extends ParamBase

@@ -3,8 +3,6 @@ declare(strict_types = 1);
 
 namespace erikwang2013\apidoc\parses;
 
-use Doctrine\Common\Annotations\AnnotationException;
-use erikwang2013\apidoc\exception\ErrorException;
 use erikwang2013\apidoc\utils\DirAndFile;
 use erikwang2013\apidoc\utils\Helper;
 use erikwang2013\apidoc\utils\Lang;
@@ -233,20 +231,16 @@ class ParseApiMenus
             return false;
         }
 
-        try {
-            $textAnnotations = ParseAnnotation::parseTextAnnotation($refMethod);
+        $textAnnotations = ParseAnnotation::parseTextAnnotation($refMethod);
 
-            $methodAnnotation = (new ParseAnnotation($this->config))->getMethodAnnotation($refMethod);
-            // 标注不解析的方法
-            if (in_array("NotParse", $textAnnotations) || isset($methodAnnotation['notParse']) || empty($methodAnnotation)) {
-                return false;
-            }
-            $methodInfo = ParseApiDetail::handleApiBaseInfo($methodAnnotation,$refClass->name,$refMethod->name,$textAnnotations,$config);
-            $methodInfo['appKey'] = !empty($this->currentApp['appKey'])?$this->currentApp['appKey']:"";
-            return Helper::getArrayValuesByKeys($methodInfo,['title','method','url','author','tag','name','menuKey','appKey']);
-        }catch (AnnotationException $e) {
-            throw new ErrorException($e->getMessage());
+        $methodAnnotation = (new ParseAnnotation($this->config))->getMethodAnnotation($refMethod);
+        // 标注不解析的方法
+        if (in_array("NotParse", $textAnnotations) || isset($methodAnnotation['notParse']) || empty($methodAnnotation)) {
+            return false;
         }
+        $methodInfo = ParseApiDetail::handleApiBaseInfo($methodAnnotation,$refClass->name,$refMethod->name,$textAnnotations,$config);
+        $methodInfo['appKey'] = !empty($this->currentApp['appKey'])?$this->currentApp['appKey']:"";
+        return Helper::getArrayValuesByKeys($methodInfo,['title','method','url','author','tag','name','menuKey','appKey']);
 
     }
 

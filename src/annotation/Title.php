@@ -3,14 +3,11 @@
 namespace erikwang2013\apidoc\annotation;
 
 use Attribute;
-use Doctrine\Common\Annotations\Annotation;
 use erikwang2013\apidoc\utils\AbstractAnnotation;
 
 /**
  * 标题
  * @package erikwang2013\apidoc\annotation
- * @Annotation
- * @Target({"METHOD","CLASS"})
  */
 #[Attribute(Attribute::TARGET_CLASS | Attribute::TARGET_METHOD | \Attribute::IS_REPEATABLE)]
 class Title extends AbstractAnnotation

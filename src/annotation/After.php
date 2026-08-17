@@ -3,13 +3,10 @@
 namespace erikwang2013\apidoc\annotation;
 
 use Attribute;
-use Doctrine\Common\Annotations\Annotation;
 
 /**
  * 接口调试前置事件
  * @package erikwang2013\apidoc\annotation
- * @Annotation
- * @Target({"METHOD","ANNOTATION"})
  */
 #[Attribute(Attribute::TARGET_METHOD | \Attribute::IS_REPEATABLE)]
 final class After extends EventBase

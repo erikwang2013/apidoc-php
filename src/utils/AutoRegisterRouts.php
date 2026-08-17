@@ -3,7 +3,6 @@ declare(strict_types = 1);
 
 namespace erikwang2013\apidoc\utils;
 
-//use Doctrine\Common\Annotations\AnnotationReader;
 use erikwang2013\apidoc\parses\ParseAnnotation;
 use erikwang2013\apidoc\utils\Helper;
 use ReflectionClass;

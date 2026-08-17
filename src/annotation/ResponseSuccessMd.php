@@ -3,14 +3,11 @@
 namespace erikwang2013\apidoc\annotation;
 
 use Attribute;
-use Doctrine\Common\Annotations\Annotation;
 use erikwang2013\apidoc\utils\AbstractAnnotation;
 
 /**
  * 成功响应体Markdown内容
  * @package erikwang2013\apidoc\annotation
- * @Annotation
- * @Target({"METHOD"})
  */
 #[Attribute(Attribute::TARGET_METHOD | \Attribute::IS_REPEATABLE)]
 class ResponseSuccessMd extends AbstractAnnotation
