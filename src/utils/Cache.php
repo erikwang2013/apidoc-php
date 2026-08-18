@@ -148,7 +148,7 @@ class Cache
             $createTime = filemtime($filename);
             if (0 != $expire && time() - $expire > $createTime) {
                 //缓存过期删除缓存文件
-                DirAndFile::unlink($item->getPathname());
+                DirAndFile::unlink($filename);
                 return;
             }
 

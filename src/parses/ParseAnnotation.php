@@ -12,8 +12,11 @@ use support\Log;
 class ParseAnnotation
 {
 
+    protected $config;
+
     public function __construct($config)
     {
+        $this->config = $config;
     }
     /**
      * 解析非@注解的文本注释
@@ -75,8 +78,14 @@ class ParseAnnotation
                     if (isset($params[0])){
                         $paramObj = [];
                         foreach ($params as $k=>$value) {
-                            $key = $k===0?'name':$k;
-                            $paramObj[$key]=$value;
+                            // 位置参数只取第一个映射为 name,其余数字键丢弃(与 AbstractAnnotation 行为一致)
+                            if (is_int($k)) {
+                                if ($k === 0) {
+                                    $paramObj['name'] = $value;
+                                }
+                                continue;
+                            }
+                            $paramObj[$k]=$value;
                         }
                     }else{
                         $paramObj = $params;
@@ -84,6 +93,9 @@ class ParseAnnotation
                     $value = $paramObj;
                 }
             }
+            // 有意行为:两个全空参数(如 #[Param()] 连写两次)塌缩为单个空值。
+            // 空值在下游被 !empty() 门控丢弃,塌缩与保留两空项输出无差异;
+            // 反之保留两空项会产出 truthy 的 ["",""] 并触发下游 array_key_first 于字符串的 TypeError。
             if (!empty($attrs[$name]) && is_array($attrs[$name]) && Helper::arrayKeyFirst($attrs[$name])===0){
                 $attrs[$name][]=$value;
             }else if(!empty($attrs[$name])){

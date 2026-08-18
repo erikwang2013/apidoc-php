@@ -54,6 +54,9 @@ class Yii3Service
      */
     public static function register(ContainerInterface $container, ?array $config = null)
     {
+        if (static::$container !== null) {
+            return; // 幂等:已注册过则跳过,避免静态 $container 被后续应用覆盖造成串扰
+        }
         static::$container = $container;
         static::$config = $config;
 
@@ -129,6 +132,17 @@ class Yii3Service
         throw new \RuntimeException('Yii3Service: 容器中未注册 ' . ResponseFactoryInterface::class . ',接口响应无法转换');
     }
 
+    /**
+     * 返回空 PSR-7 响应(OPTIONS 预检请求短路用)
+     */
+    static function emptyResponse(): ResponseInterface
+    {
+        if (static::$container !== null && static::$container->has(ResponseFactoryInterface::class)) {
+            return static::$container->get(ResponseFactoryInterface::class)->createResponse(204);
+        }
+        throw new \RuntimeException('Yii3Service: 容器中未注册 ' . ResponseFactoryInterface::class . ',OPTIONS 预检请求无法短路');
+    }
+
     private static function allMethods(): array
     {
         return ['GET', 'POST', 'PUT', 'PATCH', 'DELETE', 'HEAD', 'OPTIONS'];
@@ -177,13 +191,20 @@ class Yii3Service
 
     static function databaseQuery($sql)
     {
-        return static::$container->get(ConnectionInterface::class)->createCommand($sql)->queryAll();
+        if (static::$container !== null && static::$container->has(ConnectionInterface::class)) {
+            return static::$container->get(ConnectionInterface::class)->createCommand($sql)->queryAll();
+        }
+        return []; // 容器未注册 ConnectionInterface,返回空结果
     }
 
     static function getRootPath()
     {
         if (static::$container !== null && static::$container->has(Aliases::class)) {
-            $root = static::$container->get(Aliases::class)->get('@root');
+            try {
+                $root = static::$container->get(Aliases::class)->get('@root');
+            } catch (\Throwable $e) {
+                $root = null; // 别名未定义时走默认值
+            }
             if ($root !== null) {
                 return rtrim($root, '/') . '/';
             }
@@ -194,7 +215,11 @@ class Yii3Service
     static function getRuntimePath()
     {
         if (static::$container !== null && static::$container->has(Aliases::class)) {
-            $runtime = static::$container->get(Aliases::class)->get('@runtime');
+            try {
+                $runtime = static::$container->get(Aliases::class)->get('@runtime');
+            } catch (\Throwable $e) {
+                $runtime = null; // 别名未定义时走默认值
+            }
             if ($runtime !== null) {
                 return rtrim($runtime, '/') . '/';
             }

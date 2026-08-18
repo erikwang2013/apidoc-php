@@ -15,7 +15,10 @@ class Auth
     {
         $authConfig = !empty($config['auth'])?$config['auth']:[];
         if (empty($authConfig['secret_key'])){
-            $authConfig['secret_key'] = "apidoc#hgcode";
+            $authConfig['secret_key'] = "";
+        }
+        if (!empty($authConfig['enable']) && empty($authConfig['secret_key'])){
+            throw new ErrorException("apidoc auth 配置缺少 secret_key,请配置 auth.secret_key");
         }
         if (empty($authConfig['expire'])){
             $authConfig['expire'] = 86400;

@@ -159,7 +159,7 @@ class Controller
         if (!empty($config['cache']) && $config['cache']['enable']) {
             $cacheKey = Helper::getCacheKey('apiMenu', $appKey, $this->lang);
             $cacheData = (new Cache())->get($cacheKey);
-            if ($cacheData && empty($params['reload'])) {
+            if ($cacheData && empty($this->requestParams['reload'])) {
                 $apiData = $cacheData;
             } else {
                 // 生成数据并缓存
@@ -203,7 +203,9 @@ class Controller
         $apiKey = urldecode($params['path']);
         $this->checkAuth();
         if (!empty($config['cache']) && $config['cache']['enable']) {
-            $cacheKey = Helper::getCacheKey('apiDetail', $appKey, $this->lang, $params['path']);
+            // 清洗 path 防止 ../ 等穿越写缓存文件
+            $cachePath = str_replace(['/', '\\', '..'], '', (string)$params['path']);
+            $cacheKey = Helper::getCacheKey('apiDetail', $appKey, $this->lang, $cachePath);
             $cacheData = (new Cache())->get($cacheKey);
             if ($cacheData && empty($params['reload'])) {
                 $res = $cacheData;

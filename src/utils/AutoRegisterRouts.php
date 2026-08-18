@@ -17,6 +17,7 @@ class AutoRegisterRouts
 
     protected $config = [];
 
+    protected $parseAnnotation;
 
     protected $filterMethods = [
         '__construct',
@@ -25,6 +26,7 @@ class AutoRegisterRouts
     public function __construct($config)
     {
         $this->config = $config;
+        $this->parseAnnotation = new ParseAnnotation($config);
     }
 
     /**
@@ -81,9 +83,18 @@ class AutoRegisterRouts
 
     public function parseController($class)
     {
-        $refClass             = new ReflectionClass($class);
+        try {
+            $refClass             = new ReflectionClass($class);
+        } catch (\Throwable $e) {
+            // 类缺失(如父类不存在)时跳过
+            return false;
+        }
+        if (!$refClass->isInstantiable()) {
+            // 接口/trait 不解析为接口
+            return false;
+        }
         $classTextAnnotations = ParseAnnotation::parseTextAnnotation($refClass);
-        $classAnnotations = (new ParseAnnotation($this->config))->getClassAnnotation($refClass);
+        $classAnnotations = $this->parseAnnotation->getClassAnnotation($refClass);
         if (in_array("NotParse", $classTextAnnotations) || isset($classAnnotations['notParse'])) {
             return false;
         }
@@ -119,7 +130,7 @@ class AutoRegisterRouts
         }
         $config               = $this->config;
         $textAnnotations = ParseAnnotation::parseTextAnnotation($refMethod);
-        $methodAnnotation = (new ParseAnnotation($config))->getMethodAnnotation($refMethod);
+        $methodAnnotation = $this->parseAnnotation->getMethodAnnotation($refMethod);
         if (in_array("NotParse", $textAnnotations) || isset($methodAnnotation['notParse'])) {
             return false;
         }

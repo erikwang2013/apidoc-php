@@ -13,7 +13,7 @@ use erikwang2013\apidoc\utils\Helper;
  * Yii2 框架支持
  *
  * 接入方式(Yii2 无 composer 自动发现,需手动调用):
- * 在 web/index.php(或 console 入口)创建应用之后、run() 之前调用一次:
+ * 在 web/index.php 创建应用之后、run() 之前调用一次:
  *
  *     \erikwang2013\apidoc\providers\Yii2Service::register();
  *
@@ -25,7 +25,9 @@ use erikwang2013\apidoc\utils\Helper;
  * 说明:
  * - Yii2 的 UrlRule 不支持闭包回调,这里把路由注册为 URL 规则,
  *   经 controllerMap(取 url 首段)+ 自定义 Action(取剩余段)承载回调;
- *   因此 url 至少需要 controller/action 两段
+ *   剩余段(可含斜杠)整体作为 actionMap 的 actionId 注册,actions() 原样返回,
+ *   Yii2 会原样把剩余段作为 actionId 交给 createAction,因此支持多段 URL(如 /user/order/detail);
+ *   url 至少需要 controller/action 两段(首段进入 controllerMap)
  * - 用户接口 attribute 中配置的 middleware 在 Yii2 下不生效,
  *   请改用用户控制器自身的 behaviors()/ActionFilter(ponytail: 不做行为注入)
  */
@@ -72,6 +74,9 @@ class Yii2Service
             return; // Yii2 路由至少需要 controller/action 两段
         }
         list($controllerId, $actionId) = explode('/', $uri, 2);
+        if (isset(Yii2ApidocController::$actionMap[$controllerId][$actionId])) {
+            return; // 幂等:同 controllerId/actionId 已注册过则跳过,避免静态累积
+        }
         if (!isset(Yii::$app->controllerMap[$controllerId])) {
             Yii::$app->controllerMap[$controllerId] = Yii2ApidocController::class;
         }
@@ -119,12 +124,12 @@ class Yii2Service
 
     static function getRootPath()
     {
-        return rtrim(Yii::getAlias('@app'), '/') . '/';
+        return rtrim(Yii::$app->getBasePath(), '/') . '/';
     }
 
     static function getRuntimePath()
     {
-        return rtrim(Yii::getAlias('@runtime'), '/') . '/';
+        return rtrim(Yii::$app->getRuntimePath(), '/') . '/';
     }
 
     static function setLang($locale)

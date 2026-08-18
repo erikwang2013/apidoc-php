@@ -46,8 +46,6 @@ class DirAndFile
                             'name'=>$classes[0],
                             'path'=>$filePath
                         ];
-                    }else{
-                        $file_list=[];
                     }
                     continue;
                 }

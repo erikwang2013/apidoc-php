@@ -21,16 +21,16 @@ class Yii2Middleware extends ActionFilter
         $config['request_params'] = array_merge(Yii::$app->request->get(), Yii::$app->request->getBodyParams());
         ConfigProvider::set($config);
 
+        $request = Yii::$app->request;
         if (!empty($config['allowCrossDomain'])) {
             $headers = Yii::$app->response->headers;
-            $request = Yii::$app->request;
             $headers->set('Access-Control-Allow-Credentials', 'true');
             $headers->set('Access-Control-Allow-Origin', $request->headers->get('Origin', '*'));
             $headers->set('Access-Control-Allow-Methods', $request->headers->get('Access-Control-Request-Method', '*'));
             $headers->set('Access-Control-Allow-Headers', $request->headers->get('Access-Control-Request-Headers', '*'));
-            if ($request->isOptions) {
-                return false; // 预检请求直接短路
-            }
+        }
+        if ($request->isOptions) {
+            return false; // 预检请求无条件短路,不执行业务逻辑(与 WebmanMiddleware 一致)
         }
         return true;
     }

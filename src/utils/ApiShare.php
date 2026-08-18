@@ -52,8 +52,15 @@ class ApiShare
 
         foreach ($list as $item) {
             $fileNameArr = explode("_", $item['name']);
+            // 缓存文件名被清除或格式不符合 share_xxx 时跳过,避免 notice
+            if (count($fileNameArr) < 2) {
+                continue;
+            }
             $cacheKey = "share/" . $fileNameArr[0] . "_" . $fileNameArr[1];
             $cacheData = $cache->get($cacheKey);
+            if (empty($cacheData)) {
+                continue;
+            }
             $itemData = [
                 'key' => $fileNameArr[1],
                 'name' => $cacheData['name'],

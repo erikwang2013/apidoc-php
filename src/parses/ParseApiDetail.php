@@ -18,9 +18,12 @@ class ParseApiDetail
 
     protected $appKey;
 
+    protected $parseAnnotation;
+
     public function __construct($config)
     {
         $this->config = $config;
+        $this->parseAnnotation = new ParseAnnotation($config);
     }
 
     /**
@@ -67,7 +70,7 @@ class ParseApiDetail
             return false;
         }
         $classTextAnnotations = ParseAnnotation::parseTextAnnotation($refClass);
-        $classAnnotations = (new ParseAnnotation($config))->getClassAnnotation($refClass);
+        $classAnnotations = $this->parseAnnotation->getClassAnnotation($refClass);
 
         $textAnnotations = ParseAnnotation::parseTextAnnotation($refMethod);
         // 标注不解析的方法
@@ -193,6 +196,19 @@ class ParseApiDetail
             $methodAnnotations['before'] = $this->mergeGlobalOrAppEvents($debugBeforeEvents,'before');
         }
 
+        // 事件项补 type 标记(前端靠 type 区分 before/after);
+        // 在合并点之后统一打标,覆盖方法级/ref/全局事件三条来源
+        foreach (['before', 'after'] as $eventType) {
+            if (!empty($methodAnnotations[$eventType]) && is_array($methodAnnotations[$eventType])) {
+                foreach ($methodAnnotations[$eventType] as &$eventItem) {
+                    if (is_array($eventItem) && empty($eventItem['type'])) {
+                        $eventItem['type'] = $eventType;
+                    }
+                }
+                unset($eventItem);
+            }
+        }
+
         return $methodAnnotations;
     }
 
@@ -217,7 +233,7 @@ class ParseApiDetail
      * @return array
      */
     protected function getMethodAnnotation($refMethod,$refField=""){
-        $annotations = (new ParseAnnotation($this->config))->getMethodAnnotation($refMethod);
+        $annotations = $this->parseAnnotation->getMethodAnnotation($refMethod);
         // 需要处理的注解字段
         if (!empty($refField)){
             $handleFields =  [$refField];
@@ -443,6 +459,10 @@ class ParseApiDetail
         // 不处理合并的注解字段
         $notMergeNameFields=['before','after'];
         $data=[];
+        if (!is_array($params)) {
+            // 单字符串注解(如 #[Before("setHeader")])包成 name 键数组
+            $params = ['name' => $params];
+        }
         if (!empty($params)){
             // 处理单个注解为对象的参数
             if (!is_int(Helper::arrayKeyFirst($params))){
@@ -661,7 +681,7 @@ class ParseApiDetail
                     return $res;
                 }else{
                     // 类的参数property
-                    $private_properties = (new ParseAnnotation($config))->getClassPropertiesy($classReflect);
+                    $private_properties = $this->parseAnnotation->getClassPropertiesy($classReflect);
                     return [$field=>$private_properties];
                 }
             }
@@ -701,39 +721,6 @@ class ParseApiDetail
     }
 
 
-
-
-
-    public function handleEventAnnotation($annotation,$type){
-        $config      = $this->config;
-        if (!empty($annotation['ref'])){
-            if (strpos($annotation['ref'], '\\') === false && !empty($config['definitions']) ) {
-                $refPath     = $config['definitions'] . '\\' . $annotation['ref'];
-                $data        = $this->renderService($refPath);
-                if (!empty($data[$type])){
-                    return $data[$type];
-                }
-                return [];
-            }
-        }
-        if (!empty($annotation['value']) && is_array($annotation['value'])){
-            $beforeInfo = $annotation;
-            $valueList = [];
-            foreach ($annotation['value'] as $valueItem){
-                $valueItemInfo = $valueItem;
-                if ($valueItem instanceof Before){
-                    $valueItemInfo['type'] = "before";
-                }else if ($valueItem instanceof After){
-                    $valueItemInfo['type'] = "after";
-                }
-                $valueList[] = $valueItemInfo;
-            }
-            $beforeInfo['value'] = $valueList;
-            return [$beforeInfo];
-        }else{
-            return [$annotation];
-        }
-    }
 
 
 

@@ -90,6 +90,14 @@ class ParseMarkdown
             $fileSuffix = ".md";
         }
         $filePath    = APIDOC_ROOT_PATH . $mdPath . $fileSuffix;
+        // 路径穿越防护:解析后的真实路径必须位于 APIDOC_ROOT_PATH 内
+        $realPath = realpath($filePath);
+        if ($realPath !== false && !str_starts_with($realPath, realpath(APIDOC_ROOT_PATH))) {
+            return [
+                'filePath'=>'',
+                'anchor'=>$mdAnchor
+            ];
+        }
         return [
             'filePath'=>$filePath,
             'anchor'=>$mdAnchor

@@ -13,6 +13,10 @@ abstract class AbstractAnnotation
     {
         $formattedValue = $this->formatParams($value);
         foreach ($formattedValue as $key => $val) {
+            if (is_int($key)) {
+                // 数字键跳过,避免 PHP 8.2+ 动态属性 deprecated;位置参数由 formatParams 取 $value[0] 映射为 name
+                continue;
+            }
             if ($key=="value" && !property_exists($this, $key)){
                 $this->name = $val;
             }else{

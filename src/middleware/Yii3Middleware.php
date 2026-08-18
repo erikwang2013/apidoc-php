@@ -27,7 +27,9 @@ class Yii3Middleware implements MiddlewareInterface
         );
         ConfigProvider::set($config);
 
-        $response = $handler->handle($request);
+        $response = strtoupper($request->getMethod()) === 'OPTIONS'
+            ? Yii3Service::emptyResponse() // 预检请求无条件短路,不执行业务逻辑(与 WebmanMiddleware 一致)
+            : $handler->handle($request);
         if (!empty($config['allowCrossDomain'])) {
             $response = $response
                 ->withHeader('Access-Control-Allow-Credentials', 'true')

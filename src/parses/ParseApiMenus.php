@@ -26,9 +26,12 @@ class ParseApiMenus
 
     protected $appKey = "";
 
+    protected $parseAnnotation;
+
     public function __construct($config)
     {
         $this->config = $config;
+        $this->parseAnnotation = new ParseAnnotation($config);
     }
 
     /**
@@ -174,9 +177,18 @@ class ParseApiMenus
     {
 
 
-        $refClass             = new ReflectionClass($class);
+        try {
+            $refClass             = new ReflectionClass($class);
+        } catch (\Throwable $e) {
+            // 类缺失(如父类不存在)时跳过
+            return false;
+        }
+        if (!$refClass->isInstantiable()) {
+            // 接口/trait 不解析为接口
+            return false;
+        }
         $classTextAnnotations = ParseAnnotation::parseTextAnnotation($refClass);
-        $data = (new ParseAnnotation($this->config))->getClassAnnotation($refClass);
+        $data = $this->parseAnnotation->getClassAnnotation($refClass);
         if (in_array("NotParse", $classTextAnnotations) || isset($data['notParse'])) {
             return false;
         }
@@ -233,7 +245,7 @@ class ParseApiMenus
 
         $textAnnotations = ParseAnnotation::parseTextAnnotation($refMethod);
 
-        $methodAnnotation = (new ParseAnnotation($this->config))->getMethodAnnotation($refMethod);
+        $methodAnnotation = $this->parseAnnotation->getMethodAnnotation($refMethod);
         // 标注不解析的方法
         if (in_array("NotParse", $textAnnotations) || isset($methodAnnotation['notParse']) || empty($methodAnnotation)) {
             return false;

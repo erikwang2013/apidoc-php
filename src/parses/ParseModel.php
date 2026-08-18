@@ -15,9 +15,12 @@ class ParseModel
 {
     protected $config = [];
 
+    protected $parseAnnotation;
+
     public function __construct($config = [])
     {
         $this->config = $config;
+        $this->parseAnnotation = new ParseAnnotation($config);
     }
 
     public function parseModelTable($model, $classReflect, $methodName = "")
@@ -40,7 +43,7 @@ class ParseModel
             }
 
             $methodReflect = $classReflect->getMethod($methodName);
-            $annotations = (new ParseAnnotation($config))->getMethodAnnotation($methodReflect);
+            $annotations = $this->parseAnnotation->getMethodAnnotation($methodReflect);
             if (!empty($annotations['field'])) {
                 $table = ParseApiDetail::filterParamsField($table, $annotations['field'], 'field');
             }
