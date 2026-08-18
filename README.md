@@ -54,7 +54,9 @@ Apidoc是一个通过解析PHP 8 attributes生成Api接口文档的PHP composer�
 
 ## 📖使用文档
 
-[使用说明](docs/使用说明.md)（安装、框架接入、配置参数、attributes 写法、常用功能、常见问题）
+[使用说明（中文）](docs/USAGE.md) · [Usage Guide (English)](docs/USAGE-EN.md)
+
+（安装、框架接入、配置参数、attributes 写法、常用功能、常见问题）
 
 
 ## 🏆支持我们
