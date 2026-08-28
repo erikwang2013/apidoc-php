@@ -4,7 +4,6 @@
 namespace erikwang2013\apidoc\exception;
 
 
-use erikwang2013\apidoc\utils\ConfigProvider;
 use erikwang2013\apidoc\utils\Helper;
 
 class ErrorException extends HttpException
@@ -42,7 +41,6 @@ class ErrorException extends HttpException
 
     public function __construct(string $exceptionCode, array $data = [])
     {
-        $config = ConfigProvider::get();
         $exception = $this->getException($exceptionCode);
         if ($exception){
             $msg       = Helper::replaceTemplate($exception['msg'], $data);

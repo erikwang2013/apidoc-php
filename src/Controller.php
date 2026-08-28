@@ -412,6 +412,7 @@ class Controller
             throw new ErrorException('field not found', ['field' => 'key']);
         }
         $cacheData = (new ApiShare())->getShareDetailByKey($params['key']);
+        unset($cacheData['password']); // 不向前端暴露分享密码明文
         return Helper::showJson(0, "", $cacheData);
     }
 
@@ -461,7 +462,7 @@ class Controller
         $this->init(true);
         $config = $this->config;
         $params = $this->requestParams;
-        if($config['export_config']['enable'] === false){
+        if(empty($config['export_config']) || $config['export_config']['enable'] === false){
             throw new ErrorException('export config not enable');
         }
         if (empty($params['key'])) {

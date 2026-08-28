@@ -18,10 +18,13 @@ class ApiShare
     public function addApiShare($params){
         if (!empty($params['key'])) {
             //编辑
+            if (!preg_match('/^[a-zA-Z0-9-]{1,64}$/', $params['key'])) {
+                throw new ErrorException('field not found', ['field' => 'key']);
+            }
             $cacheKey = "share/apiShare_" . $params['key'];
         } else {
             //新增
-            $cacheKey = "share/apiShare_" . time();
+            $cacheKey = "share/apiShare_" . uniqid();
         }
 
         $data = [

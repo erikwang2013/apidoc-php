@@ -64,6 +64,8 @@ class Cache
      */
     public function getCacheKey(string $name): string
     {
+        // 清洗路径字符,防止缓存键穿越缓存目录写入任意文件
+        $name = str_replace(['/', '\\', '..'], '', $name);
         $name = $name."_".hash($this->options['hash_type'], $name);
 
         if ($this->options['prefix']) {
@@ -105,6 +107,10 @@ class Cache
 
         $unserialize = $this->options['serialize'][1] ?? "unserialize";
 
+        if ($unserialize === 'unserialize') {
+            return unserialize($data, ['allowed_classes' => false]);
+        }
+
         return $unserialize($data);
     }
 
@@ -117,14 +123,6 @@ class Cache
      */
     protected function getExpireTime($expire): int
     {
-        if ($expire instanceof DateTimeInterface) {
-            $expire = $expire->getTimestamp() - time();
-        } elseif ($expire instanceof DateInterval) {
-            $expire = DateTime::createFromFormat('U', (string) time())
-                    ->add($expire)
-                    ->format('U') - time();
-        }
-
         return (int) $expire;
     }
 
