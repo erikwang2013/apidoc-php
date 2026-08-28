@@ -14,12 +14,12 @@ class WebmanService
         ! defined('APIDOC_ROOT_PATH') && define('APIDOC_ROOT_PATH', WebmanMiddleware::getRootPath());
         ! defined('APIDOC_STORAGE_PATH') && define('APIDOC_STORAGE_PATH', WebmanMiddleware::getRuntimePath());
 
-        CommonService::registerApidocRoutes(function ($item){
+        WebmanMiddleware::registerApidocRoutes(function ($item){
             Route::any($item['uri'],$item['callback'])->middleware([WebmanMiddleware::class]);
         });
 
         // 自动注册路由
-        CommonService::autoRegisterRoutes(function ($routeData){
+        WebmanMiddleware::autoRegisterRoutes(function ($routeData){
             foreach ($routeData as $controller) {
                 if (count($controller['methods'])){
                     $methods= $controller['methods'];

@@ -47,7 +47,7 @@ class HyperfMiddleware
 
     static function registerRoute($route)
     {
-        // TODO: Implement registerRoute() method.
+        // Hyperf 路由由 HyperfService::register() 统一注册,此方法仅满足 BaseService 抽象定义
     }
 
     static function databaseQuery($sql)

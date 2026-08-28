@@ -21,12 +21,12 @@ class HyperfService
         ! defined('APIDOC_ROOT_PATH') && define('APIDOC_ROOT_PATH', HyperfMiddleware::getRootPath());
         ! defined('APIDOC_STORAGE_PATH') && define('APIDOC_STORAGE_PATH', HyperfMiddleware::getRuntimePath());
 
-        CommonService::registerApidocRoutes(function ($item){
+        HyperfMiddleware::registerApidocRoutes(function ($item){
             Router::addRoute(['GET','POST'],$item['uri'],$item['callback'],['middleware' => [HyperfMiddleware::class]]);
         });
 
         // 自动注册路由
-        CommonService::autoRegisterRoutes(function ($routeData){
+        HyperfMiddleware::autoRegisterRoutes(function ($routeData){
             foreach ($routeData as $controller) {
                 if (count($controller['methods'])){
                     $methods= $controller['methods'];
