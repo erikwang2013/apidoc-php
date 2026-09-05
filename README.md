@@ -92,9 +92,9 @@ class User
 
 ## 📖使用文档
 
-[Attributes 使用说明](docs/ATTRIBUTES.md) · [使用说明（中文）](docs/USAGE.md) · [Usage Guide (English)](docs/USAGE-EN.md)
+[Attributes 使用说明](docs/ATTRIBUTES.md)
 
-（注解写法教程 / 安装、框架接入、配置参数、常用功能、常见问题）
+（安装与框架接入、注解写法教程、参数说明）
 
 
 ## 🏆支持我们

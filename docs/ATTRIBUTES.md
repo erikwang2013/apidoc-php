@@ -1,6 +1,34 @@
 # Attributes 使用说明（PHP 8 原生注解）
 
-本文档对应官方使用说明中的 **PHP 8 attributes 写法**（`#[注解(...)]`），不含 doctrine 旧注解（`@注解`）写法。示例均使用本项目命名空间 `erikwang2013\apidoc`。
+本文档为基于 **PHP 8 attributes**（`#[注解(...)]`）的使用说明，不含 doctrine 旧注解（`@注解`）写法。示例均使用本项目命名空间 `erikwang2013\apidoc`。
+
+## 〇、安装与框架接入
+
+```bash
+composer require erikwang2013/apidoc-php
+```
+
+要求 PHP >= 8.0（attributes 语法）。安装后文档默认挂在 `/apidoc` 路由下（可通过配置键 `route_prefix` 修改）。
+
+| 框架 | 接入方式 |
+| --- | --- |
+| Laravel >= 8 | 经 `extra.laravel.providers` 自动注册，无需手动添加 Provider；执行 `php artisan vendor:publish --provider="erikwang2013\apidoc\providers\LaravelService"` 发布配置到 `config/apidoc.php` |
+| ThinkPHP >= 5.1 | 经 `extra.think.services` 自动注册（TP5 使用 `ThinkPHP5Service`）；`extra.think.config` 将包内 `src/config.php` 合并为应用配置键 `apidoc`（`config/apidoc.php`） |
+| Hyperf >= 2 | `extra.hyperf.config` 指向 `erikwang2013\apidoc\ConfigProvider`，自动注册；将包内 `src/config.php` 复制到 `config/autoload/apidoc.php` |
+| Webman >= 1 | 插件机制：安装后在项目根目录执行 `php webman install`，配置发布到 `config/plugin/erikwang2013/apidoc/`（`app.php` 为主配置，`route.php` 自动注册 `/apidoc` 路由） |
+| Yii2 >= 2.0 | 入口脚本（`web/index.php`）中在应用创建后、`$app->run()` 前手动调用 `Yii2Service::register()`（需开启 urlManager 的 `enablePrettyUrl`）；配置通过 `params['apidoc']` 提供 |
+| Yii3 >= 3.0 | 手动调用 `Yii3Service::register($container[, $config])`；配置通过 `params['apidoc']` 提供 |
+
+以 ThinkPHP 为例的最小配置（`config/apidoc.php`）：
+
+```php
+return [
+    'apps' => [
+        ['title' => 'Api接口', 'path' => 'app\controller', 'key' => 'api'],
+    ],
+    'definitions' => "app\common\controller\Definitions",
+];
+```
 
 ## 一、引入 Apidoc 注解
 
