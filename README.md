@@ -38,6 +38,48 @@ Apidoc是一个通过解析PHP 8 attributes生成Api接口文档的PHP composer�
 - 接口分享：支持自由指定应用/接口生成分享链接、导出swagger.json文件。
 
 
+## 🚀快速开始
+
+安装：
+
+```bash
+composer require erikwang2013/apidoc-php
+```
+
+配置应用目录与通用定义（不同框架的配置发布方式略有差异，详见下方使用文档“框架接入”；ThinkPHP 为例，编辑 `config/apidoc.php`）：
+
+```php
+return [
+    'apps' => [
+        ['title' => 'Api接口', 'path' => 'app\controller', 'key' => 'api'],
+    ],
+    'definitions' => "app\common\controller\Definitions",
+];
+```
+
+在控制器中通过 PHP 8 attributes 编写接口注解：
+
+```php
+use erikwang2013\apidoc\annotation as Apidoc;
+
+#[Apidoc\Title("用户")]
+#[Apidoc\Desc("用户相关接口")]
+class User
+{
+    #[Apidoc\Method("GET")]
+    #[Apidoc\Url("/user/info")]
+    #[Apidoc\Query(name: "id", type: "int", require: true, desc: "用户ID")]
+    #[Apidoc\Returned(name: "nickname", type: "string", desc: "昵称")]
+    public function info()
+    {
+        // ...
+    }
+}
+```
+
+访问 `http://你的域名/apidoc` 即可查看自动生成的接口文档（在线调试、Mock、Json/TypeScript 生成等能力开箱即用）。
+
+
 ## 📌兼容
 
 以下框架已内置兼容，可开箱即用
