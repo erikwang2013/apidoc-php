@@ -3,14 +3,14 @@
 </h1>
 
 <div align="center">
- 基于PHP 8 attributes生成API文档及Api接口开发工具
+ 基于 PHP 8 attributes 的 API 文档生成与接口开发工具，兼容 Laravel、ThinkPHP、Hyperf、Webman、Yii2、Yii3
 </div>
 
 <div align="center" style="margin-top:10px;margin-bottom:50px;">
-<a href="https://packagist.org/packages/erik/apidoc"><img src="https://img.shields.io/packagist/v/erik/apidoc"></a>
-<a href="https://packagist.org/packages/erik/apidoc"><img src="https://img.shields.io/packagist/dt/erik/apidoc"></a>
-<a href="https://packagist.org/packages/erik/apidoc"><img src="https://img.shields.io/packagist/dm/erik/apidoc"></a>
-<a href="https://packagist.org/packages/erik/apidoc"><img src="https://img.shields.io/packagist/l/erik/apidoc"></a>
+<a href="https://packagist.org/packages/erikwang2013/apidoc-php"><img src="https://img.shields.io/packagist/v/erikwang2013/apidoc-php"></a>
+<a href="https://packagist.org/packages/erikwang2013/apidoc-php"><img src="https://img.shields.io/packagist/dt/erikwang2013/apidoc-php"></a>
+<a href="https://packagist.org/packages/erikwang2013/apidoc-php"><img src="https://img.shields.io/packagist/dm/erikwang2013/apidoc-php"></a>
+<a href="https://packagist.org/packages/erikwang2013/apidoc-php"><img src="https://img.shields.io/packagist/l/erikwang2013/apidoc-php"></a>
 <a href="https://github.com/erikwang2013/apidoc-php"><img src="https://img.shields.io/github/issues/erikwang2013/apidoc-php"></a>
 <a href="https://github.com/erikwang2013/apidoc-php"><img src="https://img.shields.io/github/forks/erikwang2013/apidoc-php"></a>
 </div>
@@ -21,7 +21,7 @@
 Apidoc是一个通过解析PHP 8 attributes生成Api接口文档的PHP composer扩展，兼容Laravel、ThinkPHP、Hyperf、Webman、Yii2、Yii3等框架；
 全面的attributes引用、数据表字段引用，简单的attributes即可生成Api文档，而Apidoc不仅于接口文档，在线接口调试、Mock调试数据、调试事件处理、Json/TypeScript生成、接口生成器、代码生成器等诸多实用功能，致力于提高Api接口开发效率。
 
-> 本项目是 [HGthecode/apidoc-php](https://github.com/HGthecode/apidoc-php) 的 fork：移除了 doctrine/annotations 旧注解依赖，仅支持 PHP 8 attributes（PHP >= 8.0），包名 `erik/apidoc`，命名空间 `erikwang2013\apidoc`，其余注解类、配置键与官方基本一致。
+> 本项目 fork 自 [HGthecode/apidoc-php](https://github.com/HGthecode/apidoc-php)：移除了 doctrine/annotations 旧注解依赖，仅支持 PHP 8 attributes（PHP >= 8.0），注解类与配置键与上游基本一致，由 erikwang2013 持续维护。
 
 
 ## ✨特性

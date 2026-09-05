@@ -2,7 +2,7 @@
 
 Apidoc is a PHP composer extension that parses PHP 8 attributes to generate API documentation. It is compatible with Laravel, ThinkPHP, Hyperf, Webman, Yii2, Yii3 and other frameworks.
 
-> This project is a fork of [HGthecode/apidoc-php](https://github.com/HGthecode/apidoc-php): the old `doctrine/annotations` dependency is removed, only PHP 8 attributes are supported (PHP >= 8.0). Package name `erik/apidoc`, namespace `erikwang2013\apidoc`. Annotation classes and config keys are basically the same as the official version.
+> This project is a fork of [HGthecode/apidoc-php](https://github.com/HGthecode/apidoc-php): the old `doctrine/annotations` dependency is removed and only PHP 8 attributes are supported (PHP >= 8.0). Annotation classes and config keys are basically the same as the upstream version; maintained by erikwang2013.
 
 ---
 
@@ -22,98 +22,115 @@ Apidoc is a PHP composer extension that parses PHP 8 attributes to generate API 
 ## 2. Installation
 
 ```bash
-composer require erik/apidoc
+composer require erikwang2013/apidoc-php
 ```
 
 ## 3. Framework Integration
 
-### 3.1 Laravel
+### 3.1 Laravel (>= 8)
 
-1. Publish config and static resources:
+The provider is auto-discovered via `extra.laravel.providers` (`erikwang2013\apidoc\providers\LaravelService`), so no manual registration is needed.
+
+Publish the config file (creates `config/apidoc.php`):
 
 ```bash
-php artisan vendor:publish --provider="erikwang2013\apidoc\providers\LaravelServiceProvider"
+php artisan vendor:publish --provider="erikwang2013\apidoc\providers\LaravelService"
 ```
 
-2. Add the route in `routes/web.php` (example):
+Edit `config/apidoc.php` as needed and visit `http://your-domain/apidoc` — the provider registers the doc route automatically.
+
+### 3.2 ThinkPHP (>= 5.1)
+
+The service is registered automatically via `extra.think.services` (`ThinkPHPService`, with `ThinkPHP5Service` used on TP5); `extra.think.config` merges the package's `src/config.php` into your app config under the `apidoc` key:
 
 ```php
-Route::any('apidoc', 'erikwang2013\apidoc\ApiDoc@index');
-Route::any('apidoc/api', 'erikwang2013\apidoc\ApiDoc@api');
+// config/apidoc.php
+return [
+    'apps' => [
+        [
+            'title' => 'Api接口',
+            'path'  => 'app\controller',
+            'key'   => 'api',
+        ],
+    ],
+    // ...rest of the keys, same as the defaults
+];
 ```
 
-### 3.2 ThinkPHP 5.x
+Visit `http://your-domain/apidoc`.
 
-Add to `route/route.php`:
+### 3.3 Hyperf (>= 2)
+
+`extra.hyperf.config` points to `erikwang2013\apidoc\ConfigProvider`, which registers automatically. Copy the package's `src/config.php` to `config/autoload/apidoc.php` and edit it:
 
 ```php
-Route::any('apidoc', 'erikwang2013\apidoc\ApiDoc@index');
-Route::any('apidoc/api', 'erikwang2013\apidoc\ApiDoc@api');
+// config/autoload/apidoc.php
+return [
+    'title' => 'Apidoc',
+    'apps'  => [
+        [
+            'title' => 'Api接口',
+            'path'  => 'app\Controller',
+            'key'   => 'api',
+        ],
+    ],
+];
 ```
 
-### 3.3 ThinkPHP 6.x / 8.x
+### 3.4 Webman (>= 1)
 
-In `route/app.php`:
+Webman is integrated through its plugin mechanism: after `composer require`, run `php webman install` in the project root. The plugin publishes its config to `config/plugin/erikwang2013/apidoc/` — edit `app.php` for your settings (`route.php` registers the `/apidoc` doc route automatically), then restart Webman and visit `/apidoc`.
 
-```php
-Route::any('apidoc', 'erikwang2013\apidoc\ApiDoc@index');
-Route::any('apidoc/api', 'erikwang2013\apidoc\ApiDoc@api');
-```
+### 3.5 Yii2 (>= 2.0)
 
-### 3.4 Hyperf
-
-In `config/routes.php`:
+`urlManager` must have `enablePrettyUrl` enabled. Register the service manually in your entry script, after the application is created and before `$app->run()`:
 
 ```php
-Router::addRoute(['GET', 'POST', 'HEAD'], '/apidoc', 'erikwang2013\apidoc\ApiDoc@index');
-Router::addRoute(['GET', 'POST', 'HEAD'], '/apidoc/api', 'erikwang2013\apidoc\ApiDoc@api');
-```
+// web/index.php
+require __DIR__ . '/../vendor/autoload.php';
+require __DIR__ . '/../vendor/yiisoft/yii2/Yii.php';
 
-### 3.5 Webman
+$config = require __DIR__ . '/../config/web.php';
+$app = new yii\web\Application($config);
 
-In `config/route.php`:
-
-```php
-Route::any('/apidoc', ['erikwang2013\apidoc\ApiDoc', 'index']);
-Route::any('/apidoc/api', ['erikwang2013\apidoc\ApiDoc', 'api']);
-```
-
-### 3.6 Yii2
-
-Requirements: `urlManager` must have `enablePrettyUrl` enabled, and the apidoc module registered with the application.
-
-In your application bootstrap / config:
-
-```php
-// Enable pretty URLs first (in config):
-// 'urlManager' => [
-//     'enablePrettyUrl' => true,
-//     'showScriptName' => false,
-//     ...
-// ],
-
+// Register Apidoc (after the app is created, before $app->run())
 \erikwang2013\apidoc\providers\Yii2Service::register();
+
+$app->run();
 ```
 
-Then add the module routes (example, in your controller or route config):
+The config is read from `params['apidoc']` in your Yii config:
 
 ```php
-Yii::$app->controllerMap = array_merge(Yii::$app->controllerMap, [
-    'apidoc' => 'erikwang2013\apidoc\ApiDoc',
-]);
+// config/web.php
+return [
+    'components' => [
+        'urlManager' => ['enablePrettyUrl' => true],
+    ],
+    'params' => [
+        'apidoc' => [
+            'title' => 'Api接口',
+            'apps'  => [
+                ['title' => '接口文档', 'path' => '@app/controllers', 'key' => 'api'],
+            ],
+        ],
+    ],
+];
 ```
 
-Visit `/index.php?r=apidoc` (or the pretty URL after your rules).
+Note: middleware set in interface attributes (e.g. `#[RouteMiddleware]`) is not applied under Yii2 — use the controller's own `behaviors()` / `ActionFilter` for authentication if needed.
 
-### 3.7 Yii3
+### 3.6 Yii3 (>= 3.0)
 
-Register the service with your container:
+Register the service manually with your PSR-11 container:
 
 ```php
-\erikwang2013\apidoc\providers\Yii3Service::register($container, $config);
+\erikwang2013\apidoc\providers\Yii3Service::register($container);
+// or pass the config array directly:
+// \erikwang2013\apidoc\providers\Yii3Service::register($container, $config);
 ```
 
-Where `$container` is your PSR-11 container and `$config` is the apidoc config array. Then add routes to your router.
+The config is read from `params['apidoc']` (same structure as the Yii2 example above).
 
 ## 4. Configuration
 
@@ -480,9 +497,9 @@ foreach ($routes as $controllerData) {
 
 ## 7. FAQ
 
-### 7.1 Composer reports "could not be found" for `erik/apidoc`
+### 7.1 Composer reports "could not be found" for `erikwang2013/apidoc-php`
 
-Run `composer clear-cache` and `composer update erik/apidoc`. If you are in China, consider using the Aliyun mirror: `composer config -g repo.packagist composer https://mirrors.aliyun.com/composer/`.
+Run `composer clear-cache` and `composer update erikwang2013/apidoc-php`. If you are in China, consider using the Aliyun mirror: `composer config -g repo.packagist composer https://mirrors.aliyun.com/composer/`.
 
 ### 7.2 Nothing shows in the docs, controllers not found
 

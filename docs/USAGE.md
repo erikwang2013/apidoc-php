@@ -2,7 +2,7 @@
 
 ## 一、介绍
 
-Apidoc 是基于 **PHP 8 attributes 注解体系**生成 API 文档的 composer 扩展包（包名 `erik/apidoc`，命名空间 `erikwang2013\apidoc`），同时提供在线调试、Mock、Json/TypeScript 代码生成、接口生成器、代码生成器、数据表字段引用等能力。
+Apidoc 是基于 **PHP 8 attributes 注解体系**生成 API 文档的 composer 扩展包（包名 `erikwang2013/apidoc-php`，命名空间 `erikwang2013\apidoc`），同时提供在线调试、Mock、Json/TypeScript 代码生成、接口生成器、代码生成器、数据表字段引用等能力。
 
 - 本项目是 [HGthecode/apidoc-php](https://github.com/HGthecode/apidoc-php) 的 fork，由 erik 维护。
 - **仅支持 PHP >= 8.0**，注解一律使用 PHP 8 原生 attributes 书写（`#[注解名(...)]`），不支持旧版 `@注解` 原始注解写法（doctrine 注解依赖已移除）。
@@ -10,11 +10,10 @@ Apidoc 是基于 **PHP 8 attributes 注解体系**生成 API 文档的 composer 
 ## 二、安装
 
 ```bash
-composer require erik/apidoc
+composer require erikwang2013/apidoc-php
 ```
 
 - 要求 PHP >= 8.0（attributes 语法依赖）
-- 包名 `erik/apidoc`；若 Packagist 尚未发布，可在 `composer.json` 的 `repositories` 中配置指向本仓库安装
 - 安装完成后无需额外配置即可编写注解，文档默认挂在 `/apidoc` 路由下（可通过配置键 `route_prefix` 修改）
 
 ## 三、框架接入
@@ -71,7 +70,7 @@ return [
 
 ### Webman（>= 1.x）
 
-Webman 的插件机制会自动加载 `config/plugin/erik/apidoc/config.php`。将包内 `config.php` 复制到该位置并按需修改，重启 Webman 后访问 `/apidoc` 即可。
+Webman 通过插件机制接入：安装后在项目根目录执行 `php webman install`，插件配置即发布到 `config/plugin/erikwang2013/apidoc/`（`app.php` 为主配置，`route.php` 会自动注册 `/apidoc` 文档路由）。编辑 `app.php` 按需修改后重启 Webman 即可。
 
 ### Yii 2
 
@@ -233,7 +232,7 @@ $container = require __DIR__ . '/../config/container.php';
 'auth' => [
     'enable'     => false,
     'password'   => '123456',
-    'secret_key' => 'apidoc#hg_code',
+    'secret_key' => 'apidoc#erik.xyz',
     'expire'     => 24 * 60 * 60,
 ],
 ```
@@ -508,7 +507,7 @@ public function info() {}
 
 **6. 与官方 hg/apidoc 的关系？**
 
-本项目是 [HGthecode/apidoc-php](https://github.com/HGthecode/apidoc-php) 的 fork（包名 `erik/apidoc`，命名空间 `erikwang2013\apidoc`），由 erik 维护：移除了 doctrine 旧注解依赖，仅支持 PHP 8 attributes；其余注解类、配置键与官方基本一致，本文档以本项目 `src/config.php` 与 `src/annotation/` 实际内容为准。官方文档站：[https://hgthecode.github.io/apidoc-php](https://hgthecode.github.io/apidoc-php)
+本项目是 [HGthecode/apidoc-php](https://github.com/HGthecode/apidoc-php) 的 fork，由 erikwang2013 维护：移除了 doctrine 旧注解依赖，仅支持 PHP 8 attributes；注解类、配置键与上游基本一致，差异以本文档（对应 `src/config.php` 与 `src/annotation/` 实际内容）为准。上游官方文档站：[https://hgthecode.github.io/apidoc-php](https://hgthecode.github.io/apidoc-php)
 
 ## 附录：完整配置代码
 
@@ -570,7 +569,7 @@ return [
         // 全局访问密码
         'password'   => "123456",
         // 密码加密盐
-        'secret_key' => "apidoc#hg_code",
+        'secret_key' => "apidoc#erik.xyz",
         // 授权访问后的有效期
         'expire' => 24*60*60
     ],

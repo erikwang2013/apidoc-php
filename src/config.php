@@ -39,7 +39,7 @@ return [
         // 全局访问密码
         'password'   => "123456",
         // 密码加密盐
-        'secret_key' => "apidoc#hg_code",
+        'secret_key' => "apidoc#erik.xyz",
         // 授权访问后的有效期
         'expire' => 24*60*60
     ],
