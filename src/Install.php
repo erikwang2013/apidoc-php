@@ -11,7 +11,7 @@ class Install
      * @var array
      */
     protected static $configPath = array (
-      'config/plugin/hg/apidoc' => 'config/plugin/hg/apidoc',
+      'config/plugin/erikwang2013/apidoc' => 'config/plugin/erikwang2013/apidoc',
     );
 
     /**
