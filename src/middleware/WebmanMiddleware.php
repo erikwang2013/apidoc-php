@@ -37,8 +37,8 @@ class WebmanMiddleware implements MiddlewareInterface
 
     static function getApidocConfig()
     {
-        $config = config('plugin.hg.apidoc.app.apidoc');
-        $exportConfig = config('plugin.hg.apidoc-export.app');
+        $config = config('plugin.erikwang2013.apidoc.app.apidoc');
+        $exportConfig = config('plugin.erikwang2013.apidoc-export.app');
         if (!(!empty($config['auto_url']) && !empty($config['auto_url']['filter_keys']))){
             $config['auto_url']['filter_keys'] = ['app','controller'];
         }
