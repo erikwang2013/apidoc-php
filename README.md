@@ -1,19 +1,15 @@
-<h1 align="center" style="margin-top: 0;padding-top: 0;">
-  Apidoc
-</h1>
+![Apidoc 宠物](assets/apidoc-pet.svg)
 
-<div align="center">
- 基于 PHP 8 attributes 的 API 文档生成与接口开发工具，兼容 Laravel、ThinkPHP、Hyperf、Webman、Yii2、Yii3
-</div>
+# Apidoc
 
-<div align="center" style="margin-top:10px;margin-bottom:50px;">
-<a href="https://packagist.org/packages/erikwang2013/apidoc-php"><img src="https://img.shields.io/packagist/v/erikwang2013/apidoc-php"></a>
-<a href="https://packagist.org/packages/erikwang2013/apidoc-php"><img src="https://img.shields.io/packagist/dt/erikwang2013/apidoc-php"></a>
-<a href="https://packagist.org/packages/erikwang2013/apidoc-php"><img src="https://img.shields.io/packagist/dm/erikwang2013/apidoc-php"></a>
-<a href="https://packagist.org/packages/erikwang2013/apidoc-php"><img src="https://img.shields.io/packagist/l/erikwang2013/apidoc-php"></a>
-<a href="https://github.com/erikwang2013/apidoc-php"><img src="https://img.shields.io/github/issues/erikwang2013/apidoc-php"></a>
-<a href="https://github.com/erikwang2013/apidoc-php"><img src="https://img.shields.io/github/forks/erikwang2013/apidoc-php"></a>
-</div>
+基于 PHP 8 attributes 的 API 文档生成与接口开发工具，兼容 Laravel、ThinkPHP、Hyperf、Webman、Yii2、Yii3
+
+[![Packagist Version](https://img.shields.io/packagist/v/erikwang2013/apidoc-php)](https://packagist.org/packages/erikwang2013/apidoc-php)
+[![Packagist Downloads](https://img.shields.io/packagist/dt/erikwang2013/apidoc-php)](https://packagist.org/packages/erikwang2013/apidoc-php)
+[![Packagist Monthly Downloads](https://img.shields.io/packagist/dm/erikwang2013/apidoc-php)](https://packagist.org/packages/erikwang2013/apidoc-php)
+[![License](https://img.shields.io/packagist/l/erikwang2013/apidoc-php)](https://packagist.org/packages/erikwang2013/apidoc-php)
+[![GitHub Issues](https://img.shields.io/github/issues/erikwang2013/apidoc-php)](https://github.com/erikwang2013/apidoc-php)
+[![GitHub Forks](https://img.shields.io/github/forks/erikwang2013/apidoc-php)](https://github.com/erikwang2013/apidoc-php)
 
 ## 📖项目介绍
 
@@ -101,6 +97,4 @@ class User
 
 如果本项目对您有所帮助，请点个Star支持我们
 
-- [Github](https://github.com/erikwang2013/apidoc-php) -> <a href="https://github.com/erikwang2013/apidoc-php" target="_blank">
-  <img height="22" src="https://img.shields.io/github/stars/erikwang2013/apidoc-php?style=social" class="attachment-full size-full" alt="Star me on GitHub" data-recalc-dims="1" /></a>
-
+- [Github](https://github.com/erikwang2013/apidoc-php) [![Star on GitHub](https://img.shields.io/github/stars/erikwang2013/apidoc-php?style=social)](https://github.com/erikwang2013/apidoc-php)
