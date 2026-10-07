@@ -4,25 +4,11 @@ declare (strict_types = 1);
 
 namespace erikwang2013\apidoc\utils;
 
-use FilesystemIterator;
-
 /**
  * 文件缓存类
  */
 class Cache
 {
-    /**
-     * 缓存写入次数
-     * @var integer
-     */
-    protected $writeTimes = 0;
-
-    /**
-     * 缓存读取次数
-     * @var integer
-     */
-    protected $readTimes = 0;
-
     /**
      * 配置参数
      * @var array
@@ -48,7 +34,18 @@ class Cache
         }
 
         if (empty($this->options['path'])) {
-            $this->options['path'] = APIDOC_STORAGE_PATH .'/'. 'apidoc';
+            // 默认目录与配置的 cache.folder 保持一致(默认 apidoc),
+            // 避免写入用默认目录、而 ApiShare/Controller 按 folder 读路径导致分叉
+            $folder = 'apidoc';
+            try {
+                $config = ConfigProvider::get();
+                if (!empty($config['cache']['folder'])) {
+                    $folder = trim((string)$config['cache']['folder'], "/\\");
+                }
+            } catch (\Throwable $e) {
+                // 配置未初始化时使用默认目录
+            }
+            $this->options['path'] = APIDOC_STORAGE_PATH .'/'. $folder;
         }
 
         if (substr($this->options['path'], -1) != DIRECTORY_SEPARATOR) {
@@ -64,8 +61,16 @@ class Cache
      */
     public function getCacheKey(string $name): string
     {
-        // 清洗路径字符,防止缓存键穿越缓存目录写入任意文件
-        $name = str_replace(['/', '\\', '..'], '', $name);
+        // 清洗路径:反斜杠归一为 /,按段丢弃空段与含 .. 的段
+        // 保留子目录结构(如 share/apiShare_xxx),同时防止缓存键穿越缓存目录写入任意文件
+        $segments = [];
+        foreach (explode('/', str_replace('\\', '/', $name)) as $segment) {
+            if ($segment === '' || strpos($segment, '..') !== false) {
+                continue;
+            }
+            $segments[] = $segment;
+        }
+        $name = implode('/', $segments);
         $name = $name."_".hash($this->options['hash_type'], $name);
 
         if ($this->options['prefix']) {
@@ -162,17 +167,6 @@ class Cache
     }
 
     /**
-     * 判断缓存是否存在
-     * @access public
-     * @param string $name 缓存变量名
-     * @return bool
-     */
-    public function has($name): bool
-    {
-        return $this->getRaw($name) !== null;
-    }
-
-    /**
      * 读取缓存
      * @access public
      * @param string $name    缓存变量名
@@ -181,8 +175,6 @@ class Cache
      */
     public function get($name, $default = null)
     {
-        $this->readTimes++;
-
         $raw = $this->getRaw($name);
 
         return is_null($raw) ? $default : $this->unserialize($raw['content']);
@@ -198,8 +190,6 @@ class Cache
      */
     public function set($name, $value, $expire = null): bool
     {
-        $this->writeTimes++;
-
         if (is_null($expire)) {
             $expire = $this->options['expire'];
         }
@@ -225,12 +215,17 @@ class Cache
         }
 
         $data   = "<?php\n//" . sprintf('%012d', $expire) . "\n exit();?>\n" . $data;
-        $result = file_put_contents($filename, $data);
 
-        if ($result) {
+        // 先写临时文件再 rename 原子替换,避免并发下读到写了一半的文件
+        $tmpFile = $filename . '.tmp';
+        $result  = @file_put_contents($tmpFile, $data);
+
+        if ($result !== false && @rename($tmpFile, $filename)) {
             clearstatcache();
             return true;
         }
+
+        DirAndFile::unlink($tmpFile);
 
         return false;
     }
@@ -245,52 +240,7 @@ class Cache
      */
     public function delete($name): bool
     {
-        $this->writeTimes++;
-
         return DirAndFile::unlink($this->getCacheKey($name));
-    }
-
-    /**
-     * 清除缓存
-     * @access public
-     * @return bool
-     */
-    public function clear(): bool
-    {
-        $this->writeTimes++;
-
-        $dirname = $this->options['path'] . $this->options['prefix'];
-
-        $this->rmdir($dirname);
-
-        return true;
-    }
-
-
-    /**
-     * 删除文件夹
-     * @param $dirname
-     * @return bool
-     */
-    private function rmdir($dirname)
-    {
-        if (!is_dir($dirname)) {
-            return false;
-        }
-
-        $items = new FilesystemIterator($dirname);
-
-        foreach ($items as $item) {
-            if ($item->isDir() && !$item->isLink()) {
-                $this->rmdir($item->getPathname());
-            } else {
-                DirAndFile::unlink($item->getPathname());
-            }
-        }
-
-        @rmdir($dirname);
-
-        return true;
     }
 
 }

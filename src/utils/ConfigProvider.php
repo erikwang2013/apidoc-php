@@ -14,6 +14,12 @@ class ConfigProvider
     ];
     protected static $config = [];
 
+    /**
+     * 配置版本号,每次 set() 自增,供请求级缓存(Helper::getCurrentAppConfig)判断失效
+     * @var int
+     */
+    protected static $configVersion = 0;
+
 
     public static function get($field=""){
 
@@ -34,6 +40,16 @@ class ConfigProvider
         }
         $config = static::handleConfig($config);
         static::$config = $config;
+        static::$configVersion++;
+    }
+
+    /**
+     * 获取配置版本号
+     * @return int
+     */
+    public static function getConfigVersion(): int
+    {
+        return static::$configVersion;
     }
 
     public static function handleConfig($config){
@@ -67,7 +83,7 @@ class ConfigProvider
 
         $feConfig = [
             'title'  =>!empty($config['title'])?Lang::getLang($config['title'] ):'',
-            'desc' =>!empty($config['title'])?Lang::getLang($config['desc']):'',
+            'desc' =>!empty($config['desc'])?Lang::getLang($config['desc']):'',
             'apps'=>!empty($config['apps'])?$config['apps']:[],
             'cache'=>!empty($config['cache'])?$config['cache']:[],
             'params'=>!empty($config['params'])?$config['params']:[],

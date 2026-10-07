@@ -27,7 +27,8 @@ trait BaseService
         ['rule'=>'getApiShareDetail','route'=>'getApiShareDetail'],
         ['rule'=>'deleteApiShare','route'=>'deleteApiShare'],
         ['rule'=>'handleApiShareAction','route'=>'handleApiShareAction'],
-        ['rule'=>'exportSwagger','route'=>'exportSwagger'],
+        // 注:原 exportSwagger 路由已移除(ExportSwagger 类从未实现);
+        // 各 provider 中 export_config 的读取为预留配置(当前无消费者),暂留以兼容旧配置
     ];
 
 
@@ -40,11 +41,14 @@ trait BaseService
 
 
     /**
-     * 注册apidoc路由
+     * 注册apidoc路由(仅当 registerApidocRoutes 未传回调时被调用)
+     * 框架 service 未实现时抛出异常,避免路由静默不注册
      * @param $route 路由参数
      * @return mixed
      */
-    abstract static function registerRoute($route);
+    static public function registerRoute($route){
+        throw new \ErrorException("apidoc: registerRoute not implemented");
+    }
 
     /**
      * 执行Sql语句

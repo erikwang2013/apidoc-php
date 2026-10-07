@@ -5,7 +5,6 @@ namespace erikwang2013\apidoc\parses;
 
 use ReflectionClass;
 use erikwang2013\apidoc\exception\ErrorException;
-use erikwang2013\apidoc\utils\DirAndFile;
 use erikwang2013\apidoc\utils\Helper;
 use erikwang2013\apidoc\utils\Lang;
 
@@ -37,6 +36,10 @@ class ParseApiDetail
 
         $this->appKey = $appKey;
         $pathArr   = explode("@", $apiKey);
+        if (!isset($pathArr[1]) || $pathArr[0] === '' || $pathArr[1] === '') {
+            // 缺 @ 或类名/方法名为空时给出明确提示,避免 getMethod(null) 抛 TypeError
+            throw new ErrorException("apiKey 格式错误,正确格式为 类名@方法名: " . $apiKey);
+        }
         $classPath = $pathArr[0];
         $methodName = $pathArr[1];
         $currentAppConfig = Helper::getCurrentAppConfig($appKey);
@@ -63,7 +66,8 @@ class ParseApiDetail
             $currentApp = $this->currentApp;
 
         }
-        if (empty($refMethod->name)) {
+        if (!($refMethod instanceof \ReflectionMethod)) {
+            // 原为 empty($refMethod->name) 恒假;改为真实的方法反射校验,非法入参仍返回 false
             return false;
         }
         if(!empty($config['ignored_methods']) && in_array($refMethod->name, $config['ignored_methods'])){
@@ -318,7 +322,7 @@ class ParseApiDetail
         }
 
         if (!empty($methodAnnotations['responseSuccess'])){
-            if (!is_int(Helper::arrayKeyFirst($methodAnnotations['responseSuccess']))){
+            if (!is_int(array_key_first($methodAnnotations['responseSuccess']))){
                 $methodResponseSuccess = [$methodAnnotations['responseSuccess']];
             }else{
                 $methodResponseSuccess = $methodAnnotations['responseSuccess'];
@@ -381,7 +385,7 @@ class ParseApiDetail
         }
 
         if (!empty($methodAnnotations['responseError'])){
-            if (!is_int(Helper::arrayKeyFirst($methodAnnotations['responseError']))){
+            if (!is_int(array_key_first($methodAnnotations['responseError']))){
                 $methodResponseError = [$methodAnnotations['responseError']];
             }else{
                 $methodResponseError = $methodAnnotations['responseError'];
@@ -462,17 +466,26 @@ class ParseApiDetail
         if (!is_array($params)) {
             // 单字符串注解(如 #[Before("setHeader")])包成 name 键数组
             $params = ['name' => $params];
+        } else if (!empty($params) && is_int(array_key_first($params))) {
+            // 多注解位置参数(如 #[Before("a"), Before("b")])会被合成为字符串列表,
+            // 按单注解语义逐项归一为 ['name'=>...],避免下游对字符串调用 arrayKeyFirst 抛 TypeError
+            foreach ($params as $k => $paramItem) {
+                if (is_string($paramItem)) {
+                    $params[$k] = ['name' => $paramItem];
+                }
+            }
         }
         if (!empty($params)){
             // 处理单个注解为对象的参数
-            if (!is_int(Helper::arrayKeyFirst($params))){
+            if (!is_int(array_key_first($params))){
                 $params = [$params];
             }
             foreach ($params as $param) {
                 $item=$this->handleAnnotationsParamItem($param,$field);
-                if (!empty($item) && is_int(Helper::arrayKeyFirst($item))){
+                if (!empty($item) && is_int(array_key_first($item))){
                     if (in_array($field,$notMergeNameFields)){
-                        $data = $item;
+                        // 事件项累积合并,原为直接覆盖导致多个 After(ref:...) 只保留最后一个
+                        $data = array_merge($data, $item);
                     }else{
                         $data = Helper::arrayMergeAndUnique("name",$data,$item);
                     }
@@ -507,7 +520,13 @@ class ParseApiDetail
                 return false;
             }
         }else if(!empty($param['table'])){
-            $tableParams = (new ParseModel($this->config))->getTableDocument($param['table'],[]);
+            // table 注解为裸表名,补全 database.prefix(与 ParseModel 模型路径一致,此处不做会漏前缀)
+            $tableName = $param['table'];
+            $configTablePrefix = !empty($this->config['database']) && !empty($this->config['database']['prefix']) ? $this->config['database']['prefix'] : "";
+            if (!empty($configTablePrefix) && strpos($tableName, $configTablePrefix) === false) {
+                $tableName = $configTablePrefix . $tableName;
+            }
+            $tableParams = (new ParseModel($this->config))->getTableDocument($tableName,[]);
             $data = $this->handleRefData($param,$tableParams,$field);
         } else{
             $data = $param;
@@ -524,7 +543,7 @@ class ParseApiDetail
                 $paramItem=$this->handleAnnotationsParamItem($child,$field);
 
                 if ($paramItem!==false){
-                    if (!empty($paramItem) && is_array($paramItem) && Helper::arrayKeyFirst($paramItem)===0){
+                    if (!empty($paramItem) && is_array($paramItem) && array_key_first($paramItem)===0){
                         $childrenData = Helper::arrayMergeAndUnique("name",$childrenData,$paramItem);
                     }else{
                         $childrenData[] = $paramItem;
@@ -532,13 +551,13 @@ class ParseApiDetail
                 }
             }
             $data['children'] = $childrenData;
-        }else if(!empty($data) && empty($data['name']) && is_int(Helper::arrayKeyFirst($data))){
+        }else if(!empty($data) && empty($data['name']) && is_int(array_key_first($data))){
             $childrenData = [];
             foreach ($data as $child) {
                 $paramItem=$this->handleAnnotationsParamItem($child,$field);
 
                 if ($paramItem!==false){
-                    if (!empty($paramItem) && is_array($paramItem) && Helper::arrayKeyFirst($paramItem)===0){
+                    if (!empty($paramItem) && is_array($paramItem) && array_key_first($paramItem)===0){
                         $childrenData = Helper::arrayMergeAndUnique("name",$childrenData,$paramItem);
                     }else{
                         $childrenData[] = $paramItem;
@@ -548,13 +567,14 @@ class ParseApiDetail
             $data = $childrenData;
         }
         if (!empty($data['type']) && $data['type'] === 'tree' ) {
-            // 类型为tree的
-            $data['children'][] = [
-                'children' => $data['children'],
+            // 类型为tree的:原子项收敛到子节点字段下,替换而非追加
+            // (原实现先读后append:children 未定义时告警,已定义时旧子项平铺+嵌套各一份)
+            $data['children'] = [[
+                'children' => $data['children'] ?? [],
                 'name'   =>!empty($data['childrenField']) ?$data['childrenField']:'children',
                 'type'   => 'array',
                 'desc'   => !empty($data['childrenDesc'])?Lang::getLang($data['childrenDesc']):"",
-            ];
+            ]];
         }
 
         // 自定义解析
@@ -740,7 +760,7 @@ class ParseApiDetail
                 $fieldArr = [$fields];
             }
         }else if (!empty($fields) && is_array($fields)){
-            if (Helper::arrayKeyFirst($fields)=="name"){
+            if (array_key_first($fields)=="name"){
                 $fieldArr = $fields['name'];
             }else{
                 $fieldArr = $fields;

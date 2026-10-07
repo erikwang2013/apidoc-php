@@ -20,6 +20,10 @@ class Auth
         if (!empty($authConfig['enable']) && empty($authConfig['secret_key'])){
             throw new ErrorException("apidoc auth 配置缺少 secret_key,请配置 auth.secret_key");
         }
+        if (!empty($authConfig['enable']) && empty($authConfig['password'])){
+            // 启用密码验证却没有配置密码,直接报错,避免后续 md5(null) 出错
+            throw new ErrorException("auth password not configured");
+        }
         if (empty($authConfig['expire'])){
             $authConfig['expire'] = 86400;
         }
@@ -38,16 +42,16 @@ class Auth
             $currentAppConfig = Helper::getCurrentAppConfig($appKey);
             $currentApp  = $currentAppConfig['appConfig'];
             if (!empty($currentApp) && !empty($currentApp['password'])) {
-                // 应用密码
-                if (md5($currentApp['password']) === $password) {
+                // 应用密码(前端提交 md5(明文),这里保持 md5 协议不变,仅改用恒定时间比较)
+                if (hash_equals(md5($currentApp['password']), (string)$password)) {
                     return $this->createToken($currentApp['password'],$authConfig['expire']);
                 }
                 throw new ErrorException("password error");
             }
         }
         if ($authConfig['enable']) {
-            // 密码验证
-            if (md5($authConfig['password']) === $password) {
+            // 密码验证(前端提交 md5(明文),保持 md5 协议不变,仅改用恒定时间比较)
+            if (hash_equals(md5($authConfig['password']), (string)$password)) {
                 return $this->createToken($authConfig['password'],$authConfig['expire']);
             }
             throw new ErrorException("password error");
@@ -93,6 +97,8 @@ class Auth
 
     /**
      * 获取tokencode
+     * 注意:md5(md5()) 是现有无线协议(token 生成/校验)的组成部分,
+     * 属于弱哈希,仅为协议兼容所需,不要随意改动。
      * @param string $password
      * @return string
      */

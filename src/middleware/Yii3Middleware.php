@@ -7,6 +7,7 @@ use Psr\Http\Message\ServerRequestInterface;
 use Psr\Http\Server\MiddlewareInterface;
 use Psr\Http\Server\RequestHandlerInterface;
 use erikwang2013\apidoc\providers\Yii3Service;
+use erikwang2013\apidoc\utils\ApiCrossDomain;
 use erikwang2013\apidoc\utils\ConfigProvider;
 
 /**
@@ -30,12 +31,15 @@ class Yii3Middleware implements MiddlewareInterface
         $response = strtoupper($request->getMethod()) === 'OPTIONS'
             ? Yii3Service::emptyResponse() // 预检请求无条件短路,不执行业务逻辑(与 WebmanMiddleware 一致)
             : $handler->handle($request);
-        if (!empty($config['allowCrossDomain'])) {
-            $response = $response
-                ->withHeader('Access-Control-Allow-Credentials', 'true')
-                ->withHeader('Access-Control-Allow-Origin', $request->getHeaderLine('Origin') ?: '*')
-                ->withHeader('Access-Control-Allow-Methods', $request->getHeaderLine('Access-Control-Request-Method') ?: '*')
-                ->withHeader('Access-Control-Allow-Headers', $request->getHeaderLine('Access-Control-Request-Headers') ?: '*');
+        // Origin 未命中 cors_origins 白名单时返回空数组,不下发任何 CORS 头
+        $corsHeaders = ApiCrossDomain::corsHeaders(
+            $config,
+            (string)$request->getHeaderLine('Origin'),
+            (string)$request->getHeaderLine('Access-Control-Request-Method'),
+            (string)$request->getHeaderLine('Access-Control-Request-Headers')
+        );
+        foreach ($corsHeaders as $name => $value) {
+            $response = $response->withHeader($name, $value);
         }
         return $response;
     }

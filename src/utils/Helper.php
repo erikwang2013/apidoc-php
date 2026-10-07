@@ -9,6 +9,18 @@ use erikwang2013\apidoc\parses\ParseMarkdown;
 class Helper
 {
     protected static $snakeCache = [];
+
+    /**
+     * getCurrentAppConfig 请求级缓存(配置版本号 + appKey 为键)
+     * @var array
+     */
+    protected static $currentAppConfigCache = [];
+
+    /**
+     * 缓存对应的配置版本号,版本变化时清空缓存
+     * @var int
+     */
+    protected static $currentAppConfigCacheVersion = -1;
     /**
      * 统一返回json格式
      * @param int $code
@@ -43,11 +55,15 @@ class Helper
         foreach ($tree as $val) {
             $array[] = $val;
             if (isset($val[$childName])) {
-                $children = static::treeToList($val[$childName], $childName);
+                // 递归时透传 $key/$parentField,保证多层树的孙节点 parent 也指向其直接父级
+                $children = static::treeToList($val[$childName], $childName, $key, $parentField);
                 if ($children) {
                     $newChildren = [];
                     foreach ($children as $item) {
-                        $item[$parentField] = $val[$key];
+                        // 仅当节点自身没有 parent 时才指向直接父级,不覆盖递归中已赋好的 parent
+                        if (!isset($item[$parentField])) {
+                            $item[$parentField] = $val[$key];
+                        }
                         $newChildren[]      = $item;
                     }
                     $array = array_merge($array, $newChildren);
@@ -174,45 +190,6 @@ class Helper
     }
 
     /**
-     * 根据条件获取数组中的index
-     * @param array $array
-     * @param $query
-     * @return mixed|null
-     */
-    public static function getArrayFindIndex(array $array, $query)
-    {
-        $res = null;
-        if (is_array($array)) {
-            foreach ($array as $k=>$item) {
-                if ($query($item)) {
-                    $res = $k;
-                    break;
-                }
-            }
-        }
-        return $res;
-    }
-
-    /**
-     * 查询符合条件的数组
-     * @param array $array
-     * @param $query
-     * @return array
-     */
-    public static function getArraybyQuery(array $array, $query)
-    {
-        $res = [];
-        if (is_array($array)) {
-            foreach ($array as $item) {
-                if ($query($item)) {
-                    $res[] = $item;
-                }
-            }
-        }
-        return $res;
-    }
-
-    /**
      * 对象转为数组
      * @param $object
      * @return mixed
@@ -249,11 +226,25 @@ class Helper
 
     /**
      * 初始化当前所选的应用/版本数据
+     * 同请求内同一份配置下同一 appKey 只处理一次 apps 树:
+     * 分享导出等场景会按 app 逐个调用,原实现每次都深拷整棵 apps 树(复杂度 O(apps²))。
+     * 调用方均为只读使用,返回值按值传递(PHP 写时复制),调用方修改不会污染缓存;
+     * 显式传入 $config 时跳过缓存,避免缓存与传入配置不匹配。
      * @param $appKey
      */
     public static function getCurrentAppConfig(string $appKey,$config=""):array
     {
-        if (empty($config)){
+        $useCache = empty($config);
+        if ($useCache){
+            $configVersion = ConfigProvider::getConfigVersion();
+            if (static::$currentAppConfigCacheVersion !== $configVersion) {
+                // 配置已变更,清空旧缓存(兼容 webman 等常驻进程)
+                static::$currentAppConfigCache = [];
+                static::$currentAppConfigCacheVersion = $configVersion;
+            }
+            if (isset(static::$currentAppConfigCache[$appKey])){
+                return static::$currentAppConfigCache[$appKey];
+            }
             $config = ConfigProvider::get();
         }
         $config['apps'] = static::handleAppsConfig($config['apps'],false,$config);
@@ -271,10 +262,14 @@ class Helper
                 'appKey' => $appKey
             ]);
         }
-        return [
+        $result = [
             'appConfig'=>$currentApps[count($currentApps) - 1],
             'apps'=>$currentApps
         ];
+        if ($useCache){
+            static::$currentAppConfigCache[$appKey] = $result;
+        }
+        return $result;
 
     }
 
@@ -516,17 +511,6 @@ class Helper
     }
 
 
-    public static function inArrayBuyKeyword(array $arr,string $keyword):bool{
-        $is = false;
-        foreach ($arr as $item) {
-            if (strpos($item, $keyword) !== false){
-                $is=true;
-                break;
-            }
-        }
-        return $is;
-    }
-
     /**
      * 处理接口请求类型为数组
      * @param $method
@@ -561,16 +545,6 @@ class Helper
             }
         }
         return $data;
-    }
-    public static function arrayKeyFirst($array){
-        if (function_exists('array_key_first')) {
-            return array_key_first($array);
-        }else{
-            foreach($array as $key => $unused) {
-                return $key;
-            }
-            return NULL;
-        }
     }
 
 

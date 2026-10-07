@@ -93,6 +93,10 @@ return [
         'default_method'=>'GET',
         //（选配）Apidoc允许跨域访问
         'allowCrossDomain'=>false,
+        //（选配）跨域 Origin 白名单（数组）。留空/不配置=保持原行为：回显请求的 Origin；
+        // 配置后仅当请求 Origin 命中白名单才下发 CORS 头，未命中则不下发任何 CORS 头
+        // 例：['https://admin.example.com', 'https://doc.example.com']
+        'cors_origins'=>[],
 
         // （选配）解析时忽略的方法
         'ignored_methods'=>[],

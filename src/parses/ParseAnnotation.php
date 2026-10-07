@@ -4,10 +4,7 @@ declare(strict_types = 1);
 namespace erikwang2013\apidoc\parses;
 
 use erikwang2013\apidoc\utils\Helper;
-use erikwang2013\apidoc\exception\ErrorException;
 use ReflectionMethod;
-use ReflectionParameter;
-use support\Log;
 
 class ParseAnnotation
 {
@@ -96,7 +93,7 @@ class ParseAnnotation
             // 有意行为:两个全空参数(如 #[Param()] 连写两次)塌缩为单个空值。
             // 空值在下游被 !empty() 门控丢弃,塌缩与保留两空项输出无差异;
             // 反之保留两空项会产出 truthy 的 ["",""] 并触发下游 array_key_first 于字符串的 TypeError。
-            if (!empty($attrs[$name]) && is_array($attrs[$name]) && Helper::arrayKeyFirst($attrs[$name])===0){
+            if (!empty($attrs[$name]) && is_array($attrs[$name]) && array_key_first($attrs[$name])===0){
                 $attrs[$name][]=$value;
             }else if(!empty($attrs[$name])){
                 $attrs[$name] = [$attrs[$name],$value];
@@ -152,7 +149,16 @@ class ParseAnnotation
         if ($varLine){
             $varLineArr = preg_split('/\\s+/', $varLine);
             $type = !empty($varLineArr[1])?$varLineArr[1]:"";
-            $desc = !empty($varLineArr[2])?$varLineArr[2]:"";
+            // 描述取类型之后的全部 token(拼接),跳过 $name 形式变量名:
+            // 原实现只取第 3 个 token,`@var string 用户 名称` 丢内容,`@var string $name 描述` 把 $name 当描述
+            $descArr = [];
+            foreach (array_slice($varLineArr, 2) as $token) {
+                if ($token === '' || $token[0] === '$') {
+                    continue;
+                }
+                $descArr[] = $token;
+            }
+            $desc = implode(' ', $descArr);
         }
         if (empty($desc) && strpos($propertyTextAnnotations[0], '@var') === false){
             $desc = $propertyTextAnnotations[0];

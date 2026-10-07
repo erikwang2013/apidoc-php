@@ -7,7 +7,6 @@ use erikwang2013\apidoc\utils\DirAndFile;
 use erikwang2013\apidoc\utils\Helper;
 use erikwang2013\apidoc\utils\Lang;
 use ReflectionClass;
-use ReflectionAttribute;
 
 class ParseApiMenus
 {
@@ -173,9 +172,12 @@ class ParseApiMenus
         return $list;
     }
 
-    public function parseController($class,$isParseDetail=false)
+    public function parseController($class,$isParseDetail=false,$appKey="")
     {
-
+        // 绕过 renderApiMenus 直接调用时(如代码模板)允许外部注入 appKey,否则输出数据里 appKey 恒为空
+        if ($appKey !== ""){
+            $this->appKey = $appKey;
+        }
 
         try {
             $refClass             = new ReflectionClass($class);
@@ -236,7 +238,8 @@ class ParseApiMenus
 
     protected function parseApiMethod($refClass,$refMethod){
         $config               = $this->config;
-        if (empty($refMethod->name)) {
+        if (!($refMethod instanceof \ReflectionMethod)) {
+            // 原为 empty($refMethod->name) 恒假;改为真实的方法反射校验,非法入参仍返回 false
             return false;
         }
         if(!empty($config['ignored_methods']) && in_array($refMethod->name, $config['ignored_methods'])){
@@ -250,9 +253,19 @@ class ParseApiMenus
         if (in_array("NotParse", $textAnnotations) || isset($methodAnnotation['notParse']) || empty($methodAnnotation)) {
             return false;
         }
+        // 与 ParseApiDetail::parseApiMethod 的 notDebug 判断保持一致(类级 NotDebug 由 parseController 统一补),
+        // 否则菜单与接口明细的调试开关不一致
+        $isNotDebug = in_array("NotDebug", $textAnnotations) ||
+            (isset($config['notDebug']) && $config['notDebug']===true) ||
+            (isset($this->currentApp['notDebug']) && $this->currentApp['notDebug']===true) ||
+            isset($methodAnnotation['notDebug']);
         $methodInfo = ParseApiDetail::handleApiBaseInfo($methodAnnotation,$refClass->name,$refMethod->name,$textAnnotations,$config);
         $methodInfo['appKey'] = !empty($this->currentApp['appKey'])?$this->currentApp['appKey']:"";
-        return Helper::getArrayValuesByKeys($methodInfo,['title','method','url','author','tag','name','menuKey','appKey']);
+        $methodInfo = Helper::getArrayValuesByKeys($methodInfo,['title','method','url','author','tag','name','menuKey','appKey']);
+        if ($isNotDebug) {
+            $methodInfo['notDebug'] = true;
+        }
+        return $methodInfo;
 
     }
 

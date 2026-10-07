@@ -45,11 +45,6 @@ class HyperfMiddleware
         return $config;
     }
 
-    static function registerRoute($route)
-    {
-        // Hyperf 路由由 HyperfService::register() 统一注册,此方法仅满足 BaseService 抽象定义
-    }
-
     static function databaseQuery($sql)
     {
         return Db::select($sql);

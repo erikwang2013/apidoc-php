@@ -8,7 +8,6 @@
         "自动生成api",
         "attribute生成",
         "php接口文档",
-        "api文档",
         "Markdown",
         "attributes"
     ],
@@ -46,6 +45,5 @@
         "hyperf": {
             "config": "erikwang2013\\apidoc\\ConfigProvider"
         }
-    },
-    "minimum-stability": "dev"
+    }
 }

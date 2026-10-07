@@ -6,15 +6,11 @@ namespace erikwang2013\apidoc\parses;
 use erikwang2013\apidoc\exception\ErrorException;
 use erikwang2013\apidoc\generator\ParseTemplate;
 use erikwang2013\apidoc\utils\DirAndFile;
-use erikwang2013\apidoc\utils\Helper;
-use erikwang2013\apidoc\utils\Lang;
 
 class ParseCodeTemplate
 {
 
     protected $config = [];
-
-    protected $currentApp = [];
 
 
     public function __construct($config)
@@ -26,9 +22,6 @@ class ParseCodeTemplate
     public function renderCode($params)
     {
         $appKey = $params['appKey'];
-        $currentAppConfig = Helper::getCurrentAppConfig($appKey);
-        $currentApp = $currentAppConfig['appConfig'];
-        $this->currentApp  = $currentApp;
 
         $codeTemplate = $params['template'];
 
@@ -44,7 +37,7 @@ class ParseCodeTemplate
             if (!empty($controllers) && count($controllers) > 0) {
                 $controllerList = [];
                 foreach ($controllers as $class) {
-                    $classData = $parseApiMenusService->parseController($class);
+                    $classData = $parseApiMenusService->parseController($class, false, $appKey);
                     if ($classData !== false) {
                         $controllerList[] = $classData;
                     }
@@ -78,10 +71,10 @@ class ParseCodeTemplate
 
 
         // 读取模板
-        $templatePath =DirAndFile::formatPath( APIDOC_ROOT_PATH . $codeTemplate['template'],"/");
-        if (is_readable($templatePath) == false) {
+        $templatePath = $this->resolvePath($codeTemplate['template']);
+        if ($templatePath === false || is_readable($templatePath) == false) {
             throw new ErrorException("template not found",  [
-                'template' => $template
+                'template' => $codeTemplate['template']
             ]);
         }
         $tplParams = [
@@ -93,6 +86,16 @@ class ParseCodeTemplate
 
 
         return $html;
+    }
+
+    /**
+     * 解析模板路径(防路径穿越)，统一走 DirAndFile::resolvePathWithinRoot
+     * @param string $path 相对于 APIDOC_ROOT_PATH 的路径(允许以 / 开头)
+     * @return string|false 非法或越界时返回 false
+     */
+    protected function resolvePath($path)
+    {
+        return DirAndFile::resolvePathWithinRoot($path, APIDOC_ROOT_PATH);
     }
 
 

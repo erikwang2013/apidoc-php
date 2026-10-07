@@ -37,7 +37,7 @@ class ParseModel
             if (!empty($configTablePrefix) && strpos($tableName, $configTablePrefix) === false) {
                 $tableName = $configTablePrefix . $model->getTable();
             }
-            $table = $this->getTableDocument($tableName, $propertys, $model);
+            $table = $this->getTableDocument($tableName, $propertys);
             if (empty($methodName)) {
                 return $table;
             }
@@ -52,7 +52,7 @@ class ParseModel
             }
             if (!empty($annotations['addField'])) {
                 $addFieldData = [];
-                if (is_int(Helper::arrayKeyFirst($annotations['addField']))) {
+                if (is_int(array_key_first($annotations['addField']))) {
                     $addFieldData = $annotations['addField'];
                 } else {
                     $addFieldData = [$annotations['addField']];
@@ -111,14 +111,20 @@ class ParseModel
      * @param $propertys
      * @return array
      */
-    public function getTableDocument($tableName, array $propertys, $model = null): array
+    public function getTableDocument($tableName, array $propertys): array
     {
         $config = $this->config;
         $fieldComment = [];
         if (empty($config['database_query_function'])) {
             throw new ErrorException("not datatable_query_function config");
         }
-        $tableColumns = $config['database_query_function']("SHOW FULL COLUMNS FROM `" . $tableName . "`");
+        // 按表名缓存原始字段列,避免全量生成时同一张表被反复 SHOW FULL COLUMNS(O(接口×表))
+        // ponytail: static 在 webman 常驻进程下为进程级,表结构变更需重启生效
+        static $tableColumnsCache = [];
+        if (!array_key_exists($tableName, $tableColumnsCache)) {
+            $tableColumnsCache[$tableName] = $config['database_query_function']("SHOW FULL COLUMNS FROM `" . $tableName . "`");
+        }
+        $tableColumns = $tableColumnsCache[$tableName];
         foreach ($tableColumns as $columns) {
             $columns = Helper::objectToArray($columns);
             $name = $columns['Field'];

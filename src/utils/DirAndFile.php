@@ -2,33 +2,11 @@
 
 namespace erikwang2013\apidoc\utils;
 
+use erikwang2013\apidoc\exception\ErrorException;
+
 class DirAndFile
 {
 
-
-    public static function getDirTree($path){
-        $arr = [];
-        if(is_dir($path)){
-            $dir = scandir($path);
-            foreach ($dir as $value){
-                $sub_path =static::formatPath($path .'/'.$value,"/");
-                if($value == '.' || $value == '..'){
-                    continue;
-                }else if(is_dir($sub_path)){
-                    $item = [
-                        'name'=>$value,
-                        'path'=>$sub_path,
-                    ];
-                    $children = static::getDirTree($sub_path);
-                    if (count($children)){
-                        $item['children'] = $children;
-                    }
-                    $arr[] = $item;
-                }
-            }
-        }
-        return $arr;
-    }
 
     public static function getClassList($dir){
         if ($handle = opendir($dir)) {
@@ -93,6 +71,48 @@ class DirAndFile
             }
         }
         return $path;
+    }
+
+    /**
+     * 解析路径并校验必须位于根目录内(防路径穿越)
+     * 词法规范化(按 / 与 \ 分段，遇 .. 弹出上一段)后，结果必须位于 $root 内(带分隔符比较，防 /app-evil 前缀误判)
+     * 注意: 词法校验不跟随软链(项目内指向根外的软链不受此检查约束，属已知边界)
+     * @param mixed $path 相对于 $root 的路径(允许以 / 开头)
+     * @param string $root 根目录
+     * @return string|false 非法或越界时返回 false
+     */
+    public static function resolvePathWithinRoot($path, string $root)
+    {
+        if (!is_string($path)) {
+            return false;
+        }
+        $rootPath = realpath($root);
+        if ($rootPath === false) {
+            return false;
+        }
+        $rootPath = rtrim(static::formatPath($rootPath, "/"), "/");
+        $fullPath = static::formatPath($rootPath . "/" . $path, "/");
+        // 词法规范化
+        $segments = [];
+        foreach (explode("/", $fullPath) as $segment) {
+            if ($segment === "" || $segment === ".") {
+                continue;
+            }
+            if (strpos($segment, "\0") !== false) {
+                return false;
+            }
+            if ($segment === "..") {
+                array_pop($segments);
+                continue;
+            }
+            $segments[] = $segment;
+        }
+        $realPath = (strpos($fullPath, "/") === 0 ? "/" : "") . implode("/", $segments);
+        // 必须位于根目录内(带分隔符比较)
+        if (strpos($realPath . "/", $rootPath . "/") !== 0) {
+            return false;
+        }
+        return $realPath;
     }
 
     private static function findClasses($path)
@@ -178,13 +198,11 @@ class DirAndFile
      */
     public static function getFileContent(string $fileName): string
     {
-        $content = "";
-        if (file_exists($fileName)) {
-            $handle  = fopen($fileName, "r");
-            $content = fread($handle, filesize($fileName));
-            fclose($handle);
+        if (!is_file($fileName) || !is_readable($fileName)) {
+            return "";
         }
-        return $content;
+        // 原实现 fopen+fread(filesize):文件为空时 fread 长度为 0 会报错
+        return (string) file_get_contents($fileName);
     }
 
     /**
@@ -201,7 +219,11 @@ class DirAndFile
         if (!file_exists($dir)) {
             mkdir($dir, 0775, true);
         }
-        $fp = fopen($path, "w") or die("Unable to open file!");
+        // 库代码不允许 die,写入失败时抛异常由上层处理
+        $fp = @fopen($path, "w");
+        if ($fp === false) {
+            throw new ErrorException("Unable to open file: " . $path);
+        }
         fwrite($fp, $str_tmp); //存入内容
         fclose($fp);
         return true;
@@ -219,15 +241,6 @@ class DirAndFile
             return is_file($path) && unlink($path);
         } catch (\Exception $e) {
             return false;
-        }
-    }
-
-    public static function checkFileExist(string $path)
-    {
-        try {
-            return $path;
-        } catch (\Exception $e) {
-            return $e;
         }
     }
 

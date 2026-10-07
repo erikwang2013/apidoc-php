@@ -7,6 +7,12 @@ use erikwang2013\apidoc\Auth;
 use erikwang2013\apidoc\exception\ErrorException;
 use erikwang2013\apidoc\parses\ParseApiMenus;
 
+/**
+ * 接口分享
+ *
+ * 密码存储格式:缓存中 password 字段存的是 md5(明文) 摘要,不存明文。
+ * 前端提交的密码本身也是 md5(明文),因此校验时直接比对两边摘要,切勿再次 md5。
+ */
 class ApiShare
 {
 
@@ -38,7 +44,14 @@ class ApiShare
             $data['apiKeys'] = $params['apiKeys'];
         }
         if (!empty($params['password'])) {
-            $data['password'] = $params['password'];
+            // 存 md5(明文),避免缓存文件中出现密码明文
+            $data['password'] = md5($params['password']);
+        } else if (!empty($params['key'])) {
+            // 编辑时未传新密码:保留原密码,避免编辑分享把密码意外抹掉
+            $oldData = (new Cache())->get($cacheKey);
+            if (!empty($oldData['password'])) {
+                $data['password'] = $oldData['password'];
+            }
         }
         $data['create_at'] = date('Y-m-d h:i:s');
         $data['create_time'] = time();
@@ -47,7 +60,8 @@ class ApiShare
     }
 
     public function getSharePageList($config,$pageIndex,$pageSize){
-        $path = APIDOC_STORAGE_PATH . $config['cache']['folder'] . "/share";
+        // 两端裁剪后再拼接: 兼容 APIDOC_STORAGE_PATH 未带结尾分隔符的部署(否则静默扫不到文件,列表恒空)
+        $path = rtrim(APIDOC_STORAGE_PATH, "/\\") . '/' . trim((string)$config['cache']['folder'], "/\\") . "/share";
 
         $list = DirAndFile::getFileList($path);
         $data = [];
@@ -55,8 +69,8 @@ class ApiShare
 
         foreach ($list as $item) {
             $fileNameArr = explode("_", $item['name']);
-            // 缓存文件名被清除或格式不符合 share_xxx 时跳过,避免 notice
-            if (count($fileNameArr) < 2) {
+            // 只处理 apiShare_<key>_<hash>.php 形式的文件,其余文件(含写入中的 .tmp)跳过,避免 notice
+            if (($fileNameArr[0] ?? '') !== 'apiShare' || empty($fileNameArr[1]) || substr($item['name'], -4) !== '.php') {
                 continue;
             }
             $cacheKey = "share/" . $fileNameArr[0] . "_" . $fileNameArr[1];
@@ -109,13 +123,14 @@ class ApiShare
             if (empty($params['token'])) {
                 throw new ErrorException("token not found");
             }
-            $password = md5($cacheData['password']);
-            $cacheData['pass'] = $password;
-            $checkAuth = (new Auth($config))->checkToken($params['token'], $password);
+            // password 已是 md5(明文),与 createToken 的入参一致,不能再 md5
+            $checkAuth = (new Auth($config))->checkToken($params['token'], $cacheData['password']);
             if (!$checkAuth) {
                 throw new ErrorException("token error");
             }
         }
+        // 不向上层泄漏密码摘要
+        unset($cacheData['password']);
         return $cacheData;
     }
 

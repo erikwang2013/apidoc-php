@@ -5,6 +5,7 @@ namespace erikwang2013\apidoc\middleware;
 use Yii;
 use yii\base\ActionFilter;
 use erikwang2013\apidoc\providers\Yii2Service;
+use erikwang2013\apidoc\utils\ApiCrossDomain;
 use erikwang2013\apidoc\utils\ConfigProvider;
 
 /**
@@ -22,12 +23,18 @@ class Yii2Middleware extends ActionFilter
         ConfigProvider::set($config);
 
         $request = Yii::$app->request;
-        if (!empty($config['allowCrossDomain'])) {
+        // Origin 未命中 cors_origins 白名单时返回空数组,不下发任何 CORS 头
+        $corsHeaders = ApiCrossDomain::corsHeaders(
+            $config,
+            (string)$request->headers->get('Origin', ''),
+            (string)$request->headers->get('Access-Control-Request-Method', ''),
+            (string)$request->headers->get('Access-Control-Request-Headers', '')
+        );
+        if (!empty($corsHeaders)) {
             $headers = Yii::$app->response->headers;
-            $headers->set('Access-Control-Allow-Credentials', 'true');
-            $headers->set('Access-Control-Allow-Origin', $request->headers->get('Origin', '*'));
-            $headers->set('Access-Control-Allow-Methods', $request->headers->get('Access-Control-Request-Method', '*'));
-            $headers->set('Access-Control-Allow-Headers', $request->headers->get('Access-Control-Request-Headers', '*'));
+            foreach ($corsHeaders as $name => $value) {
+                $headers->set($name, $value);
+            }
         }
         if ($request->isOptions) {
             return false; // 预检请求无条件短路,不执行业务逻辑(与 WebmanMiddleware 一致)

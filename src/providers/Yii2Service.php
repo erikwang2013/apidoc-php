@@ -112,11 +112,6 @@ class Yii2Service
         return $config;
     }
 
-    static function registerRoute($route)
-    {
-        static::addRouteRule($route['uri'], $route['callback'], static::allMethods());
-    }
-
     static function databaseQuery($sql)
     {
         return Yii::$app->db->createCommand($sql)->queryAll();

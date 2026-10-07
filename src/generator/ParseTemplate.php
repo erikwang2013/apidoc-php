@@ -2,10 +2,8 @@
 declare(strict_types = 1);
 
 namespace erikwang2013\apidoc\generator;
-use erikwang2013\apidoc\Utils;
 use erikwang2013\apidoc\utils\DirAndFile;
 use erikwang2013\apidoc\utils\Helper;
-use think\facade\App;
 
 class ParseTemplate
 {
@@ -229,12 +227,110 @@ class ParseTemplate
      */
     protected function getIfContent($str){
         if (preg_match('#{if (.+?)}(.*?){/if}#s', $str, $matches)){
-            if (eval("return $matches[1];")){
+            if ($this->evaluateCondition($matches[1])){
                 // 条件成立
                return $matches[2];
             }
         }
         return "";
+    }
+
+    /**
+     * 计算if条件(受限求值器，不执行任何PHP代码)
+     * 支持 A == B / A != B / A > B / A < B / A >= B / A <= B 与单值真值判断，以及 && / || 复合条件，
+     * 两边为去引号后的字面量，均为数字时按数字比较，否则按字符串比较；
+     * 单值条件中 ""、"0"、"false"、"null" 为假，其余为真；
+     * 无法解析的表达式一律按假处理
+     * @param string $expression
+     * @return bool
+     */
+    protected function evaluateCondition($expression){
+        $expression = trim((string)$expression);
+        // 空条件或含函数调用/变量/数组等无法安全解析的字符，按假处理
+        if ($expression === "" || preg_match('#[(){}\[\]$;`]#', $expression)){
+            return false;
+        }
+        // 复合条件: 先按 || 拆分(或)，各分支再按 && 拆分(与)，优先级与 PHP 一致
+        // (引号内的 && / || 会被一并拆分，属已知边界)
+        if (strpos($expression, '||') !== false){
+            foreach (explode('||', $expression) as $part){
+                if ($this->evaluateCondition($part)){
+                    return true;
+                }
+            }
+            return false;
+        }
+        if (strpos($expression, '&&') !== false){
+            foreach (explode('&&', $expression) as $part){
+                if (!$this->evaluateCondition($part)){
+                    return false;
+                }
+            }
+            return true;
+        }
+        // 剩余的单个 & / | (含位运算写法)无法解析，按假处理
+        if (preg_match('#[&|]#', $expression)){
+            return false;
+        }
+        // 二元比较，运算符按长度优先匹配
+        if (preg_match('#^(.*?)(===|!==|==|!=|>=|<=|>|<)(.*)$#s', $expression, $matches)){
+            $left = $this->parseConditionValue($matches[1]);
+            $right = $this->parseConditionValue($matches[3]);
+            if (is_numeric($left) && is_numeric($right)){
+                $left = $left + 0;
+                $right = $right + 0;
+            }
+            $operator = $matches[2];
+            if ($operator === '==='){
+                $operator = '==';
+            }else if ($operator === '!=='){
+                $operator = '!=';
+            }
+            if ($operator === '=='){
+                return $left == $right;
+            }
+            if ($operator === '!='){
+                return $left != $right;
+            }
+            if ($operator === '>'){
+                return $left > $right;
+            }
+            if ($operator === '<'){
+                return $left < $right;
+            }
+            if ($operator === '>='){
+                return $left >= $right;
+            }
+            return $left <= $right;
+        }
+        // 前置取反，如 !xxx(优先级与PHP一致，放在二元比较之后)
+        if (strpos($expression, '!') === 0){
+            return !$this->evaluateCondition(substr($expression, 1));
+        }
+        // 未加引号的多词表达式(如 a and b)无法解析，按假处理
+        $firstChar = $expression[0];
+        if ($firstChar !== '"' && $firstChar !== "'" && preg_match('#\s#', $expression)){
+            return false;
+        }
+        // 单值真值判断
+        return !in_array(strtolower($this->parseConditionValue($expression)), ['', '0', 'false', 'null'], true);
+    }
+
+    /**
+     * 解析条件中的字面量：去掉两端成对的引号
+     * @param string $value
+     * @return string
+     */
+    protected function parseConditionValue($value){
+        $value = trim((string)$value);
+        $length = strlen($value);
+        if ($length >= 2){
+            $firstChar = $value[0];
+            if (($firstChar === '"' || $firstChar === "'") && substr($value, -1) === $firstChar){
+                $value = substr($value, 1, $length - 2);
+            }
+        }
+        return $value;
     }
 
 

@@ -124,17 +124,19 @@ class ParseMarkdown
         // 获取指定h2标签内容
         if (!empty($mdAnchor)){
             if (strpos($contents, '## ') !== false) {
-                $contentArr = explode("\r\n", $contents);
+                // 统一换行为 \n:原实现硬编码 \r\n,git 默认 LF 文档的锚点恒为空
+                $contents = str_replace(["\r\n", "\r"], "\n", $contents);
+                $contentArr = explode("\n", $contents);
                 $contentText = "";
                 foreach ($contentArr as $line){
-                    $contentText.="\r\n".trim($line);
+                    $contentText.="\n".trim($line);
                 }
-                $contentArr = explode("\r\n## ", $contentText);
+                $contentArr = explode("\n## ", $contentText);
                 $content="";
                 foreach ($contentArr as $item){
-                    $itemArr = explode("\r\n", $item);
+                    $itemArr = explode("\n", $item);
                     if (!empty($itemArr) && $itemArr[0] && $mdAnchor===$itemArr[0]){
-                        $content = str_replace($itemArr[0]."\r\n", '', $item);
+                        $content = str_replace($itemArr[0]."\n", '', $item);
                         break;
                     }
                 }

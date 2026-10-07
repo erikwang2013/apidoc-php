@@ -125,7 +125,8 @@ class AutoRegisterRouts
 
 
     protected function parseApiMethod($refClass,$refMethod){
-        if (empty($refMethod->name) || in_array($refMethod->name,$this->filterMethods)) {
+        // 入参必须是 ReflectionMethod(此前 empty($refMethod->name) 恒假,非法入参会在后续调用处裸崩)
+        if (!($refMethod instanceof \ReflectionMethod) || in_array($refMethod->name,$this->filterMethods)) {
             return false;
         }
         $config               = $this->config;

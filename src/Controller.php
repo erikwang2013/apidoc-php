@@ -15,7 +15,6 @@ use erikwang2013\apidoc\utils\Helper;
 use erikwang2013\apidoc\utils\Lang;
 use erikwang2013\apidoc\utils\Request;
 use erikwang2013\apidoc\exception\ErrorException;
-use erikwang2013\apidoc\export\ExportSwagger;
 
 class Controller
 {
@@ -107,7 +106,8 @@ class Controller
         if (!empty($params['shareKey'])) {
             // 接口分享
             $shareData = (new ApiShare())->getShareDetailByKey($params['shareKey']);
-            if (!empty($shareData['password']) && $params['password'] === md5($shareData['password'])) {
+            // 缓存的 password 为 md5(明文),前端提交的也是 md5(明文),直接比对摘要
+            if (!empty($shareData['password']) && hash_equals($shareData['password'], (string)$params['password'])) {
                 $hasAuth = (new Auth($config))->createToken($params['password']);
             } else {
                 throw new ErrorException("password error");
@@ -449,28 +449,6 @@ class Controller
             throw new ErrorException('field not found', ['field' => 'index']);
         }
         $res = (new ApiShare())->handleApiShareAction($config, $params['key'], $params['index']);
-        return Helper::showJson(0, "", $res);
-    }
-
-    /**
-     * 导出swagger.json
-     * @return array
-     */
-    public function exportSwagger()
-    {
-
-        $this->init(true);
-        $config = $this->config;
-        $params = $this->requestParams;
-        if(empty($config['export_config']) || $config['export_config']['enable'] === false){
-            throw new ErrorException('export config not enable');
-        }
-        if (empty($params['key'])) {
-            throw new ErrorException('field not found', ['field' => 'key']);
-        }
-        $searchData = (new ApiShare())->getShareData($config,$params['key']);
-
-        $res = (new ExportSwagger($config['export_config']))->exportJson($config,$searchData);
         return Helper::showJson(0, "", $res);
     }
 

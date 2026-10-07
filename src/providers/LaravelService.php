@@ -38,7 +38,8 @@ class LaravelService extends ServiceProvider
                     $routeCallback = function ()use ($methods){
                         foreach ($methods as $method) {
                             $apiMethods = Helper::handleApiMethod($method['method']);
-                            $route = Route::match($apiMethods + ['OPTIONS'],$method['url'], "\\".$method['controller']."@".$method['name']);
+                            // 注意:必须用 array_merge,数组并集(+)在左侧已有键时会吞掉 OPTIONS,导致预检请求 405
+                            $route = Route::match(array_merge($apiMethods, ['OPTIONS']),$method['url'], "\\".$method['controller']."@".$method['name']);
                             if (!empty($method['middleware'])){
                                 $route->middleware($method['middleware']);
                             }

@@ -28,7 +28,8 @@ class Lang
             return $string;
         }
         if (is_string($string) && strpos($string, 'lang(') !== false) {
-            if (preg_match('#lang\((.*)\)#s', $string, $key) !== false){
+            // 非贪婪匹配,取第一个 lang(...);preg_match 成功返回 1,失败返回 0
+            if (preg_match('#lang\((.*?)\)#s', $string, $key) === 1){
                 $langKey = $key && count($key)>1 ? trim($key[1]):"";
                 if (!empty($langKey)){
                     return $langGetFunction($langKey);
@@ -36,23 +37,6 @@ class Lang
             }
         }
         return $string;
-    }
-
-    /**
-     * 二维数组设置指定字段的多语言
-     * @param $array
-     * @param $field
-     * @return array
-     */
-    public static function getArrayLang($array,$field,$config=[]){
-        $data = [];
-        if (!empty($array) && is_array($array)){
-            foreach ($array as $item){
-                $item[$field] = static::getLang($item[$field],$config);
-                $data[]=$item;
-            }
-        }
-        return $data;
     }
 
 

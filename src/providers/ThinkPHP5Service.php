@@ -2,6 +2,7 @@
 
 namespace erikwang2013\apidoc\providers;
 
+use erikwang2013\apidoc\middleware\ThinkPHPMiddleware;
 use erikwang2013\apidoc\utils\Helper;
 use think\facade\App;
 use think\facade\Route;
@@ -10,6 +11,18 @@ use think\facade\Lang;
 use think\Db;
 use Exception;
 
+/**
+ * ThinkPHP5 框架支持
+ *
+ * 接入方式(TP5 无 composer 自动发现,需手动触发):
+ *   在应用初始化处调用一次:
+ *
+ *       (new \erikwang2013\apidoc\providers\ThinkPHP5Service())->run();
+ *
+ * 说明:
+ * - 不在 composer.json 的 extra.think.services 中注册(TP6 应用会同时加载本类与 ThinkPHPService,风险大于收益)
+ * - 路由中间件(ThinkPHPMiddleware)仅在 TP5.1+ 支持的路由中间件方法存在时挂载
+ */
 class ThinkPHP5Service
 {
     use BaseService;
@@ -57,6 +70,11 @@ class ThinkPHP5Service
     static function registerRoute($route){
         $config = self::getApidocConfig();
         $registerRoute = Route::rule($route['uri'], $route['callback'],"*");
+        // 挂载中间件注入 request_params(否则非 GET 表单参数丢失),与 ThinkPHPService 思路一致;
+        // TP5.0 无路由中间件方法,此时降级不挂载
+        if (method_exists($registerRoute, 'middleware')) {
+            $registerRoute->middleware([ThinkPHPMiddleware::class]);
+        }
         if (!empty($config['allowCrossDomain'])) {
             $registerRoute->allowCrossDomain();
         }
