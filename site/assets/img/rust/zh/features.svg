@@ -1,0 +1,97 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 940 815" font-family="sans-serif">
+  <defs>
+    <pattern id="wm" width="340" height="170" patternUnits="userSpaceOnUse" patternTransform="rotate(-25)">
+      <text x="8" y="44" font-size="30" fill="#888888" opacity="0.15">https://erik.xyz</text>
+    </pattern>
+  </defs>
+  <rect width="940" height="815" fill="url(#wm)"/>
+  <rect x="0" y="0" width="940" height="815" fill="none" stroke="#333" stroke-width="2"/>
+
+  <text x="470" y="38" text-anchor="middle" font-size="26" font-weight="bold" fill="#222">apidoc-rust 项目功能（M1–M6 已完成）</text>
+
+  <!-- 卡片 1 -->
+  <rect x="40" y="70" width="420" height="130" rx="10" fill="#eafaf1" stroke="#27ae60" stroke-width="2"/>
+  <rect x="300" y="60" width="150" height="24" rx="12" fill="#27ae60"/>
+  <text x="375" y="76" text-anchor="middle" font-size="13" fill="#fff" font-weight="bold">已实现 M1</text>
+  <text x="60" y="106" font-size="17" font-weight="bold" fill="#1e8449">注解式文档</text>
+  <text x="60" y="130" font-size="13" fill="#333">M1 七宏：title / desc / method / url / param / query / returned</text>
+  <text x="60" y="150" font-size="13" fill="#333">M3 新增 12 个：tag / group / author / header / route_param /</text>
+  <text x="60" y="170" font-size="12" fill="#333">response_status / success / error / not_debug / md / sort / ref</text>
+  <text x="60" y="190" font-size="13" fill="#333">参数支持 required / default / desc / mock / children 嵌套</text>
+
+  <!-- 卡片 2 -->
+  <rect x="480" y="70" width="420" height="130" rx="10" fill="#eafaf1" stroke="#27ae60" stroke-width="2"/>
+  <rect x="740" y="60" width="150" height="24" rx="12" fill="#27ae60"/>
+  <text x="815" y="76" text-anchor="middle" font-size="13" fill="#fff" font-weight="bold">已实现 M1</text>
+  <text x="500" y="106" font-size="17" font-weight="bold" fill="#1e8449">编译期校验</text>
+  <text x="500" y="130" font-size="13" fill="#333">url 必须以 / 开头、method 白名单、param name 必填</text>
+  <text x="500" y="150" font-size="13" fill="#333">非法注解编译期报错（span 精确），文档与代码永不失同步</text>
+  <text x="500" y="190" font-size="13" fill="#333">M3 扩展 12 个注解同样全量校验</text>
+
+  <!-- 卡片 3 -->
+  <rect x="40" y="220" width="420" height="130" rx="10" fill="#eafaf1" stroke="#27ae60" stroke-width="2"/>
+  <rect x="300" y="210" width="150" height="24" rx="12" fill="#27ae60"/>
+  <text x="375" y="226" text-anchor="middle" font-size="13" fill="#fff" font-weight="bold">已实现 M1</text>
+  <text x="60" y="256" font-size="17" font-weight="bold" fill="#1e8449">自动收集</text>
+  <text x="60" y="280" font-size="13" fill="#333">linkme distributed_slice 静态注册，无需手动接口清单</text>
+  <text x="60" y="300" font-size="13" fill="#333">DocRegistry::collect() 按 id 合并、按 seq 恢复声明顺序</text>
+  <text x="60" y="320" font-size="13" fill="#333">跨 crate 自动收集，等价"扫描代码即得全部接口"</text>
+
+  <!-- 卡片 4 -->
+  <rect x="480" y="220" width="420" height="130" rx="10" fill="#eafaf1" stroke="#27ae60" stroke-width="2"/>
+  <rect x="740" y="210" width="150" height="24" rx="12" fill="#27ae60"/>
+  <text x="815" y="226" text-anchor="middle" font-size="13" fill="#fff" font-weight="bold">已实现 M2</text>
+  <text x="500" y="256" font-size="17" font-weight="bold" fill="#1e8449">axum / actix 适配器 + 文档 UI</text>
+  <text x="500" y="280" font-size="13" fill="#333">apidoc-axum：/apidoc（UI）· /apidoc/api.json · /apidoc/mock</text>
+  <text x="500" y="300" font-size="13" fill="#333">apidoc-actix：薄封装，4 路由含 /apidoc/export（M5）</text>
+  <text x="500" y="320" font-size="13" fill="#333">内嵌文档 UI 调试面板（Html 静态页，零外部依赖）</text>
+
+  <!-- 卡片 5 -->
+  <rect x="40" y="370" width="420" height="130" rx="10" fill="#eafaf1" stroke="#27ae60" stroke-width="2"/>
+  <rect x="300" y="360" width="150" height="24" rx="12" fill="#27ae60"/>
+  <text x="375" y="376" text-anchor="middle" font-size="13" fill="#fff" font-weight="bold">已实现 M4</text>
+  <text x="60" y="406" font-size="17" font-weight="bold" fill="#1e8449">在线调试 + Mock 引擎</text>
+  <text x="60" y="430" font-size="13" fill="#333">调试面板：mock 预填 + 浏览器 CORS 直连目标接口</text>
+  <text x="60" y="450" font-size="13" fill="#333">crates/apidoc-mock 引擎：依赖 fake crate 生成数据</text>
+  <text x="60" y="470" font-size="13" fill="#333">15 条规则：姓名/邮箱/电话/IP/URL/UUID/日期/数字/浮点/布尔/文本…</text>
+
+  <!-- 卡片 6 -->
+  <rect x="480" y="370" width="420" height="130" rx="10" fill="#eafaf1" stroke="#27ae60" stroke-width="2"/>
+  <rect x="740" y="360" width="150" height="24" rx="12" fill="#27ae60"/>
+  <text x="815" y="376" text-anchor="middle" font-size="13" fill="#fff" font-weight="bold">已实现 M5</text>
+  <text x="500" y="406" font-size="17" font-weight="bold" fill="#1e8449">三格式导出（M5）</text>
+  <text x="500" y="430" font-size="13" fill="#333">Markdown / TypeScript / Swagger（OpenAPI 3.0）</text>
+  <text x="500" y="450" font-size="13" fill="#333">info.version 取自 Cargo 包版本（构建期预序列化）</text>
+  <text x="500" y="470" font-size="13" fill="#333">UI / api.json / 导出共用同一数据模型</text>
+
+  <!-- 卡片 7：M6a 密码鉴权 -->
+  <rect x="40" y="520" width="420" height="130" rx="10" fill="#eafaf1" stroke="#27ae60" stroke-width="2"/>
+  <rect x="300" y="510" width="150" height="24" rx="12" fill="#27ae60"/>
+  <text x="375" y="526" text-anchor="middle" font-size="13" fill="#fff" font-weight="bold">已实现 M6a</text>
+  <text x="60" y="556" font-size="17" font-weight="bold" fill="#1e8449">密码鉴权</text>
+  <text x="60" y="580" font-size="13" fill="#333">POST /apidoc/auth（JSON body）换 token</text>
+  <text x="60" y="600" font-size="13" fill="#333">api.json / export / mock 需带 ?token=，缺失/过期/错误返回 401</text>
+  <text x="60" y="620" font-size="13" fill="#333">HMAC-SHA256 签名令牌（签名恒定时间比对）</text>
+  <text x="60" y="640" font-size="13" fill="#333">password / secret_key 永不序列化 · 应用密码优先于全局</text>
+
+  <!-- 卡片 8：M6b 多应用多版本 -->
+  <rect x="480" y="520" width="420" height="130" rx="10" fill="#eafaf1" stroke="#27ae60" stroke-width="2"/>
+  <rect x="740" y="510" width="150" height="24" rx="12" fill="#27ae60"/>
+  <text x="815" y="526" text-anchor="middle" font-size="13" fill="#fff" font-weight="bold">已实现 M6b</text>
+  <text x="500" y="556" font-size="17" font-weight="bold" fill="#1e8449">多应用多版本</text>
+  <text x="500" y="580" font-size="13" fill="#333">#[apidoc::app("key")] 挂载接口 · ApidocConfig.apps 配置树</text>
+  <text x="500" y="600" font-size="13" fill="#333">api.json 输出 doc.apps 树（key / title / items 递归）</text>
+  <text x="500" y="620" font-size="13" fill="#333">UI 顶部应用/版本选择器 · token 按 appKey 分存 localStorage</text>
+  <text x="500" y="640" font-size="13" fill="#333">未挂 app 的接口落默认应用 · 未配置时与 M5 字节级一致</text>
+
+  <!-- 卡片 9：v2 规划 -->
+  <rect x="40" y="670" width="860" height="120" rx="10" fill="#fdfefe" stroke="#95a5a6" stroke-width="2" stroke-dasharray="6 4"/>
+  <rect x="740" y="660" width="150" height="24" rx="12" fill="#95a5a6"/>
+  <text x="815" y="676" text-anchor="middle" font-size="13" fill="#fff" font-weight="bold">规划中</text>
+  <text x="60" y="706" font-size="17" font-weight="bold" fill="#566573">v2 规划</text>
+  <text x="60" y="730" font-size="13" fill="#333">代码生成器 · 数据表字段引用 · 分享链接 · 调试事件</text>
+  <text x="60" y="750" font-size="13" fill="#333">适配器：axum / actix 均已覆盖（功能 1:1）</text>
+  <text x="60" y="770" font-size="13" fill="#333">M1–M6 已全部完成（含密码鉴权 · 多应用多版本）</text>
+
+  <text x="470" y="805" text-anchor="middle" font-size="13" fill="#888">watermark: https://erik.xyz</text>
+</svg>

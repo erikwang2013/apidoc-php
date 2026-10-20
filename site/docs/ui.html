@@ -1,0 +1,379 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>apidoc-ui 使用指南 · Apidoc</title>
+  <meta name="description" content="Vue 3 + TypeScript 的文档加载与展示页面，支持应用/版本、在线调试、接口分享、Swagger 导出、缓存管理与多语言。构建产物为纯静态文件。">
+  <meta name="theme-color" content="#f7f6fc">
+  <link rel="icon" href="../assets/img/apidoc-pet.svg" type="image/svg+xml">
+  <link rel="preload" href="../assets/img/apidoc-pet.svg" as="image">
+  <link rel="stylesheet" href="../assets/css/style.css">
+  <link rel="alternate" hreflang="zh-CN" href="ui.html">
+  <link rel="alternate" hreflang="en" href="../en/docs/ui.html">
+  <noscript>
+    <style>
+      .nav-toggle { display: none !important; }
+      .site-nav { position: static !important; display: flex !important; flex-wrap: wrap; opacity: 1 !important; visibility: visible !important; transform: none !important; padding: 0 !important; border: 0 !important; background: transparent !important; box-shadow: none !important; margin-left: auto; }
+      @media (max-width: 960px) {
+        .header-inner { flex-wrap: wrap; padding-block: 10px; }
+        .site-nav { width: 100%; margin: 6px 0 0; }
+      }
+    </style>
+  </noscript>
+  <meta property="og:type" content="article">
+  <meta property="og:title" content="apidoc-ui 使用指南 · Apidoc">
+  <meta property="og:description" content="Vue 3 + TypeScript 的文档加载与展示页面，支持应用/版本、在线调试、接口分享、Swagger 导出、缓存管理与多语言。构建产物为纯静态文件。">
+  <meta property="og:image" content="../assets/img/social-preview.png">
+  <meta property="og:image:width" content="1280">
+  <meta property="og:image:height" content="640">
+  <meta property="og:site_name" content="Apidoc">
+  <meta property="og:locale" content="zh_CN">
+  <meta property="og:locale:alternate" content="en_US">
+  <meta name="twitter:card" content="summary_large_image">
+  <meta name="twitter:title" content="apidoc-ui 使用指南 · Apidoc">
+  <meta name="twitter:description" content="Vue 3 + TypeScript 的文档加载与展示页面，支持应用/版本、在线调试、接口分享、Swagger 导出、缓存管理与多语言。构建产物为纯静态文件。">
+  <meta name="twitter:image" content="../assets/img/social-preview.png">
+  
+</head>
+<body data-copy-label="复制" data-copied-label="已复制" data-menu-open="打开菜单" data-menu-close="关闭菜单">
+  <a class="skip-link" href="#main">跳到主要内容</a>
+  <svg class="icon-sprite" aria-hidden="true" focusable="false" xmlns="http://www.w3.org/2000/svg">
+  <symbol id="i-arrow" viewBox="0 0 20 20"><path d="M3 10h13M11 5l5 5-5 5"/></symbol>
+  <symbol id="i-external" viewBox="0 0 20 20"><path d="M8 4h8v8M16 4L4 16"/></symbol>
+  <symbol id="i-code" viewBox="0 0 24 24"><path d="M8 6l-5 6 5 6M16 6l5 6-5 6"/></symbol>
+  <symbol id="i-terminal" viewBox="0 0 24 24"><path d="M3 5h18v14H3zM6 9l3 3-3 3M12 15h5"/></symbol>
+  <symbol id="i-spark" viewBox="0 0 24 24"><path d="M12 3v4M12 17v4M3 12h4M17 12h4M6 6l2.5 2.5M15.5 15.5L18 18M18 6l-2.5 2.5M8.5 15.5L6 18"/></symbol>
+  <symbol id="i-layers" viewBox="0 0 24 24"><path d="M12 3l9 5-9 5-9-5 9-5ZM3 12l9 5 9-5M3 16l9 5 9-5"/></symbol>
+  <symbol id="i-file-code" viewBox="0 0 24 24"><path d="M6 3h8l4 4v14H6zM14 3v5h4M10 12l-2 2 2 2M14 12l2 2-2 2"/></symbol>
+  <symbol id="i-file-text" viewBox="0 0 24 24"><path d="M6 3h8l4 4v14H6zM14 3v5h4M9 12h6M9 16h6"/></symbol>
+  <symbol id="i-list" viewBox="0 0 24 24"><path d="M4 6h16M4 12h10M4 18h7"/></symbol>
+  <symbol id="i-wand" viewBox="0 0 24 24"><path d="M15 4l5 5M13 6l5 5M4 20L14 10M6 4l1.5 3L11 8.5 7.5 10 6 13l-1.5-3L1 8.5 4.5 7 6 4Z"/></symbol>
+  <symbol id="i-shield" viewBox="0 0 24 24"><path d="M12 3l8 3v6c0 5-3.5 8-8 9-4.5-1-8-4-8-9V6l8-3ZM9 12l2 2 4-4"/></symbol>
+  <symbol id="i-share" viewBox="0 0 24 24"><path d="M4 12v7h16v-7M12 3v13M8 7l4-4 4 4"/></symbol>
+  <symbol id="i-download" viewBox="0 0 24 24"><path d="M12 3v12M7 10l5 5 5-5M4 20h16"/></symbol>
+  <symbol id="i-check" viewBox="0 0 20 20"><path d="M4 10l4 4 8-8"/></symbol>
+  <symbol id="i-globe" viewBox="0 0 24 24"><path d="M12 3a9 9 0 1 0 0 18 9 9 0 0 0 0-18ZM3 12h18M12 3c2.5 2.5 4 5.5 4 9s-1.5 6.5-4 9c-2.5-2.5-4-5.5-4-9s1.5-6.5 4-9Z"/></symbol>
+  <symbol id="i-book" viewBox="0 0 24 24"><path d="M4 5a3 3 0 0 1 3-3h13v18H7a3 3 0 0 0-3 3V5ZM4 20a3 3 0 0 1 3-3h13"/></symbol>
+  <symbol id="i-layout" viewBox="0 0 24 24"><path d="M3 4h18v16H3zM3 9h18M9 9v11"/></symbol>
+  <symbol id="i-rocket" viewBox="0 0 24 24"><path d="M14 4c3-2 6-1 6-1s1 3-1 6l-6 6-4-4 5-7ZM8 15l-3 3M10 17l-2 3M7 14l-3 2"/></symbol>
+</svg>
+  <header class="site-header" id="top">
+  <div class="wrap header-inner">
+    <a class="brand" href="../index.html" aria-label="Apidoc">
+      <img src="../assets/img/apidoc-pet.svg" width="38" height="38" alt="">
+      <span class="brand-name">Apidoc <span class="brand-tag">API</span></span>
+    </a>
+    <div class="lang-switch" aria-label="语言">
+      <span class="is-active" aria-current="true">中文</span>
+      <a href="../en/docs/ui.html" hreflang="en" lang="en">EN</a>
+    </div>
+    <button class="nav-toggle" type="button" aria-expanded="false" aria-controls="site-nav">
+      <span class="nav-toggle-bars" aria-hidden="true"></span>
+      <span class="sr-only">打开菜单</span>
+    </button>
+    <nav class="site-nav" id="site-nav" aria-label="Main navigation">
+      <a href="../index.html#languages">语言实现</a><a href="../index.html#features">核心能力</a><a href="index.html" class="is-active">使用文档</a><a href="../index.html#install">安装</a><a href="../index.html#versions">版本</a><a href="../index.html#download">下载</a>
+      <a class="nav-mobile-only" href="https://github.com/erikwang2013" target="_blank" rel="noopener">GitHub <svg class="icon icon-xs" aria-hidden="true"><use href="#i-external"></use></svg></a>
+    </nav>
+    <a class="header-cta" href="https://github.com/erikwang2013" target="_blank" rel="noopener">
+      GitHub <svg class="icon icon-xs" aria-hidden="true"><use href="#i-external"></use></svg>
+    </a>
+  </div>
+</header>
+  <main id="main">
+  <section class="docs-hero">
+  <div class="wrap">
+    <p class="docs-breadcrumb"><a href="../index.html">首页</a><span>/</span><a href="index.html">使用文档</a><span>/</span>UI</p>
+    <div class="docs-badges"><span class="lang-badge">UI</span><span class="version-pill">Vue 3.5</span></div>
+    <h1>apidoc-ui 使用指南</h1>
+    <p>Vue 3 + TypeScript 的文档加载与展示页面，支持应用/版本、在线调试、接口分享、Swagger 导出、缓存管理与多语言。构建产物为纯静态文件。</p>
+    <div class="docs-actions"><a class="text-link" href="https://github.com/erikwang2013/apidoc-ui" target="_blank" rel="noopener">GitHub <svg class="icon icon-xs" aria-hidden="true"><use href="#i-external"></use></svg></a><a class="text-link" href="https://github.com/erikwang2013/apidoc-ui/blob/main/README.md" target="_blank" rel="noopener">查看源文档 <svg class="icon icon-xs" aria-hidden="true"><use href="#i-external"></use></svg></a></div>
+    <p class="docs-meta">版本 Vue 3.5 / 完整参考：apidoc-ui README</p>
+  </div>
+</section><div class="wrap docs-layout">
+  <aside class="docs-sidebar">
+    <p class="docs-sidebar-title">本页目录</p>
+    <ul class="docs-toc"><li><a href="#sec-1">适用场景</a></li><li><a href="#sec-2">构建与部署</a></li><li><a href="#sec-3">运行时配置</a></li><li><a href="#sec-4">多应用、多 Host 与 appKey</a></li><li><a href="#sec-5">鉴权</a></li><li><a href="#sec-6">在线调试与全局参数</a></li><li><a href="#sec-7">接口分享、导出与缓存</a></li><li><a href="#sec-8">典型部署场景</a></li><li class="is-sub"><a href="#sec-9">同源部署</a></li><li class="is-sub"><a href="#sec-10">跨域部署</a></li><li class="is-sub"><a href="#sec-11">多后端切换</a></li><li class="is-sub"><a href="#sec-12">子路径部署</a></li><li><a href="#sec-13">规则与排错</a></li><li><a href="#sec-14">参考</a></li></ul>
+    <a class="docs-edit" href="https://github.com/erikwang2013/apidoc-ui/blob/main/README.md" target="_blank" rel="noopener">查看源文档 <svg class="icon icon-xs" aria-hidden="true"><use href="#i-external"></use></svg></a>
+  </aside>
+  <article class="docs-article">
+    <details class="docs-toc-mobile"><summary>本页目录</summary><ul class="docs-toc"><li><a href="#sec-1">适用场景</a></li><li><a href="#sec-2">构建与部署</a></li><li><a href="#sec-3">运行时配置</a></li><li><a href="#sec-4">多应用、多 Host 与 appKey</a></li><li><a href="#sec-5">鉴权</a></li><li><a href="#sec-6">在线调试与全局参数</a></li><li><a href="#sec-7">接口分享、导出与缓存</a></li><li><a href="#sec-8">典型部署场景</a></li><li class="is-sub"><a href="#sec-9">同源部署</a></li><li class="is-sub"><a href="#sec-10">跨域部署</a></li><li class="is-sub"><a href="#sec-11">多后端切换</a></li><li class="is-sub"><a href="#sec-12">子路径部署</a></li><li><a href="#sec-13">规则与排错</a></li><li><a href="#sec-14">参考</a></li></ul></details>
+    <p>apidoc-ui 是 PHP、Go、Rust 三套后端共用的文档前端。它负责拉取接口配置与文档数据，以应用/版本/分组展示接口，并提供在线调试、分享、Swagger 导出、缓存管理等能力。构建产物是纯静态文件，不依赖任何后端运行环境。</p>
+<figure class="doc-figure"><img loading="lazy" decoding="async" src="../assets/img/ui/social-preview.svg" alt="apidoc-ui documentation front-end"><figcaption>apidoc-ui：同一套静态文档界面，服务于 PHP、Go、Rust 后端。</figcaption></figure>
+
+<h2 id="sec-1">适用场景</h2>
+<ul>
+<li>已经使用 apidoc-php、apidoc-go 或 apidoc-rust，想要统一的文档界面。</li>
+<li>想把文档前端部署到静态服务器、CDN 或后端项目的 <code>public</code> 目录。</li>
+<li>需要多应用/版本、在线调试、接口分享、Swagger 导出与缓存管理。</li>
+<li>需要把界面语言、标题、请求地址做成运行时配置，而不是重新打包。</li>
+</ul>
+<h2 id="sec-2">构建与部署</h2>
+<p>要求 Node.js 18 或更高版本：</p>
+<pre class="highlight"><code class="language-bash">npm<span class="w"> </span>ci
+npm<span class="w"> </span>run<span class="w"> </span>dev<span class="w">      </span><span class="c1"># 本地开发，默认端口见 config/constant.ts</span>
+npm<span class="w"> </span>run<span class="w"> </span>build<span class="w">    </span><span class="c1"># vue-tsc + Vite 构建，产物在 apidoc/</span>
+</code></pre>
+
+<p>部署要点：</p>
+<ol>
+<li>把 <code>apidoc/</code> 目录整体放到静态服务器，或后端项目的 public 目录。</li>
+<li><code>config.js</code> 必须和 <code>index.html</code> 同目录，产物中已自动携带。</li>
+<li>替换旧版本前先清空旧目录，避免残留的哈希资源被缓存。</li>
+<li>修改 <code>config.js</code> 后强制刷新一次；<code>config.js?v=&lt;版本号&gt;</code> 是缓存戳。</li>
+</ol>
+<h2 id="sec-3">运行时配置</h2>
+<p><code>config.js</code> 与 <code>index.html</code> 同级，修改后刷新立即生效，不需要重新构建：</p>
+<pre class="highlight"><code class="language-js"><span class="nb">window</span><span class="p">.</span><span class="nx">apidocFeConfig</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="p">{</span>
+<span class="w">  </span><span class="nx">TITLE</span><span class="o">:</span><span class="w"> </span><span class="s2">&quot;Apidoc&quot;</span><span class="p">,</span>
+<span class="w">  </span><span class="nx">SHOW_VERSION</span><span class="o">:</span><span class="w"> </span><span class="kc">true</span><span class="p">,</span>
+<span class="w">  </span><span class="nx">HTTP</span><span class="o">:</span><span class="w"> </span><span class="p">{</span>
+<span class="w">    </span><span class="nx">HOSTS</span><span class="o">:</span><span class="w"> </span><span class="p">[</span><span class="s2">&quot;https://api.example.com&quot;</span><span class="p">],</span><span class="w"> </span><span class="c1">// 多个后端可切换；[] 表示同源</span>
+<span class="w">    </span><span class="nx">API_PREFIX</span><span class="o">:</span><span class="w"> </span><span class="s2">&quot;/apidoc&quot;</span><span class="p">,</span>
+<span class="w">    </span><span class="nx">TIMEOUT</span><span class="o">:</span><span class="w"> </span><span class="mf">30000</span><span class="p">,</span>
+<span class="w">    </span><span class="nx">WITHCREDENTIALS</span><span class="o">:</span><span class="w"> </span><span class="kc">false</span><span class="p">,</span>
+<span class="w">    </span><span class="nx">ENCODEURICOMPONENT</span><span class="o">:</span><span class="w"> </span><span class="kc">false</span><span class="p">,</span>
+<span class="w">  </span><span class="p">},</span>
+<span class="w">  </span><span class="nx">AUTH</span><span class="o">:</span><span class="w"> </span><span class="p">{</span>
+<span class="w">    </span><span class="nx">ERROR_STATUS</span><span class="o">:</span><span class="w"> </span><span class="mf">401</span><span class="p">,</span>
+<span class="w">    </span><span class="nx">ERROR_CODE_FIELD</span><span class="o">:</span><span class="w"> </span><span class="s2">&quot;code&quot;</span><span class="p">,</span>
+<span class="w">  </span><span class="p">},</span>
+<span class="w">  </span><span class="nx">MENU</span><span class="o">:</span><span class="w"> </span><span class="p">{</span><span class="w"> </span><span class="nx">SHOWURL</span><span class="o">:</span><span class="w"> </span><span class="kc">false</span><span class="w"> </span><span class="p">},</span>
+<span class="w">  </span><span class="nx">METHOD_COLOR</span><span class="o">:</span><span class="w"> </span><span class="p">{</span>
+<span class="w">    </span><span class="nx">GET</span><span class="o">:</span><span class="w"> </span><span class="s2">&quot;#87d068&quot;</span><span class="p">,</span>
+<span class="w">    </span><span class="nx">POST</span><span class="o">:</span><span class="w"> </span><span class="s2">&quot;#2db7f5&quot;</span><span class="p">,</span>
+<span class="w">    </span><span class="nx">PUT</span><span class="o">:</span><span class="w"> </span><span class="s2">&quot;#ff9800&quot;</span><span class="p">,</span>
+<span class="w">    </span><span class="nx">DELETE</span><span class="o">:</span><span class="w"> </span><span class="s2">&quot;#ff4d4f&quot;</span><span class="p">,</span>
+<span class="w">    </span><span class="nx">PATCH</span><span class="o">:</span><span class="w"> </span><span class="s2">&quot;#802feb&quot;</span><span class="p">,</span>
+<span class="w">  </span><span class="p">},</span>
+<span class="w">  </span><span class="nx">API_DETAIL_TABS</span><span class="o">:</span><span class="w"> </span><span class="p">[</span><span class="s2">&quot;table&quot;</span><span class="p">,</span><span class="w"> </span><span class="s2">&quot;json&quot;</span><span class="p">,</span><span class="w"> </span><span class="s2">&quot;ts&quot;</span><span class="p">,</span><span class="w"> </span><span class="s2">&quot;debug&quot;</span><span class="p">],</span>
+<span class="w">  </span><span class="nx">LOAD_SCRIPTS</span><span class="o">:</span><span class="w"> </span><span class="p">[</span><span class="s2">&quot;./utils/md5.js&quot;</span><span class="p">],</span>
+<span class="p">};</span>
+</code></pre>
+
+<div class="table-scroll"><table>
+<thead>
+<tr>
+<th>配置</th>
+<th>说明</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>TITLE</code></td>
+<td>页面标题。</td>
+</tr>
+<tr>
+<td><code>SHOW_VERSION</code></td>
+<td>是否在首页底部显示版本号。</td>
+</tr>
+<tr>
+<td><code>CACHE.PREFIX</code></td>
+<td>本地缓存键前缀；不同环境可以分开。</td>
+</tr>
+<tr>
+<td><code>HTTP.HOSTS</code></td>
+<td>后端地址列表，可多个切换；留空使用同源。</td>
+</tr>
+<tr>
+<td><code>HTTP.API_PREFIX</code></td>
+<td>请求前缀，默认 <code>/apidoc</code>。</td>
+</tr>
+<tr>
+<td><code>HTTP.TIMEOUT</code></td>
+<td>请求超时，毫秒。</td>
+</tr>
+<tr>
+<td><code>HTTP.WITHCREDENTIALS</code></td>
+<td>跨域请求是否携带凭据。</td>
+</tr>
+<tr>
+<td><code>AUTH.ERROR_STATUS</code> / <code>ERROR_CODE_FIELD</code></td>
+<td>鉴权失败的状态码与响应字段。</td>
+</tr>
+<tr>
+<td><code>MENU.SHOWURL</code></td>
+<td>菜单是否显示接口 URL。</td>
+</tr>
+<tr>
+<td><code>METHOD_COLOR</code></td>
+<td>各请求类型的颜色。</td>
+</tr>
+<tr>
+<td><code>API_DETAIL_TABS</code></td>
+<td>详情页标签顺序：<code>table</code>、<code>json</code>、<code>ts</code>、<code>debug</code>。</td>
+</tr>
+<tr>
+<td><code>LOAD_SCRIPTS</code></td>
+<td>额外加载的脚本，例如 md5。</td>
+</tr>
+<tr>
+<td><code>DEBUG_EVENTS</code></td>
+<td>调试事件扩展，见下文。</td>
+</tr>
+<tr>
+<td><code>MOCK_EXTENDS</code></td>
+<td>自定义 Mock 规则。</td>
+</tr>
+<tr>
+<td><code>CUSTOM_METHODS</code></td>
+<td>自定义方法。</td>
+</tr>
+<tr>
+<td><code>LANG</code></td>
+<td>界面文案语言包，可增补。</td>
+</tr>
+</tbody>
+</table></div>
+<h2 id="sec-4">多应用、多 Host 与 appKey</h2>
+<ul>
+<li><code>HOSTS</code> 有多个地址时，界面提供 Host 切换；每个 Host 可以是不同的后端服务。</li>
+<li>同一后端可以挂多个应用。前端按以下优先级选择 <code>appKey</code>：URL 参数 <code>?appKey=xxx</code>、后端返回的应用列表第一项、侧边栏手动选择。</li>
+<li>授权 token 按 appKey 分别缓存（<code>CACHE.PREFIX + appKey</code>），切换应用互不影响。</li>
+<li>多版本项目会在应用树中展示版本节点，切换后重新拉取对应接口数据。</li>
+</ul>
+<h2 id="sec-5">鉴权</h2>
+<p>后端开启密码后，UI 会显示密码遮罩。输入密码后，前端调用后端的登录接口换取 token，并按 appKey 存储。<code>AUTH.ERROR_STATUS</code> 与 <code>AUTH.ERROR_CODE_FIELD</code> 用于识别未授权响应。跨域部署时：</p>
+<ul>
+<li>后端需要允许文档页面的 Origin。</li>
+<li><code>HTTP.WITHCREDENTIALS</code> 为 <code>true</code> 时，后端不能使用 <code>*</code> 作为允许来源，必须回显具体 Origin。</li>
+<li>token 存在浏览器本地缓存中；共享电脑上要注意清理。</li>
+</ul>
+<h2 id="sec-6">在线调试与全局参数</h2>
+<p>详情页的 Debug 标签支持：</p>
+<ul>
+<li>Header / Query / Body / Route 参数；</li>
+<li>全局参数（一次填写，所有请求携带）；</li>
+<li>文件选择与文件上传；</li>
+<li>请求前/后事件：可以在发送前修改参数，或在响应后格式化结果；</li>
+<li>Mock 预填：使用后端返回的 Mock 示例；</li>
+<li>响应状态、耗时与 pretty JSON 展示。</li>
+</ul>
+<p><code>DEBUG_EVENTS</code> 可以注册自定义事件，例如对密码字段做 md5，或把 token 写入全局 Header：</p>
+<pre class="highlight"><code class="language-js"><span class="nb">window</span><span class="p">.</span><span class="nx">apidocFeConfig</span><span class="p">.</span><span class="nx">DEBUG_EVENTS</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="p">{</span>
+<span class="w">  </span><span class="nx">setToken</span><span class="p">(</span><span class="nx">param</span><span class="p">)</span><span class="w"> </span><span class="p">{</span>
+<span class="w">    </span><span class="k">return</span><span class="w"> </span><span class="ow">new</span><span class="w"> </span><span class="nb">Promise</span><span class="p">((</span><span class="nx">resolve</span><span class="p">,</span><span class="w"> </span><span class="nx">reject</span><span class="p">)</span><span class="w"> </span><span class="p">=&gt;</span><span class="w"> </span><span class="p">{</span>
+<span class="w">      </span><span class="k">this</span><span class="p">.</span><span class="nx">setGlobalHeader</span><span class="p">({</span><span class="w"> </span><span class="p">...</span><span class="nx">param</span><span class="p">,</span><span class="w"> </span><span class="nx">value</span><span class="o">:</span><span class="w"> </span><span class="sb">`Bearer </span><span class="si">${</span><span class="nx">param</span><span class="p">.</span><span class="nx">value</span><span class="si">}</span><span class="sb">`</span><span class="w"> </span><span class="p">})</span>
+<span class="w">        </span><span class="p">.</span><span class="nx">then</span><span class="p">(()</span><span class="w"> </span><span class="p">=&gt;</span><span class="w"> </span><span class="nx">resolve</span><span class="p">(</span><span class="nx">param</span><span class="p">))</span>
+<span class="w">        </span><span class="p">.</span><span class="k">catch</span><span class="p">(</span><span class="nx">reject</span><span class="p">);</span>
+<span class="w">    </span><span class="p">});</span>
+<span class="w">  </span><span class="p">},</span>
+<span class="p">};</span>
+</code></pre>
+
+<h2 id="sec-7">接口分享、导出与缓存</h2>
+<ul>
+<li>接口分享：生成指定应用/接口的链接，必要时附带 token。</li>
+<li>导出：Swagger/OpenAPI JSON、Markdown、Postman JSON、PDF（打印）。</li>
+<li>缓存管理：生成或清除接口缓存；后端开启缓存后，这里可以主动刷新。</li>
+<li>JSON / TypeScript 视图：直接复制请求/响应示例与类型定义给前端。</li>
+</ul>
+<h2 id="sec-8">典型部署场景</h2>
+<h3 id="sec-9">同源部署</h3>
+<p>后端与 UI 在同一个域名下，<code>HOSTS: []</code>、<code>API_PREFIX: "/apidoc"</code> 即可。把 UI 产物放到后端 public 目录的 <code>/apidoc-ui/</code>，或把后端 docs 前缀反代到 UI 所需路径。</p>
+<h3 id="sec-10">跨域部署</h3>
+<p>把 UI 放到静态站点，<code>HOSTS: ["https://api.example.com"]</code>，后端配置 CORS 白名单。需要携带 Cookie 时设置 <code>WITHCREDENTIALS: true</code>，并让后端回显具体 Origin。</p>
+<h3 id="sec-11">多后端切换</h3>
+<p><code>HOSTS</code> 配置多个地址，适合测试/预发/生产或多套微服务。每个 Host 的 token、应用选择独立管理。</p>
+<h3 id="sec-12">子路径部署</h3>
+<p>UI 使用相对路径构建，放到 <code>/docs/</code> 等子目录也可以工作；确保 <code>config.js</code> 与 <code>index.html</code> 同目录，并按部署路径调整 <code>API_PREFIX</code> 或 <code>HOSTS</code>。</p>
+<h2 id="sec-13">规则与排错</h2>
+<div class="table-scroll"><table>
+<thead>
+<tr>
+<th>问题</th>
+<th>检查</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>页面空白或 404</td>
+<td><code>config.js</code> 是否与 <code>index.html</code> 同目录；静态服务器是否正确回退到 <code>index.html</code>。</td>
+</tr>
+<tr>
+<td>接口列表为空</td>
+<td><code>HOSTS</code> / <code>API_PREFIX</code> 是否指向后端文档接口；后端是否返回 401。</td>
+</tr>
+<tr>
+<td>CORS 失败</td>
+<td>后端是否允许 UI 的 Origin；<code>WITHCREDENTIALS</code> 与 <code>*</code> 是否冲突。</td>
+</tr>
+<tr>
+<td>修改配置不生效</td>
+<td>强制刷新；检查 <code>config.js?v=</code> 缓存戳。</td>
+</tr>
+<tr>
+<td>旧资源残留</td>
+<td>发布前清空旧目录，避免旧哈希资源混入。</td>
+</tr>
+<tr>
+<td>鉴权反复失败</td>
+<td>检查密码、应用密码、token 过期时间与 appKey。</td>
+</tr>
+<tr>
+<td>分享链接打不开</td>
+<td>检查链接是否带正确 Host、appKey 与 token。</td>
+</tr>
+<tr>
+<td>调试结果异常</td>
+<td>检查全局 Header/Query/Body、前置脚本与目标接口 CORS。</td>
+</tr>
+</tbody>
+</table></div>
+<h2 id="sec-14">参考</h2>
+<ul>
+<li><a href="https://github.com/erikwang2013/apidoc-ui" target="_blank" rel="noopener">apidoc-ui README</a></li>
+<li><a href="https://github.com/erikwang2013/apidoc-ui" target="_blank" rel="noopener">apidoc-ui 仓库</a></li>
+<li>后端使用指南：<a href="../docs/php.html">PHP</a> · <a href="../docs/go.html">Go</a> · <a href="../docs/rust.html">Rust</a></li>
+</ul>
+    <div class="docs-end">
+  <div><p><strong>安装</strong></p><div class="command-box"><code id="doc-install-ui">npm ci &amp;&amp; npm run build</code><button class="copy-btn copy-btn--light" type="button" data-copy="doc-install-ui">复制</button></div></div>
+  <a class="btn btn-secondary" href="index.html">返回文档中心</a>
+</div>
+<div class="docs-next"><h2>其他语言指南</h2><div class="docs-next-grid"><a class="docs-next-link" href="php.html"><span class="lang-badge">PHP</span><strong>PHP 使用指南</strong><svg class="icon icon-xs" aria-hidden="true"><use href="#i-arrow"></use></svg></a><a class="docs-next-link" href="go.html"><span class="lang-badge">Go</span><strong>Go 使用指南</strong><svg class="icon icon-xs" aria-hidden="true"><use href="#i-arrow"></use></svg></a><a class="docs-next-link" href="rust.html"><span class="lang-badge">Rust</span><strong>Rust 使用指南</strong><svg class="icon icon-xs" aria-hidden="true"><use href="#i-arrow"></use></svg></a></div></div>
+<div class="docs-end docs-help">
+  <div><p><strong>需要帮助？</strong></p><p>到 GitHub Issues 提问，或先看仓库 README。</p></div>
+  <a class="btn btn-secondary" href="https://github.com/erikwang2013/apidoc-ui/issues" target="_blank" rel="noopener">提交 Issue <svg class="icon " aria-hidden="true"><use href="#i-external"></use></svg></a>
+</div>
+  </article>
+</div>
+  </main>
+  <footer class="site-footer">
+  <div class="wrap footer-grid">
+    <div class="footer-brand">
+      <img src="../assets/img/pet/coquettish.svg" width="64" height="64" alt="" aria-hidden="true">
+      <div><strong>Apidoc</strong><p>PHP、Go、Rust 通用 API 文档体系。</p></div>
+    </div>
+    <nav class="footer-col" aria-label="使用指南">
+      <h2>使用指南</h2>
+      <a href="php.html">PHP 使用指南</a><a href="go.html">Go 使用指南</a><a href="rust.html">Rust 使用指南</a><a href="ui.html">apidoc-ui 使用指南</a>
+      <a href="index.html">使用文档</a>
+    </nav>
+    <nav class="footer-col" aria-label="项目">
+      <h2>项目</h2>
+      <a href="https://github.com/erikwang2013/apidoc-php" target="_blank" rel="noopener">PHP <svg class="icon icon-xs" aria-hidden="true"><use href="#i-external"></use></svg></a><a href="https://github.com/erikwang2013/apidoc-go" target="_blank" rel="noopener">Go <svg class="icon icon-xs" aria-hidden="true"><use href="#i-external"></use></svg></a><a href="https://github.com/erikwang2013/apidoc-rust" target="_blank" rel="noopener">Rust <svg class="icon icon-xs" aria-hidden="true"><use href="#i-external"></use></svg></a><a href="https://github.com/erikwang2013/apidoc-ui" target="_blank" rel="noopener">UI <svg class="icon icon-xs" aria-hidden="true"><use href="#i-external"></use></svg></a>
+    </nav>
+    <div class="footer-col">
+      <h2>关于</h2>
+      <a href="https://erik.xyz" target="_blank" rel="noopener">艾瑞可 erik</a>
+      <a href="https://beian.miit.gov.cn" target="_blank" rel="noopener">粤ICP备2020136226号-8</a>
+      <a href="mailto:erik@erik.xyz">erik@erik.xyz</a>
+      <a href="https://github.com/HGthecode/apidoc-php" target="_blank" rel="noopener">参考项目 HGthecode/apidoc-php</a>
+      <a href="https://packagist.org/packages/hg/apidoc" target="_blank" rel="noopener">hg/apidoc</a>
+      <a href="../en/docs/ui.html" hreflang="en" lang="en">English</a>
+    </div>
+  </div>
+  <div class="wrap footer-bottom">
+    <p>© 2026 erik. Apidoc. MIT License.</p>
+    <p>视觉资产版权归作者所有，商业使用需取得授权。 <a href="https://github.com/erikwang2013/apidoc-php/blob/main/ASSETS-LICENSE.md" target="_blank" rel="noopener">ASSETS-LICENSE.md</a></p>
+  </div>
+  <div class="wrap footer-info" id="busuanzi"><script async src="//busuanzi.ibruce.info/busuanzi/2.3/busuanzi.pure.mini.js"></script><span id="busuanzi_container_site_pv">本站总访问量 <b id="busuanzi_value_site_pv">0</b> 次 👀</span><span class="dot">·</span><span id="busuanzi_container_site_uv">访客数 <b id="busuanzi_value_site_uv">0</b> 人次 🧑‍🚀</span></div>
+</footer>
+  <button class="to-top" id="to-top" type="button" aria-label="回到顶部" title="回到顶部" data-label="回到顶部" data-cute="../assets/img/pet/cute.svg">
+    <svg class="to-top-ring" viewBox="0 0 64 64" aria-hidden="true"><circle cx="32" cy="32" r="30"></circle></svg>
+    <img class="to-top-pet" src="../assets/img/apidoc-pet.svg" width="48" height="48" alt="">
+  </button>
+  <script src="../assets/js/main.js" defer></script>
+</body>
+</html>

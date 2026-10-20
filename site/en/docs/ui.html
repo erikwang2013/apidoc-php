@@ -1,0 +1,379 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>apidoc-ui Guide · Apidoc</title>
+  <meta name="description" content="A Vue 3 + TypeScript documentation front-end with apps/versions, live debugging, sharing, Swagger export, cache management and i18n. The build output is fully static.">
+  <meta name="theme-color" content="#f7f6fc">
+  <link rel="icon" href="../../assets/img/apidoc-pet.svg" type="image/svg+xml">
+  <link rel="preload" href="../../assets/img/apidoc-pet.svg" as="image">
+  <link rel="stylesheet" href="../../assets/css/style.css">
+  <link rel="alternate" hreflang="zh-CN" href="../../docs/ui.html">
+  <link rel="alternate" hreflang="en" href="ui.html">
+  <noscript>
+    <style>
+      .nav-toggle { display: none !important; }
+      .site-nav { position: static !important; display: flex !important; flex-wrap: wrap; opacity: 1 !important; visibility: visible !important; transform: none !important; padding: 0 !important; border: 0 !important; background: transparent !important; box-shadow: none !important; margin-left: auto; }
+      @media (max-width: 960px) {
+        .header-inner { flex-wrap: wrap; padding-block: 10px; }
+        .site-nav { width: 100%; margin: 6px 0 0; }
+      }
+    </style>
+  </noscript>
+  <meta property="og:type" content="article">
+  <meta property="og:title" content="apidoc-ui Guide · Apidoc">
+  <meta property="og:description" content="A Vue 3 + TypeScript documentation front-end with apps/versions, live debugging, sharing, Swagger export, cache management and i18n. The build output is fully static.">
+  <meta property="og:image" content="../../assets/img/php/social-preview-en.png">
+  <meta property="og:image:width" content="1280">
+  <meta property="og:image:height" content="640">
+  <meta property="og:site_name" content="Apidoc">
+  <meta property="og:locale" content="en_US">
+  <meta property="og:locale:alternate" content="zh_CN">
+  <meta name="twitter:card" content="summary_large_image">
+  <meta name="twitter:title" content="apidoc-ui Guide · Apidoc">
+  <meta name="twitter:description" content="A Vue 3 + TypeScript documentation front-end with apps/versions, live debugging, sharing, Swagger export, cache management and i18n. The build output is fully static.">
+  <meta name="twitter:image" content="../../assets/img/php/social-preview-en.png">
+  
+</head>
+<body data-copy-label="Copy" data-copied-label="Copied" data-menu-open="Open menu" data-menu-close="Close menu">
+  <a class="skip-link" href="#main">Skip to main content</a>
+  <svg class="icon-sprite" aria-hidden="true" focusable="false" xmlns="http://www.w3.org/2000/svg">
+  <symbol id="i-arrow" viewBox="0 0 20 20"><path d="M3 10h13M11 5l5 5-5 5"/></symbol>
+  <symbol id="i-external" viewBox="0 0 20 20"><path d="M8 4h8v8M16 4L4 16"/></symbol>
+  <symbol id="i-code" viewBox="0 0 24 24"><path d="M8 6l-5 6 5 6M16 6l5 6-5 6"/></symbol>
+  <symbol id="i-terminal" viewBox="0 0 24 24"><path d="M3 5h18v14H3zM6 9l3 3-3 3M12 15h5"/></symbol>
+  <symbol id="i-spark" viewBox="0 0 24 24"><path d="M12 3v4M12 17v4M3 12h4M17 12h4M6 6l2.5 2.5M15.5 15.5L18 18M18 6l-2.5 2.5M8.5 15.5L6 18"/></symbol>
+  <symbol id="i-layers" viewBox="0 0 24 24"><path d="M12 3l9 5-9 5-9-5 9-5ZM3 12l9 5 9-5M3 16l9 5 9-5"/></symbol>
+  <symbol id="i-file-code" viewBox="0 0 24 24"><path d="M6 3h8l4 4v14H6zM14 3v5h4M10 12l-2 2 2 2M14 12l2 2-2 2"/></symbol>
+  <symbol id="i-file-text" viewBox="0 0 24 24"><path d="M6 3h8l4 4v14H6zM14 3v5h4M9 12h6M9 16h6"/></symbol>
+  <symbol id="i-list" viewBox="0 0 24 24"><path d="M4 6h16M4 12h10M4 18h7"/></symbol>
+  <symbol id="i-wand" viewBox="0 0 24 24"><path d="M15 4l5 5M13 6l5 5M4 20L14 10M6 4l1.5 3L11 8.5 7.5 10 6 13l-1.5-3L1 8.5 4.5 7 6 4Z"/></symbol>
+  <symbol id="i-shield" viewBox="0 0 24 24"><path d="M12 3l8 3v6c0 5-3.5 8-8 9-4.5-1-8-4-8-9V6l8-3ZM9 12l2 2 4-4"/></symbol>
+  <symbol id="i-share" viewBox="0 0 24 24"><path d="M4 12v7h16v-7M12 3v13M8 7l4-4 4 4"/></symbol>
+  <symbol id="i-download" viewBox="0 0 24 24"><path d="M12 3v12M7 10l5 5 5-5M4 20h16"/></symbol>
+  <symbol id="i-check" viewBox="0 0 20 20"><path d="M4 10l4 4 8-8"/></symbol>
+  <symbol id="i-globe" viewBox="0 0 24 24"><path d="M12 3a9 9 0 1 0 0 18 9 9 0 0 0 0-18ZM3 12h18M12 3c2.5 2.5 4 5.5 4 9s-1.5 6.5-4 9c-2.5-2.5-4-5.5-4-9s1.5-6.5 4-9Z"/></symbol>
+  <symbol id="i-book" viewBox="0 0 24 24"><path d="M4 5a3 3 0 0 1 3-3h13v18H7a3 3 0 0 0-3 3V5ZM4 20a3 3 0 0 1 3-3h13"/></symbol>
+  <symbol id="i-layout" viewBox="0 0 24 24"><path d="M3 4h18v16H3zM3 9h18M9 9v11"/></symbol>
+  <symbol id="i-rocket" viewBox="0 0 24 24"><path d="M14 4c3-2 6-1 6-1s1 3-1 6l-6 6-4-4 5-7ZM8 15l-3 3M10 17l-2 3M7 14l-3 2"/></symbol>
+</svg>
+  <header class="site-header" id="top">
+  <div class="wrap header-inner">
+    <a class="brand" href="../index.html" aria-label="Apidoc">
+      <img src="../../assets/img/apidoc-pet.svg" width="38" height="38" alt="">
+      <span class="brand-name">Apidoc <span class="brand-tag">API</span></span>
+    </a>
+    <div class="lang-switch" aria-label="Language">
+      <span class="is-active" aria-current="true">EN</span>
+      <a href="../../docs/ui.html" hreflang="zh-CN" lang="zh-CN">中文</a>
+    </div>
+    <button class="nav-toggle" type="button" aria-expanded="false" aria-controls="site-nav">
+      <span class="nav-toggle-bars" aria-hidden="true"></span>
+      <span class="sr-only">Open menu</span>
+    </button>
+    <nav class="site-nav" id="site-nav" aria-label="Main navigation">
+      <a href="../index.html#languages">Languages</a><a href="../index.html#features">Features</a><a href="index.html" class="is-active">Guides</a><a href="../index.html#install">Install</a><a href="../index.html#versions">Versions</a><a href="../index.html#download">Downloads</a>
+      <a class="nav-mobile-only" href="https://github.com/erikwang2013" target="_blank" rel="noopener">GitHub <svg class="icon icon-xs" aria-hidden="true"><use href="#i-external"></use></svg></a>
+    </nav>
+    <a class="header-cta" href="https://github.com/erikwang2013" target="_blank" rel="noopener">
+      GitHub <svg class="icon icon-xs" aria-hidden="true"><use href="#i-external"></use></svg>
+    </a>
+  </div>
+</header>
+  <main id="main">
+  <section class="docs-hero">
+  <div class="wrap">
+    <p class="docs-breadcrumb"><a href="../index.html">Home</a><span>/</span><a href="index.html">Usage guides</a><span>/</span>UI</p>
+    <div class="docs-badges"><span class="lang-badge">UI</span><span class="version-pill">Vue 3.5</span></div>
+    <h1>apidoc-ui Guide</h1>
+    <p>A Vue 3 + TypeScript documentation front-end with apps/versions, live debugging, sharing, Swagger export, cache management and i18n. The build output is fully static.</p>
+    <div class="docs-actions"><a class="text-link" href="https://github.com/erikwang2013/apidoc-ui" target="_blank" rel="noopener">GitHub <svg class="icon icon-xs" aria-hidden="true"><use href="#i-external"></use></svg></a><a class="text-link" href="https://github.com/erikwang2013/apidoc-ui/blob/main/README.md" target="_blank" rel="noopener">View source <svg class="icon icon-xs" aria-hidden="true"><use href="#i-external"></use></svg></a></div>
+    <p class="docs-meta">Version Vue 3.5 / Full reference: apidoc-ui README</p>
+  </div>
+</section><div class="wrap docs-layout">
+  <aside class="docs-sidebar">
+    <p class="docs-sidebar-title">On this page</p>
+    <ul class="docs-toc"><li><a href="#sec-1">When to use it</a></li><li><a href="#sec-2">Build and deploy</a></li><li><a href="#sec-3">Runtime config</a></li><li><a href="#sec-4">Multi-host, apps and appKey</a></li><li><a href="#sec-5">Auth</a></li><li><a href="#sec-6">Live debugging and global params</a></li><li><a href="#sec-7">Sharing, exports and caching</a></li><li><a href="#sec-8">Common deployments</a></li><li class="is-sub"><a href="#sec-9">Same origin</a></li><li class="is-sub"><a href="#sec-10">Cross origin</a></li><li class="is-sub"><a href="#sec-11">Multiple backends</a></li><li class="is-sub"><a href="#sec-12">Subpath deployment</a></li><li><a href="#sec-13">Rules and troubleshooting</a></li><li><a href="#sec-14">Reference</a></li></ul>
+    <a class="docs-edit" href="https://github.com/erikwang2013/apidoc-ui/blob/main/README.md" target="_blank" rel="noopener">View source <svg class="icon icon-xs" aria-hidden="true"><use href="#i-external"></use></svg></a>
+  </aside>
+  <article class="docs-article">
+    <details class="docs-toc-mobile"><summary>On this page</summary><ul class="docs-toc"><li><a href="#sec-1">When to use it</a></li><li><a href="#sec-2">Build and deploy</a></li><li><a href="#sec-3">Runtime config</a></li><li><a href="#sec-4">Multi-host, apps and appKey</a></li><li><a href="#sec-5">Auth</a></li><li><a href="#sec-6">Live debugging and global params</a></li><li><a href="#sec-7">Sharing, exports and caching</a></li><li><a href="#sec-8">Common deployments</a></li><li class="is-sub"><a href="#sec-9">Same origin</a></li><li class="is-sub"><a href="#sec-10">Cross origin</a></li><li class="is-sub"><a href="#sec-11">Multiple backends</a></li><li class="is-sub"><a href="#sec-12">Subpath deployment</a></li><li><a href="#sec-13">Rules and troubleshooting</a></li><li><a href="#sec-14">Reference</a></li></ul></details>
+    <p>apidoc-ui is the shared documentation front-end for PHP, Go and Rust backends. It fetches app config and document data, renders endpoints by app/version/group, and provides live debugging, sharing, Swagger export and cache management. The build output is fully static and has no server runtime dependency.</p>
+<figure class="doc-figure"><img loading="lazy" decoding="async" src="../../assets/img/ui/social-preview.svg" alt="apidoc-ui documentation front-end"><figcaption>apidoc-ui: one static documentation interface for PHP, Go and Rust backends.</figcaption></figure>
+
+<h2 id="sec-1">When to use it</h2>
+<ul>
+<li>You already use apidoc-php, apidoc-go or apidoc-rust and want one documentation UI.</li>
+<li>You want to deploy the docs front-end to a static server, CDN or a backend <code>public</code> directory.</li>
+<li>You need apps/versions, live debugging, sharing, Swagger export and cache management.</li>
+<li>You want title, backend URL and UI language to be runtime configuration instead of a rebuild.</li>
+</ul>
+<h2 id="sec-2">Build and deploy</h2>
+<p>Node.js 18+ is required:</p>
+<pre class="highlight"><code class="language-bash">npm<span class="w"> </span>ci
+npm<span class="w"> </span>run<span class="w"> </span>dev<span class="w">      </span><span class="c1"># local dev; port in config/constant.ts</span>
+npm<span class="w"> </span>run<span class="w"> </span>build<span class="w">    </span><span class="c1"># vue-tsc + Vite build, output in apidoc/</span>
+</code></pre>
+
+<p>Deployment checklist:</p>
+<ol>
+<li>Copy the whole <code>apidoc/</code> directory to a static server or a backend <code>public</code> directory.</li>
+<li><code>config.js</code> must sit next to <code>index.html</code>; the build already copies it.</li>
+<li>Clear the old directory before replacing files so stale hashed assets do not linger.</li>
+<li>Hard-refresh after editing <code>config.js</code>; <code>config.js?v=&lt;version&gt;</code> is the cache-busting stamp.</li>
+</ol>
+<h2 id="sec-3">Runtime config</h2>
+<p><code>config.js</code> sits next to <code>index.html</code>. Edits take effect on refresh without a rebuild:</p>
+<pre class="highlight"><code class="language-js"><span class="nb">window</span><span class="p">.</span><span class="nx">apidocFeConfig</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="p">{</span>
+<span class="w">  </span><span class="nx">TITLE</span><span class="o">:</span><span class="w"> </span><span class="s2">&quot;Apidoc&quot;</span><span class="p">,</span>
+<span class="w">  </span><span class="nx">SHOW_VERSION</span><span class="o">:</span><span class="w"> </span><span class="kc">true</span><span class="p">,</span>
+<span class="w">  </span><span class="nx">HTTP</span><span class="o">:</span><span class="w"> </span><span class="p">{</span>
+<span class="w">    </span><span class="nx">HOSTS</span><span class="o">:</span><span class="w"> </span><span class="p">[</span><span class="s2">&quot;https://api.example.com&quot;</span><span class="p">],</span><span class="w"> </span><span class="c1">// multiple backends; [] means same origin</span>
+<span class="w">    </span><span class="nx">API_PREFIX</span><span class="o">:</span><span class="w"> </span><span class="s2">&quot;/apidoc&quot;</span><span class="p">,</span>
+<span class="w">    </span><span class="nx">TIMEOUT</span><span class="o">:</span><span class="w"> </span><span class="mf">30000</span><span class="p">,</span>
+<span class="w">    </span><span class="nx">WITHCREDENTIALS</span><span class="o">:</span><span class="w"> </span><span class="kc">false</span><span class="p">,</span>
+<span class="w">    </span><span class="nx">ENCODEURICOMPONENT</span><span class="o">:</span><span class="w"> </span><span class="kc">false</span><span class="p">,</span>
+<span class="w">  </span><span class="p">},</span>
+<span class="w">  </span><span class="nx">AUTH</span><span class="o">:</span><span class="w"> </span><span class="p">{</span>
+<span class="w">    </span><span class="nx">ERROR_STATUS</span><span class="o">:</span><span class="w"> </span><span class="mf">401</span><span class="p">,</span>
+<span class="w">    </span><span class="nx">ERROR_CODE_FIELD</span><span class="o">:</span><span class="w"> </span><span class="s2">&quot;code&quot;</span><span class="p">,</span>
+<span class="w">  </span><span class="p">},</span>
+<span class="w">  </span><span class="nx">MENU</span><span class="o">:</span><span class="w"> </span><span class="p">{</span><span class="w"> </span><span class="nx">SHOWURL</span><span class="o">:</span><span class="w"> </span><span class="kc">false</span><span class="w"> </span><span class="p">},</span>
+<span class="w">  </span><span class="nx">METHOD_COLOR</span><span class="o">:</span><span class="w"> </span><span class="p">{</span>
+<span class="w">    </span><span class="nx">GET</span><span class="o">:</span><span class="w"> </span><span class="s2">&quot;#87d068&quot;</span><span class="p">,</span>
+<span class="w">    </span><span class="nx">POST</span><span class="o">:</span><span class="w"> </span><span class="s2">&quot;#2db7f5&quot;</span><span class="p">,</span>
+<span class="w">    </span><span class="nx">PUT</span><span class="o">:</span><span class="w"> </span><span class="s2">&quot;#ff9800&quot;</span><span class="p">,</span>
+<span class="w">    </span><span class="nx">DELETE</span><span class="o">:</span><span class="w"> </span><span class="s2">&quot;#ff4d4f&quot;</span><span class="p">,</span>
+<span class="w">    </span><span class="nx">PATCH</span><span class="o">:</span><span class="w"> </span><span class="s2">&quot;#802feb&quot;</span><span class="p">,</span>
+<span class="w">  </span><span class="p">},</span>
+<span class="w">  </span><span class="nx">API_DETAIL_TABS</span><span class="o">:</span><span class="w"> </span><span class="p">[</span><span class="s2">&quot;table&quot;</span><span class="p">,</span><span class="w"> </span><span class="s2">&quot;json&quot;</span><span class="p">,</span><span class="w"> </span><span class="s2">&quot;ts&quot;</span><span class="p">,</span><span class="w"> </span><span class="s2">&quot;debug&quot;</span><span class="p">],</span>
+<span class="w">  </span><span class="nx">LOAD_SCRIPTS</span><span class="o">:</span><span class="w"> </span><span class="p">[</span><span class="s2">&quot;./utils/md5.js&quot;</span><span class="p">],</span>
+<span class="p">};</span>
+</code></pre>
+
+<div class="table-scroll"><table>
+<thead>
+<tr>
+<th>Config</th>
+<th>Description</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>TITLE</code></td>
+<td>Page title.</td>
+</tr>
+<tr>
+<td><code>SHOW_VERSION</code></td>
+<td>Show the version in the home footer.</td>
+</tr>
+<tr>
+<td><code>CACHE.PREFIX</code></td>
+<td>Local cache key prefix; use different values per environment.</td>
+</tr>
+<tr>
+<td><code>HTTP.HOSTS</code></td>
+<td>Backend URLs to switch between; empty means same origin.</td>
+</tr>
+<tr>
+<td><code>HTTP.API_PREFIX</code></td>
+<td>Request prefix, default <code>/apidoc</code>.</td>
+</tr>
+<tr>
+<td><code>HTTP.TIMEOUT</code></td>
+<td>Request timeout in milliseconds.</td>
+</tr>
+<tr>
+<td><code>HTTP.WITHCREDENTIALS</code></td>
+<td>Send credentials on cross-origin requests.</td>
+</tr>
+<tr>
+<td><code>AUTH.ERROR_STATUS</code> / <code>ERROR_CODE_FIELD</code></td>
+<td>Auth failure status and response field.</td>
+</tr>
+<tr>
+<td><code>MENU.SHOWURL</code></td>
+<td>Show endpoint URLs in the menu.</td>
+</tr>
+<tr>
+<td><code>METHOD_COLOR</code></td>
+<td>Colors per HTTP method.</td>
+</tr>
+<tr>
+<td><code>API_DETAIL_TABS</code></td>
+<td>Detail tab order: <code>table</code>, <code>json</code>, <code>ts</code>, <code>debug</code>.</td>
+</tr>
+<tr>
+<td><code>LOAD_SCRIPTS</code></td>
+<td>Extra scripts, such as md5.</td>
+</tr>
+<tr>
+<td><code>DEBUG_EVENTS</code></td>
+<td>Debug event extensions; see below.</td>
+</tr>
+<tr>
+<td><code>MOCK_EXTENDS</code></td>
+<td>Custom Mock rules.</td>
+</tr>
+<tr>
+<td><code>CUSTOM_METHODS</code></td>
+<td>Custom helpers.</td>
+</tr>
+<tr>
+<td><code>LANG</code></td>
+<td>UI language packs; add or extend as needed.</td>
+</tr>
+</tbody>
+</table></div>
+<h2 id="sec-4">Multi-host, apps and appKey</h2>
+<ul>
+<li>With multiple <code>HOSTS</code>, the UI provides a host switcher; each host can be a different backend.</li>
+<li>One backend can host multiple apps. The UI chooses <code>appKey</code> in this order: URL parameter <code>?appKey=xxx</code>, the first app returned by the backend, then manual selection in the sidebar.</li>
+<li>Auth tokens are cached per appKey (<code>CACHE.PREFIX + appKey</code>), so switching apps does not mix credentials.</li>
+<li>Version nodes appear in the app tree; switching reloads the endpoint data for that node.</li>
+</ul>
+<h2 id="sec-5">Auth</h2>
+<p>When the backend enables a password, the UI shows a password overlay. After login it exchanges the password for a token and stores it per appKey. <code>AUTH.ERROR_STATUS</code> and <code>AUTH.ERROR_CODE_FIELD</code> identify unauthorized responses. For cross-origin deployments:</p>
+<ul>
+<li>The backend must allow the docs page Origin.</li>
+<li>With <code>HTTP.WITHCREDENTIALS: true</code>, the backend cannot use <code>*</code>; it must reflect a specific Origin.</li>
+<li>Tokens live in browser storage; clear them on shared machines.</li>
+</ul>
+<h2 id="sec-6">Live debugging and global params</h2>
+<p>The Debug tab supports:</p>
+<ul>
+<li>Header, Query, Body and Route params;</li>
+<li>Global params that are sent with every request;</li>
+<li>File selection and upload;</li>
+<li>Before/after request events, to mutate params or format the response;</li>
+<li>Mock prefill from backend samples;</li>
+<li>Response status, latency and pretty JSON.</li>
+</ul>
+<p><code>DEBUG_EVENTS</code> registers custom handlers, for example hashing a password field or writing a token into a global header:</p>
+<pre class="highlight"><code class="language-js"><span class="nb">window</span><span class="p">.</span><span class="nx">apidocFeConfig</span><span class="p">.</span><span class="nx">DEBUG_EVENTS</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="p">{</span>
+<span class="w">  </span><span class="nx">setToken</span><span class="p">(</span><span class="nx">param</span><span class="p">)</span><span class="w"> </span><span class="p">{</span>
+<span class="w">    </span><span class="k">return</span><span class="w"> </span><span class="ow">new</span><span class="w"> </span><span class="nb">Promise</span><span class="p">((</span><span class="nx">resolve</span><span class="p">,</span><span class="w"> </span><span class="nx">reject</span><span class="p">)</span><span class="w"> </span><span class="p">=&gt;</span><span class="w"> </span><span class="p">{</span>
+<span class="w">      </span><span class="k">this</span><span class="p">.</span><span class="nx">setGlobalHeader</span><span class="p">({</span><span class="w"> </span><span class="p">...</span><span class="nx">param</span><span class="p">,</span><span class="w"> </span><span class="nx">value</span><span class="o">:</span><span class="w"> </span><span class="sb">`Bearer </span><span class="si">${</span><span class="nx">param</span><span class="p">.</span><span class="nx">value</span><span class="si">}</span><span class="sb">`</span><span class="w"> </span><span class="p">})</span>
+<span class="w">        </span><span class="p">.</span><span class="nx">then</span><span class="p">(()</span><span class="w"> </span><span class="p">=&gt;</span><span class="w"> </span><span class="nx">resolve</span><span class="p">(</span><span class="nx">param</span><span class="p">))</span>
+<span class="w">        </span><span class="p">.</span><span class="k">catch</span><span class="p">(</span><span class="nx">reject</span><span class="p">);</span>
+<span class="w">    </span><span class="p">});</span>
+<span class="w">  </span><span class="p">},</span>
+<span class="p">};</span>
+</code></pre>
+
+<h2 id="sec-7">Sharing, exports and caching</h2>
+<ul>
+<li>Sharing: create a link for an app or endpoint, with a token when needed.</li>
+<li>Exports: Swagger/OpenAPI JSON, Markdown, Postman JSON and printable PDF.</li>
+<li>Cache management: generate or clear endpoint caches; refresh after backend cache changes.</li>
+<li>JSON / TypeScript views: copy request/response examples and type definitions for the front-end.</li>
+</ul>
+<h2 id="sec-8">Common deployments</h2>
+<h3 id="sec-9">Same origin</h3>
+<p>When the backend and UI share a domain, use <code>HOSTS: []</code> and <code>API_PREFIX: "/apidoc"</code>. Put the UI build in the backend <code>public</code> directory, or proxy the docs prefix appropriately.</p>
+<h3 id="sec-10">Cross origin</h3>
+<p>Host the UI on a static site, set <code>HOSTS: ["https://api.example.com"]</code>, and add the UI origin to the backend CORS allowlist. If cookies are needed, set <code>WITHCREDENTIALS: true</code> and reflect a specific Origin on the backend.</p>
+<h3 id="sec-11">Multiple backends</h3>
+<p>List multiple URLs in <code>HOSTS</code> for test/staging/production or multiple services. Tokens and app selection are kept per host/app.</p>
+<h3 id="sec-12">Subpath deployment</h3>
+<p>The build uses relative paths, so it can live under <code>/docs/</code> or another subpath. Keep <code>config.js</code> next to <code>index.html</code> and adjust <code>API_PREFIX</code> or <code>HOSTS</code> for the deployment path.</p>
+<h2 id="sec-13">Rules and troubleshooting</h2>
+<div class="table-scroll"><table>
+<thead>
+<tr>
+<th>Problem</th>
+<th>Check</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Blank page or 404</td>
+<td>Is <code>config.js</code> next to <code>index.html</code>? Does the static server fall back to <code>index.html</code>?</td>
+</tr>
+<tr>
+<td>Empty endpoint list</td>
+<td>Do <code>HOSTS</code> / <code>API_PREFIX</code> point at the backend docs API? Is the backend returning 401?</td>
+</tr>
+<tr>
+<td>CORS failure</td>
+<td>Does the backend allow the UI Origin? Does <code>WITHCREDENTIALS</code> conflict with <code>*</code>?</td>
+</tr>
+<tr>
+<td>Config edits do nothing</td>
+<td>Hard-refresh; check the <code>config.js?v=</code> stamp.</td>
+</tr>
+<tr>
+<td>Stale assets</td>
+<td>Clear the old directory before publishing.</td>
+</tr>
+<tr>
+<td>Auth keeps failing</td>
+<td>Check the password, app password, token expiry and appKey.</td>
+</tr>
+<tr>
+<td>Share link fails</td>
+<td>Check the host, appKey and token in the link.</td>
+</tr>
+<tr>
+<td>Debug response is wrong</td>
+<td>Check global headers/query/body, before scripts and target CORS.</td>
+</tr>
+</tbody>
+</table></div>
+<h2 id="sec-14">Reference</h2>
+<ul>
+<li><a href="https://github.com/erikwang2013/apidoc-ui" target="_blank" rel="noopener">apidoc-ui README</a></li>
+<li><a href="https://github.com/erikwang2013/apidoc-ui" target="_blank" rel="noopener">apidoc-ui repository</a></li>
+<li>Backend guides: <a href="../../en/docs/php.html">PHP</a> · <a href="../../en/docs/go.html">Go</a> · <a href="../../en/docs/rust.html">Rust</a></li>
+</ul>
+    <div class="docs-end">
+  <div><p><strong>Install</strong></p><div class="command-box"><code id="doc-install-ui">npm ci &amp;&amp; npm run build</code><button class="copy-btn copy-btn--light" type="button" data-copy="doc-install-ui">Copy</button></div></div>
+  <a class="btn btn-secondary" href="index.html">Back to guides</a>
+</div>
+<div class="docs-next"><h2>Other language guides</h2><div class="docs-next-grid"><a class="docs-next-link" href="php.html"><span class="lang-badge">PHP</span><strong>PHP Guide</strong><svg class="icon icon-xs" aria-hidden="true"><use href="#i-arrow"></use></svg></a><a class="docs-next-link" href="go.html"><span class="lang-badge">Go</span><strong>Go Guide</strong><svg class="icon icon-xs" aria-hidden="true"><use href="#i-arrow"></use></svg></a><a class="docs-next-link" href="rust.html"><span class="lang-badge">Rust</span><strong>Rust Guide</strong><svg class="icon icon-xs" aria-hidden="true"><use href="#i-arrow"></use></svg></a></div></div>
+<div class="docs-end docs-help">
+  <div><p><strong>Need help?</strong></p><p>Open a GitHub Issue, or read the repository README first.</p></div>
+  <a class="btn btn-secondary" href="https://github.com/erikwang2013/apidoc-ui/issues" target="_blank" rel="noopener">Open an Issue <svg class="icon " aria-hidden="true"><use href="#i-external"></use></svg></a>
+</div>
+  </article>
+</div>
+  </main>
+  <footer class="site-footer">
+  <div class="wrap footer-grid">
+    <div class="footer-brand">
+      <img src="../../assets/img/pet/coquettish.svg" width="64" height="64" alt="" aria-hidden="true">
+      <div><strong>Apidoc</strong><p>API documentation for PHP, Go and Rust.</p></div>
+    </div>
+    <nav class="footer-col" aria-label="Guides">
+      <h2>Guides</h2>
+      <a href="php.html">PHP Guide</a><a href="go.html">Go Guide</a><a href="rust.html">Rust Guide</a><a href="ui.html">apidoc-ui Guide</a>
+      <a href="index.html">Usage guides</a>
+    </nav>
+    <nav class="footer-col" aria-label="Projects">
+      <h2>Projects</h2>
+      <a href="https://github.com/erikwang2013/apidoc-php" target="_blank" rel="noopener">PHP <svg class="icon icon-xs" aria-hidden="true"><use href="#i-external"></use></svg></a><a href="https://github.com/erikwang2013/apidoc-go" target="_blank" rel="noopener">Go <svg class="icon icon-xs" aria-hidden="true"><use href="#i-external"></use></svg></a><a href="https://github.com/erikwang2013/apidoc-rust" target="_blank" rel="noopener">Rust <svg class="icon icon-xs" aria-hidden="true"><use href="#i-external"></use></svg></a><a href="https://github.com/erikwang2013/apidoc-ui" target="_blank" rel="noopener">UI <svg class="icon icon-xs" aria-hidden="true"><use href="#i-external"></use></svg></a>
+    </nav>
+    <div class="footer-col">
+      <h2>About</h2>
+      <a href="https://erik.xyz" target="_blank" rel="noopener">艾瑞可 erik</a>
+      <a href="https://beian.miit.gov.cn" target="_blank" rel="noopener">粤ICP备2020136226号-8</a>
+      <a href="mailto:erik@erik.xyz">erik@erik.xyz</a>
+      <a href="https://github.com/HGthecode/apidoc-php" target="_blank" rel="noopener">Upstream HGthecode/apidoc-php</a>
+      <a href="https://packagist.org/packages/hg/apidoc" target="_blank" rel="noopener">hg/apidoc</a>
+      <a href="../../docs/ui.html" hreflang="zh" lang="zh">中文</a>
+    </div>
+  </div>
+  <div class="wrap footer-bottom">
+    <p>© 2026 erik. Apidoc. MIT License.</p>
+    <p>Visual assets are owned by the author. Commercial use requires permission. <a href="https://github.com/erikwang2013/apidoc-php/blob/main/ASSETS-LICENSE.md" target="_blank" rel="noopener">ASSETS-LICENSE.md</a></p>
+  </div>
+  <div class="wrap footer-info" id="busuanzi"><script async src="//busuanzi.ibruce.info/busuanzi/2.3/busuanzi.pure.mini.js"></script><span id="busuanzi_container_site_pv">Total visits <b id="busuanzi_value_site_pv">0</b> 👀</span><span class="dot">·</span><span id="busuanzi_container_site_uv">Visitors <b id="busuanzi_value_site_uv">0</b> 🧑‍🚀</span></div>
+</footer>
+  <button class="to-top" id="to-top" type="button" aria-label="Back to top" title="Back to top" data-label="Back to top" data-cute="../../assets/img/pet/cute.svg">
+    <svg class="to-top-ring" viewBox="0 0 64 64" aria-hidden="true"><circle cx="32" cy="32" r="30"></circle></svg>
+    <img class="to-top-pet" src="../../assets/img/apidoc-pet.svg" width="48" height="48" alt="">
+  </button>
+  <script src="../../assets/js/main.js" defer></script>
+</body>
+</html>

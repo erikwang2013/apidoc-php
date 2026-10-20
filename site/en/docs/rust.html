@@ -1,0 +1,651 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Rust Guide · Apidoc</title>
+  <meta name="description" content="Declare docs with proc macros on handlers, register them statically at compile time and aggregate at zero runtime cost. Works with axum and actix-web, with auth, Mock, exports, sharing and codegen built in.">
+  <meta name="theme-color" content="#f7f6fc">
+  <link rel="icon" href="../../assets/img/apidoc-pet.svg" type="image/svg+xml">
+  <link rel="preload" href="../../assets/img/apidoc-pet.svg" as="image">
+  <link rel="stylesheet" href="../../assets/css/style.css">
+  <link rel="alternate" hreflang="zh-CN" href="../../docs/rust.html">
+  <link rel="alternate" hreflang="en" href="rust.html">
+  <noscript>
+    <style>
+      .nav-toggle { display: none !important; }
+      .site-nav { position: static !important; display: flex !important; flex-wrap: wrap; opacity: 1 !important; visibility: visible !important; transform: none !important; padding: 0 !important; border: 0 !important; background: transparent !important; box-shadow: none !important; margin-left: auto; }
+      @media (max-width: 960px) {
+        .header-inner { flex-wrap: wrap; padding-block: 10px; }
+        .site-nav { width: 100%; margin: 6px 0 0; }
+      }
+    </style>
+  </noscript>
+  <meta property="og:type" content="article">
+  <meta property="og:title" content="Rust Guide · Apidoc">
+  <meta property="og:description" content="Declare docs with proc macros on handlers, register them statically at compile time and aggregate at zero runtime cost. Works with axum and actix-web, with auth, Mock, exports, sharing and codegen built in.">
+  <meta property="og:image" content="../../assets/img/php/social-preview-en.png">
+  <meta property="og:image:width" content="1280">
+  <meta property="og:image:height" content="640">
+  <meta property="og:site_name" content="Apidoc">
+  <meta property="og:locale" content="en_US">
+  <meta property="og:locale:alternate" content="zh_CN">
+  <meta name="twitter:card" content="summary_large_image">
+  <meta name="twitter:title" content="Rust Guide · Apidoc">
+  <meta name="twitter:description" content="Declare docs with proc macros on handlers, register them statically at compile time and aggregate at zero runtime cost. Works with axum and actix-web, with auth, Mock, exports, sharing and codegen built in.">
+  <meta name="twitter:image" content="../../assets/img/php/social-preview-en.png">
+  
+</head>
+<body data-copy-label="Copy" data-copied-label="Copied" data-menu-open="Open menu" data-menu-close="Close menu">
+  <a class="skip-link" href="#main">Skip to main content</a>
+  <svg class="icon-sprite" aria-hidden="true" focusable="false" xmlns="http://www.w3.org/2000/svg">
+  <symbol id="i-arrow" viewBox="0 0 20 20"><path d="M3 10h13M11 5l5 5-5 5"/></symbol>
+  <symbol id="i-external" viewBox="0 0 20 20"><path d="M8 4h8v8M16 4L4 16"/></symbol>
+  <symbol id="i-code" viewBox="0 0 24 24"><path d="M8 6l-5 6 5 6M16 6l5 6-5 6"/></symbol>
+  <symbol id="i-terminal" viewBox="0 0 24 24"><path d="M3 5h18v14H3zM6 9l3 3-3 3M12 15h5"/></symbol>
+  <symbol id="i-spark" viewBox="0 0 24 24"><path d="M12 3v4M12 17v4M3 12h4M17 12h4M6 6l2.5 2.5M15.5 15.5L18 18M18 6l-2.5 2.5M8.5 15.5L6 18"/></symbol>
+  <symbol id="i-layers" viewBox="0 0 24 24"><path d="M12 3l9 5-9 5-9-5 9-5ZM3 12l9 5 9-5M3 16l9 5 9-5"/></symbol>
+  <symbol id="i-file-code" viewBox="0 0 24 24"><path d="M6 3h8l4 4v14H6zM14 3v5h4M10 12l-2 2 2 2M14 12l2 2-2 2"/></symbol>
+  <symbol id="i-file-text" viewBox="0 0 24 24"><path d="M6 3h8l4 4v14H6zM14 3v5h4M9 12h6M9 16h6"/></symbol>
+  <symbol id="i-list" viewBox="0 0 24 24"><path d="M4 6h16M4 12h10M4 18h7"/></symbol>
+  <symbol id="i-wand" viewBox="0 0 24 24"><path d="M15 4l5 5M13 6l5 5M4 20L14 10M6 4l1.5 3L11 8.5 7.5 10 6 13l-1.5-3L1 8.5 4.5 7 6 4Z"/></symbol>
+  <symbol id="i-shield" viewBox="0 0 24 24"><path d="M12 3l8 3v6c0 5-3.5 8-8 9-4.5-1-8-4-8-9V6l8-3ZM9 12l2 2 4-4"/></symbol>
+  <symbol id="i-share" viewBox="0 0 24 24"><path d="M4 12v7h16v-7M12 3v13M8 7l4-4 4 4"/></symbol>
+  <symbol id="i-download" viewBox="0 0 24 24"><path d="M12 3v12M7 10l5 5 5-5M4 20h16"/></symbol>
+  <symbol id="i-check" viewBox="0 0 20 20"><path d="M4 10l4 4 8-8"/></symbol>
+  <symbol id="i-globe" viewBox="0 0 24 24"><path d="M12 3a9 9 0 1 0 0 18 9 9 0 0 0 0-18ZM3 12h18M12 3c2.5 2.5 4 5.5 4 9s-1.5 6.5-4 9c-2.5-2.5-4-5.5-4-9s1.5-6.5 4-9Z"/></symbol>
+  <symbol id="i-book" viewBox="0 0 24 24"><path d="M4 5a3 3 0 0 1 3-3h13v18H7a3 3 0 0 0-3 3V5ZM4 20a3 3 0 0 1 3-3h13"/></symbol>
+  <symbol id="i-layout" viewBox="0 0 24 24"><path d="M3 4h18v16H3zM3 9h18M9 9v11"/></symbol>
+  <symbol id="i-rocket" viewBox="0 0 24 24"><path d="M14 4c3-2 6-1 6-1s1 3-1 6l-6 6-4-4 5-7ZM8 15l-3 3M10 17l-2 3M7 14l-3 2"/></symbol>
+</svg>
+  <header class="site-header" id="top">
+  <div class="wrap header-inner">
+    <a class="brand" href="../index.html" aria-label="Apidoc">
+      <img src="../../assets/img/apidoc-pet.svg" width="38" height="38" alt="">
+      <span class="brand-name">Apidoc <span class="brand-tag">API</span></span>
+    </a>
+    <div class="lang-switch" aria-label="Language">
+      <span class="is-active" aria-current="true">EN</span>
+      <a href="../../docs/rust.html" hreflang="zh-CN" lang="zh-CN">中文</a>
+    </div>
+    <button class="nav-toggle" type="button" aria-expanded="false" aria-controls="site-nav">
+      <span class="nav-toggle-bars" aria-hidden="true"></span>
+      <span class="sr-only">Open menu</span>
+    </button>
+    <nav class="site-nav" id="site-nav" aria-label="Main navigation">
+      <a href="../index.html#languages">Languages</a><a href="../index.html#features">Features</a><a href="index.html" class="is-active">Guides</a><a href="../index.html#install">Install</a><a href="../index.html#versions">Versions</a><a href="../index.html#download">Downloads</a>
+      <a class="nav-mobile-only" href="https://github.com/erikwang2013" target="_blank" rel="noopener">GitHub <svg class="icon icon-xs" aria-hidden="true"><use href="#i-external"></use></svg></a>
+    </nav>
+    <a class="header-cta" href="https://github.com/erikwang2013" target="_blank" rel="noopener">
+      GitHub <svg class="icon icon-xs" aria-hidden="true"><use href="#i-external"></use></svg>
+    </a>
+  </div>
+</header>
+  <main id="main">
+  <section class="docs-hero">
+  <div class="wrap">
+    <p class="docs-breadcrumb"><a href="../index.html">Home</a><span>/</span><a href="index.html">Usage guides</a><span>/</span>Rust</p>
+    <div class="docs-badges"><span class="lang-badge">Rust</span><span class="version-pill">v2.0.0</span></div>
+    <h1>Rust Guide</h1>
+    <p>Declare docs with proc macros on handlers, register them statically at compile time and aggregate at zero runtime cost. Works with axum and actix-web, with auth, Mock, exports, sharing and codegen built in.</p>
+    <div class="docs-actions"><a class="text-link" href="https://github.com/erikwang2013/apidoc-rust" target="_blank" rel="noopener">GitHub <svg class="icon icon-xs" aria-hidden="true"><use href="#i-external"></use></svg></a><a class="text-link" href="https://github.com/erikwang2013/apidoc-rust/blob/HEAD/README.md" target="_blank" rel="noopener">View source <svg class="icon icon-xs" aria-hidden="true"><use href="#i-external"></use></svg></a></div>
+    <p class="docs-meta">Version v2.0.0 / Full reference: Rust README</p>
+  </div>
+</section><div class="wrap docs-layout">
+  <aside class="docs-sidebar">
+    <p class="docs-sidebar-title">On this page</p>
+    <ul class="docs-toc"><li><a href="#sec-1">When to use it</a></li><li><a href="#sec-2">Installation and dependencies</a></li><li><a href="#sec-3">Core model and collection</a></li><li><a href="#sec-4">Writing annotations</a></li><li class="is-sub"><a href="#sec-5">Macro reference</a></li><li class="is-sub"><a href="#sec-6">Compile-time rules</a></li><li><a href="#sec-7">Collection, output and references</a></li><li><a href="#sec-8">axum setup</a></li><li><a href="#sec-9">actix-web setup</a></li><li><a href="#sec-10">Mock and live debugging</a></li><li><a href="#sec-11">Auth</a></li><li><a href="#sec-12">Apps and versions</a></li><li><a href="#sec-13">Tables and document cache</a></li><li><a href="#sec-14">Sharing, exports and code generation</a></li><li><a href="#sec-15">Common scenarios</a></li><li class="is-sub"><a href="#sec-16">REST CRUD</a></li><li class="is-sub"><a href="#sec-17">Pagination and shared fields</a></li><li class="is-sub"><a href="#sec-18">Login and auth</a></li><li class="is-sub"><a href="#sec-19">Multiple versions</a></li><li class="is-sub"><a href="#sec-20">Front-end types and backend skeletons</a></li><li class="is-sub"><a href="#sec-21">Table-driven docs</a></li><li><a href="#sec-22">Rules and troubleshooting</a></li><li><a href="#sec-23">Reference</a></li></ul>
+    <a class="docs-edit" href="https://github.com/erikwang2013/apidoc-rust/blob/HEAD/README.md" target="_blank" rel="noopener">View source <svg class="icon icon-xs" aria-hidden="true"><use href="#i-external"></use></svg></a>
+  </aside>
+  <article class="docs-article">
+    <details class="docs-toc-mobile"><summary>On this page</summary><ul class="docs-toc"><li><a href="#sec-1">When to use it</a></li><li><a href="#sec-2">Installation and dependencies</a></li><li><a href="#sec-3">Core model and collection</a></li><li><a href="#sec-4">Writing annotations</a></li><li class="is-sub"><a href="#sec-5">Macro reference</a></li><li class="is-sub"><a href="#sec-6">Compile-time rules</a></li><li><a href="#sec-7">Collection, output and references</a></li><li><a href="#sec-8">axum setup</a></li><li><a href="#sec-9">actix-web setup</a></li><li><a href="#sec-10">Mock and live debugging</a></li><li><a href="#sec-11">Auth</a></li><li><a href="#sec-12">Apps and versions</a></li><li><a href="#sec-13">Tables and document cache</a></li><li><a href="#sec-14">Sharing, exports and code generation</a></li><li><a href="#sec-15">Common scenarios</a></li><li class="is-sub"><a href="#sec-16">REST CRUD</a></li><li class="is-sub"><a href="#sec-17">Pagination and shared fields</a></li><li class="is-sub"><a href="#sec-18">Login and auth</a></li><li class="is-sub"><a href="#sec-19">Multiple versions</a></li><li class="is-sub"><a href="#sec-20">Front-end types and backend skeletons</a></li><li class="is-sub"><a href="#sec-21">Table-driven docs</a></li><li><a href="#sec-22">Rules and troubleshooting</a></li><li><a href="#sec-23">Reference</a></li></ul></details>
+    <p>The Rust edition declares documentation with proc macros on handlers. Fragments are statically registered at compile time and aggregated at zero runtime cost. It supports axum and actix-web and ships a web UI, live debugging, Mock, auth, apps/versions, exports, sharing and code generation. It fits Rust services that want docs to stay strict with the code and fail early at compile time.</p>
+<figure class="doc-figure"><img loading="lazy" decoding="async" src="../../assets/img/rust/social-preview.svg" alt="apidoc-rust social preview"><figcaption>apidoc-rust: proc-macro API docs for axum and actix-web.</figcaption></figure>
+
+<h2 id="sec-1">When to use it</h2>
+<ul>
+<li>axum or actix-web services, with thin adapters for additional frameworks over time.</li>
+<li>Teams that want docs generated at compile time so code and docs cannot drift.</li>
+<li>Projects that need live debugging, Mock, HMAC auth, apps/versions and Markdown/TypeScript/Swagger exports.</li>
+<li>Rust 1.82+ projects that accept proc macros plus <code>linkme</code> registration.</li>
+</ul>
+<h2 id="sec-2">Installation and dependencies</h2>
+<pre class="highlight"><code class="language-toml"><span class="k">[dependencies]</span>
+<span class="n">apidoc-rust</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s2">&quot;2.0&quot;</span>
+<span class="n">serde_json</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s2">&quot;1&quot;</span>
+<span class="n">linkme</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s2">&quot;0.3&quot;</span>
+</code></pre>
+
+<p>Rust 1.82+ is required. The published package is <code>apidoc-rust</code>, the library name is <code>apidoc</code>, and <code>apidoc-macros</code> is re-exported. The default build pulls no web framework; enable a feature per framework:</p>
+<ul>
+<li><code>features = ["axum"]</code>: axum adapter, Mock enabled implicitly.</li>
+<li><code>features = ["actix"]</code>: actix-web adapter, feature parity with axum.</li>
+<li><code>features = ["mock"]</code>: Mock engine only, no framework.</li>
+</ul>
+<p><code>linkme</code> must be a direct dependency because generated registration code references it. A crate that only registers docs and uses nothing else from the crate must be linked, not merely built; calling any exported item or registering a handler forces the link.</p>
+<h2 id="sec-3">Core model and collection</h2>
+<div class="table-scroll"><table>
+<thead>
+<tr>
+<th>Type</th>
+<th>Purpose</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>DocRegistry</code></td>
+<td>Collects macro fragments, merges endpoints and resolves <code>ref</code> / <code>table</code>.</td>
+</tr>
+<tr>
+<td><code>ApidocConfig</code></td>
+<td>Project config: title, description, auth, app tree, version, tables, cache, codegen.</td>
+</tr>
+<tr>
+<td><code>DocEndpoint</code></td>
+<td>One endpoint: title, desc, url, method, headers, params, querys, returned, group, tags and more.</td>
+</tr>
+<tr>
+<td><code>DocParam</code></td>
+<td>Field: name, type, required, default, desc, mock, children.</td>
+</tr>
+<tr>
+<td><code>AppConfig</code></td>
+<td>App/version node: key, title, items, password.</td>
+</tr>
+<tr>
+<td><code>TableDef</code> / <code>TableField</code></td>
+<td>Table metadata for <code>#[apidoc::table]</code>.</td>
+</tr>
+<tr>
+<td><code>CacheConfig</code></td>
+<td>In-process Mock cache with a TTL; 0 means permanent.</td>
+</tr>
+</tbody>
+</table></div>
+<p>Build the full document:</p>
+<pre class="highlight"><code class="language-rust"><span class="k">use</span><span class="w"> </span><span class="n">apidoc</span>::<span class="p">{</span><span class="n">ApidocConfig</span><span class="p">,</span><span class="w"> </span><span class="n">DocRegistry</span><span class="p">};</span>
+
+<span class="k">fn</span> <span class="nf">main</span><span class="p">()</span><span class="w"> </span><span class="p">{</span>
+<span class="w">    </span><span class="kd">let</span><span class="w"> </span><span class="n">doc</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">DocRegistry</span>::<span class="n">collect_doc</span><span class="p">(</span><span class="n">ApidocConfig</span><span class="w"> </span><span class="p">{</span>
+<span class="w">        </span><span class="n">title</span>: <span class="s">&quot;My API&quot;</span><span class="p">.</span><span class="n">to_string</span><span class="p">(),</span>
+<span class="w">        </span><span class="n">description</span>: <span class="nb">Some</span><span class="p">(</span><span class="s">&quot;Internal API&quot;</span><span class="p">.</span><span class="n">to_string</span><span class="p">()),</span>
+<span class="w">        </span><span class="o">..</span><span class="nb">Default</span>::<span class="n">default</span><span class="p">()</span>
+<span class="w">    </span><span class="p">});</span>
+<span class="w">    </span><span class="fm">println!</span><span class="p">(</span><span class="s">&quot;{}&quot;</span><span class="p">,</span><span class="w"> </span><span class="n">serde_json</span>::<span class="n">to_string_pretty</span><span class="p">(</span><span class="o">&amp;</span><span class="n">doc</span><span class="p">).</span><span class="n">unwrap</span><span class="p">());</span>
+<span class="p">}</span>
+</code></pre>
+
+<p><code>DocRegistry::collect()</code> returns only the endpoint list. <code>collect_doc()</code> also builds the app/version tree. Without <code>app</code> or <code>apps</code>, the output stays compatible with older versions.</p>
+<h2 id="sec-4">Writing annotations</h2>
+<p>Attach attribute macros to a handler:</p>
+<pre class="highlight"><code class="language-rust"><span class="k">use</span><span class="w"> </span><span class="n">apidoc</span>::<span class="o">*</span><span class="p">;</span>
+
+<span class="cp">#[apidoc::title(</span><span class="s">&quot;Get user&quot;</span><span class="cp">)]</span>
+<span class="cp">#[apidoc::desc(</span><span class="s">&quot;Fetch a user by ID&quot;</span><span class="cp">)]</span>
+<span class="cp">#[apidoc::url(</span><span class="s">&quot;/api/user/info&quot;</span><span class="cp">)]</span>
+<span class="cp">#[apidoc::method(</span><span class="s">&quot;GET&quot;</span><span class="cp">)]</span>
+<span class="cp">#[apidoc::param(name = </span><span class="s">&quot;user_id&quot;</span><span class="cp">, ty = </span><span class="s">&quot;int&quot;</span><span class="cp">, required, desc = </span><span class="s">&quot;User ID&quot;</span><span class="cp">, mock = </span><span class="s">&quot;1&quot;</span><span class="cp">)]</span>
+<span class="cp">#[apidoc::query(name = </span><span class="s">&quot;lang&quot;</span><span class="cp">, ty = </span><span class="s">&quot;string&quot;</span><span class="cp">, desc = </span><span class="s">&quot;Language&quot;</span><span class="cp">, default = </span><span class="s">&quot;en-US&quot;</span><span class="cp">)]</span>
+<span class="cp">#[apidoc::returned(</span>
+<span class="cp">    name = </span><span class="s">&quot;data&quot;</span><span class="cp">,</span>
+<span class="cp">    ty = </span><span class="s">&quot;object&quot;</span><span class="cp">,</span>
+<span class="cp">    desc = </span><span class="s">&quot;User data&quot;</span><span class="cp">,</span>
+<span class="cp">    children = [</span>
+<span class="cp">        { name = </span><span class="s">&quot;id&quot;</span><span class="cp">, ty = </span><span class="s">&quot;int&quot;</span><span class="cp">, required, desc = </span><span class="s">&quot;User ID&quot;</span><span class="cp"> },</span>
+<span class="cp">        { name = </span><span class="s">&quot;name&quot;</span><span class="cp">, ty = </span><span class="s">&quot;string&quot;</span><span class="cp">, required, desc = </span><span class="s">&quot;User name&quot;</span><span class="cp">, mock = </span><span class="s">&quot;erik&quot;</span><span class="cp"> },</span>
+<span class="cp">    ]</span>
+<span class="cp">)]</span>
+<span class="k">fn</span> <span class="nf">get_user_info</span><span class="p">()</span><span class="w"> </span>-&gt; <span class="nb">String</span> <span class="p">{</span>
+<span class="w">    </span><span class="fm">unimplemented!</span><span class="p">()</span>
+<span class="p">}</span>
+</code></pre>
+
+<h3 id="sec-5">Macro reference</h3>
+<div class="table-scroll"><table>
+<thead>
+<tr>
+<th>Macro</th>
+<th>Arguments / purpose</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>title</code> / <code>desc</code></td>
+<td>Endpoint title and description.</td>
+</tr>
+<tr>
+<td><code>method</code></td>
+<td>HTTP method, validated against a whitelist at compile time.</td>
+</tr>
+<tr>
+<td><code>url</code></td>
+<td>Endpoint URL; must start with <code>/</code>.</td>
+</tr>
+<tr>
+<td><code>param</code> / <code>query</code> / <code>returned</code></td>
+<td>Body, query and response fields; see the field table.</td>
+</tr>
+<tr>
+<td><code>header</code></td>
+<td><code>name</code> and <code>desc</code>; <code>name</code> must not be empty.</td>
+</tr>
+<tr>
+<td><code>route_param</code></td>
+<td>Path parameter; same fields as <code>param</code>.</td>
+</tr>
+<tr>
+<td><code>tag</code></td>
+<td>Tag; can be repeated and appends.</td>
+</tr>
+<tr>
+<td><code>group</code></td>
+<td>Group; the UI prefers it.</td>
+</tr>
+<tr>
+<td><code>author</code></td>
+<td>Author.</td>
+</tr>
+<tr>
+<td><code>response_status</code></td>
+<td>One or more status codes, deduplicated.</td>
+</tr>
+<tr>
+<td><code>success</code> / <code>error</code></td>
+<td><code>code</code> and <code>example</code> response samples.</td>
+</tr>
+<tr>
+<td><code>not_debug</code></td>
+<td>Flag; the debug panel can filter it.</td>
+</tr>
+<tr>
+<td><code>md</code></td>
+<td>Markdown note, rendered as-is.</td>
+</tr>
+<tr>
+<td><code>sort</code></td>
+<td>Group sort weight, may be negative.</td>
+</tr>
+<tr>
+<td><code>r#ref</code></td>
+<td>Reuse another endpoint's returned fields by global function name.</td>
+</tr>
+<tr>
+<td><code>app</code></td>
+<td>Attach to an <code>ApidocConfig.apps</code> key.</td>
+</tr>
+<tr>
+<td><code>table</code></td>
+<td>Flatten fields from <code>ApidocConfig.tables</code> into <code>returned</code>.</td>
+</tr>
+</tbody>
+</table></div>
+<p>Field arguments for <code>param</code>, <code>query</code> and <code>returned</code>:</p>
+<div class="table-scroll"><table>
+<thead>
+<tr>
+<th>Argument</th>
+<th>Description</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>name</code></td>
+<td>Field name, required.</td>
+</tr>
+<tr>
+<td><code>ty</code></td>
+<td>Type such as <code>string</code>, <code>int</code>, <code>object</code> or <code>array</code>.</td>
+</tr>
+<tr>
+<td><code>required</code></td>
+<td>Required flag; written without a value.</td>
+</tr>
+<tr>
+<td><code>default</code></td>
+<td>Default value.</td>
+</tr>
+<tr>
+<td><code>desc</code></td>
+<td>Description.</td>
+</tr>
+<tr>
+<td><code>mock</code></td>
+<td>Mock value or a <code>fake:xxx</code> rule.</td>
+</tr>
+<tr>
+<td><code>children</code></td>
+<td>Nested fields, written as <code>{ ... }</code> entries.</td>
+</tr>
+</tbody>
+</table></div>
+<h3 id="sec-6">Compile-time rules</h3>
+<ul>
+<li><code>url</code> must start with <code>/</code>; <code>method</code> must be one of <code>GET</code>, <code>POST</code>, <code>PUT</code>, <code>DELETE</code>, <code>PATCH</code>, <code>HEAD</code>, <code>OPTIONS</code>.</li>
+<li><code>header</code> must have a non-empty <code>name</code>; <code>group</code>, <code>author</code>, <code>ref</code>, <code>app</code> and <code>table</code> must not be empty.</li>
+<li><code>not_debug</code> takes no arguments; <code>sort</code> takes an integer.</li>
+<li>Parameter names are required; <code>children</code> is parsed recursively.</li>
+<li>Errors are reported at compile time with precise spans, not deferred to runtime.</li>
+</ul>
+<h2 id="sec-7">Collection, output and references</h2>
+<pre class="highlight"><code class="language-rust"><span class="kd">let</span><span class="w"> </span><span class="n">doc</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">DocRegistry</span>::<span class="n">collect_doc</span><span class="p">(</span><span class="n">ApidocConfig</span><span class="w"> </span><span class="p">{</span>
+<span class="w">    </span><span class="n">title</span>: <span class="s">&quot;My API&quot;</span><span class="p">.</span><span class="n">to_string</span><span class="p">(),</span>
+<span class="w">    </span><span class="n">apps</span>: <span class="nc">vec</span><span class="o">!</span><span class="p">[</span><span class="n">AppConfig</span><span class="w"> </span><span class="p">{</span>
+<span class="w">        </span><span class="n">key</span>: <span class="s">&quot;demo&quot;</span><span class="p">.</span><span class="n">to_string</span><span class="p">(),</span>
+<span class="w">        </span><span class="n">title</span>: <span class="s">&quot;Demo&quot;</span><span class="p">.</span><span class="n">to_string</span><span class="p">(),</span>
+<span class="w">        </span><span class="n">items</span>: <span class="nc">vec</span><span class="o">!</span><span class="p">[],</span>
+<span class="w">        </span><span class="n">password</span>: <span class="nb">None</span><span class="p">,</span>
+<span class="w">    </span><span class="p">}],</span>
+<span class="w">    </span><span class="o">..</span><span class="nb">Default</span>::<span class="n">default</span><span class="p">()</span>
+<span class="p">});</span>
+</code></pre>
+
+<p><code>ref</code> reuses another endpoint's <code>returned</code> fields:</p>
+<pre class="highlight"><code class="language-rust"><span class="cp">#[apidoc::r#ref(</span><span class="s">&quot;get_user_list&quot;</span><span class="cp">)]</span>
+<span class="k">fn</span> <span class="nf">get_user_detail</span><span class="p">()</span><span class="w"> </span>-&gt; <span class="nb">String</span> <span class="p">{</span><span class="w"> </span><span class="fm">unimplemented!</span><span class="p">()</span><span class="w"> </span><span class="p">}</span>
+</code></pre>
+
+<p><code>ref</code> is a Rust keyword, so the attribute must use the raw identifier form: <code>#[apidoc::r#ref(...)]</code>. The target is a function name matched globally. The referencing endpoint's own <code>returned</code> is replaced by the target; <code>collect</code> prints a warning to stderr when that happens. <code>table</code> and <code>ref</code> can be combined; table fields are appended after ref resolution.</p>
+<h2 id="sec-8">axum setup</h2>
+<pre class="highlight"><code class="language-toml"><span class="k">[dependencies]</span>
+<span class="n">apidoc-rust</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="p">{</span><span class="w"> </span><span class="n">version</span><span class="w"> </span><span class="p">=</span><span class="w"> </span><span class="s2">&quot;2.0&quot;</span><span class="p">,</span><span class="w"> </span><span class="n">features</span><span class="w"> </span><span class="p">=</span><span class="w"> </span><span class="p">[</span><span class="s2">&quot;axum&quot;</span><span class="p">]</span><span class="w"> </span><span class="p">}</span>
+</code></pre>
+
+<pre class="highlight"><code class="language-rust"><span class="k">use</span><span class="w"> </span><span class="n">apidoc</span>::<span class="n">axum</span>::<span class="p">{</span><span class="n">apidoc_routes</span><span class="p">,</span><span class="w"> </span><span class="n">cors_layer</span><span class="p">,</span><span class="w"> </span><span class="n">CorsConfig</span><span class="p">};</span>
+<span class="k">use</span><span class="w"> </span><span class="n">apidoc</span>::<span class="n">ApidocConfig</span><span class="p">;</span>
+<span class="k">use</span><span class="w"> </span><span class="n">axum</span>::<span class="p">{</span><span class="n">routing</span>::<span class="n">get</span><span class="p">,</span><span class="w"> </span><span class="n">Router</span><span class="p">};</span>
+
+<span class="kd">let</span><span class="w"> </span><span class="n">app</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">Router</span>::<span class="n">new</span><span class="p">()</span>
+<span class="w">    </span><span class="p">.</span><span class="n">route</span><span class="p">(</span><span class="s">&quot;/users&quot;</span><span class="p">,</span><span class="w"> </span><span class="n">get</span><span class="p">(</span><span class="n">list_users</span><span class="p">))</span>
+<span class="w">    </span><span class="p">.</span><span class="n">merge</span><span class="p">(</span><span class="n">apidoc_routes</span><span class="p">(</span><span class="n">ApidocConfig</span><span class="w"> </span><span class="p">{</span>
+<span class="w">        </span><span class="n">title</span>: <span class="s">&quot;My API&quot;</span><span class="p">.</span><span class="n">to_string</span><span class="p">(),</span>
+<span class="w">        </span><span class="o">..</span><span class="nb">Default</span>::<span class="n">default</span><span class="p">()</span>
+<span class="w">    </span><span class="p">}))</span>
+<span class="w">    </span><span class="p">.</span><span class="n">layer</span><span class="p">(</span><span class="n">cors_layer</span><span class="p">(</span><span class="n">CorsConfig</span><span class="w"> </span><span class="p">{</span>
+<span class="w">        </span><span class="n">allow_origins</span>: <span class="nc">vec</span><span class="o">!</span><span class="p">[</span><span class="s">&quot;https://admin.example.com&quot;</span><span class="p">.</span><span class="n">to_string</span><span class="p">()],</span>
+<span class="w">    </span><span class="p">}));</span>
+</code></pre>
+
+<p>Mounted routes:</p>
+<div class="table-scroll"><table>
+<thead>
+<tr>
+<th>Path</th>
+<th>Purpose</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>/apidoc</code></td>
+<td>Documentation UI.</td>
+</tr>
+<tr>
+<td><code>/apidoc/api.json</code></td>
+<td>Document data.</td>
+</tr>
+<tr>
+<td><code>/apidoc/mock</code></td>
+<td>Mock response.</td>
+</tr>
+<tr>
+<td><code>/apidoc/export</code></td>
+<td>Exports: Markdown / TypeScript / Swagger.</td>
+</tr>
+<tr>
+<td><code>/apidoc/share</code></td>
+<td>Share link.</td>
+</tr>
+<tr>
+<td><code>/apidoc/generate?template=api.ts</code></td>
+<td>Code generation.</td>
+</tr>
+<tr>
+<td><code>/apidoc/auth</code></td>
+<td>Exchange password for a token.</td>
+</tr>
+<tr>
+<td><code>/apidoc/pet.svg</code></td>
+<td>Project pet icon.</td>
+</tr>
+</tbody>
+</table></div>
+<p>Call <code>cors_layer</code> on the final router so business routes can also be called from the browser. <code>CorsConfig { allow_origins: vec![] }</code> or <code>["*"]</code> allows the literal <code>*</code> without credentials; a configured allowlist matches the Origin exactly.</p>
+<h2 id="sec-9">actix-web setup</h2>
+<pre class="highlight"><code class="language-toml"><span class="k">[dependencies]</span>
+<span class="n">apidoc-rust</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="p">{</span><span class="w"> </span><span class="n">version</span><span class="w"> </span><span class="p">=</span><span class="w"> </span><span class="s2">&quot;2.0&quot;</span><span class="p">,</span><span class="w"> </span><span class="n">features</span><span class="w"> </span><span class="p">=</span><span class="w"> </span><span class="p">[</span><span class="s2">&quot;actix&quot;</span><span class="p">]</span><span class="w"> </span><span class="p">}</span>
+</code></pre>
+
+<pre class="highlight"><code class="language-rust"><span class="k">use</span><span class="w"> </span><span class="n">actix_web</span>::<span class="p">{</span><span class="n">App</span><span class="p">,</span><span class="w"> </span><span class="n">HttpServer</span><span class="p">};</span>
+<span class="k">use</span><span class="w"> </span><span class="n">apidoc</span>::<span class="n">actix</span>::<span class="p">{</span><span class="n">apidoc_routes</span><span class="p">,</span><span class="w"> </span><span class="n">cors_layer</span><span class="p">,</span><span class="w"> </span><span class="n">CorsConfig</span><span class="p">};</span>
+<span class="k">use</span><span class="w"> </span><span class="n">apidoc</span>::<span class="n">ApidocConfig</span><span class="p">;</span>
+
+<span class="cp">#[actix_web::main]</span>
+<span class="k">async</span><span class="w"> </span><span class="k">fn</span> <span class="nf">main</span><span class="p">()</span><span class="w"> </span>-&gt; <span class="nc">std</span>::<span class="n">io</span>::<span class="nb">Result</span><span class="o">&lt;</span><span class="p">()</span><span class="o">&gt;</span><span class="w"> </span><span class="p">{</span>
+<span class="w">    </span><span class="n">HttpServer</span>::<span class="n">new</span><span class="p">(</span><span class="o">||</span><span class="w"> </span><span class="p">{</span>
+<span class="w">        </span><span class="n">App</span>::<span class="n">new</span><span class="p">()</span>
+<span class="w">            </span><span class="p">.</span><span class="n">service</span><span class="p">(</span><span class="n">apidoc_routes</span><span class="p">(</span><span class="n">ApidocConfig</span><span class="w"> </span><span class="p">{</span>
+<span class="w">                </span><span class="n">title</span>: <span class="s">&quot;My API&quot;</span><span class="p">.</span><span class="n">to_string</span><span class="p">(),</span>
+<span class="w">                </span><span class="o">..</span><span class="nb">Default</span>::<span class="n">default</span><span class="p">()</span>
+<span class="w">            </span><span class="p">}))</span>
+<span class="w">            </span><span class="p">.</span><span class="n">wrap</span><span class="p">(</span><span class="n">cors_layer</span><span class="p">(</span><span class="n">CorsConfig</span>::<span class="n">default</span><span class="p">()))</span>
+<span class="w">    </span><span class="p">})</span>
+<span class="w">    </span><span class="p">.</span><span class="n">bind</span><span class="p">(</span><span class="s">&quot;127.0.0.1:8080&quot;</span><span class="p">)</span><span class="o">?</span>
+<span class="w">    </span><span class="p">.</span><span class="n">run</span><span class="p">()</span>
+<span class="w">    </span><span class="p">.</span><span class="k">await</span>
+<span class="p">}</span>
+</code></pre>
+
+<p>The actix adapter has feature parity with axum: routing, Mock, exports and auth behave the same.</p>
+<h2 id="sec-10">Mock and live debugging</h2>
+<p>Mock precedence:</p>
+<pre class="highlight"><code class="language-rust"><span class="cp">#[apidoc::param(name = </span><span class="s">&quot;email&quot;</span><span class="cp">, ty = </span><span class="s">&quot;string&quot;</span><span class="cp">, desc = </span><span class="s">&quot;Email&quot;</span><span class="cp">, mock = </span><span class="s">&quot;fake:email&quot;</span><span class="cp">)]</span>
+<span class="cp">#[apidoc::param(name = </span><span class="s">&quot;status&quot;</span><span class="cp">, ty = </span><span class="s">&quot;string&quot;</span><span class="cp">, desc = </span><span class="s">&quot;Status&quot;</span><span class="cp">, mock = </span><span class="s">&quot;1&quot;</span><span class="cp">)]</span>
+<span class="cp">#[apidoc::param(name = </span><span class="s">&quot;name&quot;</span><span class="cp">, ty = </span><span class="s">&quot;string&quot;</span><span class="cp">, desc = </span><span class="s">&quot;Name&quot;</span><span class="cp">)]</span>
+<span class="k">fn</span> <span class="nf">create_user</span><span class="p">()</span><span class="w"> </span>-&gt; <span class="nb">String</span> <span class="p">{</span><span class="w"> </span><span class="fm">unimplemented!</span><span class="p">()</span><span class="w"> </span><span class="p">}</span>
+</code></pre>
+
+<ul>
+<li><code>fake:xxx</code> uses 15 fake rules: <code>name</code>, <code>company</code>, <code>email</code>, <code>phone</code>, <code>url</code>, <code>ip</code>, <code>city</code>, <code>country</code>, <code>text</code>, <code>number</code>, <code>int</code>, <code>float</code>, <code>bool</code>, <code>uuid</code>, <code>date</code>.</li>
+<li>A non-empty <code>mock</code> is emitted as-is, such as <code>"1"</code>.</li>
+<li>Without a mock, values are generated by <code>ty</code>: int → <code>"1"</code>, float → <code>"0.5"</code>, bool → <code>"true"</code>, object → <code>"{}"</code>, string → <code>"string"</code>; arrays get two items.</li>
+<li><code>children</code> recurses. <code>not_debug</code> endpoints are hidden by default in the debug panel and can be shown with a toggle.</li>
+</ul>
+<p>Live debugging calls the target directly from the browser, so the adapter's <code>cors_layer</code> must allow the origin. The v2 debug panel supports pre/post scripts:</p>
+<pre class="highlight"><code class="language-js"><span class="c1">// Before: mutate ctx.url / method / headers / body</span>
+<span class="nx">ctx</span><span class="p">.</span><span class="nx">headers</span><span class="p">[</span><span class="s1">&#39;X-Token&#39;</span><span class="p">]</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="nx">localStorage</span><span class="p">.</span><span class="nx">getItem</span><span class="p">(</span><span class="s1">&#39;token&#39;</span><span class="p">)</span><span class="w"> </span><span class="o">||</span><span class="w"> </span><span class="s1">&#39;&#39;</span><span class="p">;</span>
+</code></pre>
+
+<pre class="highlight"><code class="language-js"><span class="c1">// After: ctx = { status, ms, text, url, method, ep }</span>
+<span class="k">return</span><span class="w"> </span><span class="s1">&#39;HTTP &#39;</span><span class="w"> </span><span class="o">+</span><span class="w"> </span><span class="nx">ctx</span><span class="p">.</span><span class="nx">status</span><span class="w"> </span><span class="o">+</span><span class="w"> </span><span class="s1">&#39; · &#39;</span><span class="w"> </span><span class="o">+</span><span class="w"> </span><span class="nx">ctx</span><span class="p">.</span><span class="nx">ms</span><span class="w"> </span><span class="o">+</span><span class="w"> </span><span class="s1">&#39;ms\n&#39;</span><span class="w"> </span><span class="o">+</span><span class="w"> </span><span class="nx">ctx</span><span class="p">.</span><span class="nx">text</span><span class="p">;</span>
+</code></pre>
+
+<p>Script errors are shown in the result area and do not abort the request.</p>
+<h2 id="sec-11">Auth</h2>
+<pre class="highlight"><code class="language-rust"><span class="k">use</span><span class="w"> </span><span class="n">apidoc</span>::<span class="n">auth</span>::<span class="n">AuthConfig</span><span class="p">;</span>
+
+<span class="kd">let</span><span class="w"> </span><span class="n">config</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">ApidocConfig</span><span class="w"> </span><span class="p">{</span>
+<span class="w">    </span><span class="n">title</span>: <span class="s">&quot;My API&quot;</span><span class="p">.</span><span class="n">to_string</span><span class="p">(),</span>
+<span class="w">    </span><span class="n">auth</span>: <span class="nb">Some</span><span class="p">(</span><span class="n">AuthConfig</span><span class="w"> </span><span class="p">{</span>
+<span class="w">        </span><span class="n">enable</span>: <span class="nc">true</span><span class="p">,</span>
+<span class="w">        </span><span class="n">password</span>: <span class="s">&quot;your-password&quot;</span><span class="p">.</span><span class="n">to_string</span><span class="p">(),</span>
+<span class="w">        </span><span class="n">secret_key</span>: <span class="s">&quot;your-secret-key&quot;</span><span class="p">.</span><span class="n">to_string</span><span class="p">(),</span>
+<span class="w">        </span><span class="n">expire</span>: <span class="mi">86400</span><span class="p">,</span>
+<span class="w">    </span><span class="p">}),</span>
+<span class="w">    </span><span class="o">..</span><span class="nb">Default</span>::<span class="n">default</span><span class="p">()</span>
+<span class="p">};</span>
+</code></pre>
+
+<p>Flow:</p>
+<ol>
+<li>The client calls <code>POST /apidoc/auth</code> with JSON <code>{"password":"...","appKey":"&lt;key&gt;"}</code> and receives <code>{"token":"..."}</code>. A wrong password returns 401; an invalid body returns 400.</li>
+<li>Data routes <code>/apidoc/api.json</code>, <code>/apidoc/export</code> and <code>/apidoc/mock</code> require <code>?token=xxx</code>, plus <code>&amp;appKey=</code> when selecting an app.</li>
+<li>The token is <code>base64url(payload).base64url(HMAC-SHA256(payload))</code> with an expiry in the payload; changing the password invalidates old tokens.</li>
+<li><code>password</code> and <code>secret_key</code> are never serialized. App passwords take precedence over the global password; empty passwords fail closed.</li>
+<li>Repeated login failures use exponential backoff. Responses with credentials or tokens use <code>Cache-Control: no-store</code>.</li>
+</ol>
+<p>If <code>secret_key</code> is omitted, a process-local random key is used. Tokens die on restart. Multi-instance deployments must set a fixed shared <code>secret_key</code>.</p>
+<h2 id="sec-12">Apps and versions</h2>
+<pre class="highlight"><code class="language-rust"><span class="cp">#[apidoc::app(</span><span class="s">&quot;demo&quot;</span><span class="cp">)]</span>
+<span class="cp">#[apidoc::title(</span><span class="s">&quot;Get user&quot;</span><span class="cp">)]</span>
+<span class="k">fn</span> <span class="nf">get_user_info</span><span class="p">()</span><span class="w"> </span>-&gt; <span class="nb">String</span> <span class="p">{</span><span class="w"> </span><span class="fm">unimplemented!</span><span class="p">()</span><span class="w"> </span><span class="p">}</span>
+</code></pre>
+
+<pre class="highlight"><code class="language-rust"><span class="kd">let</span><span class="w"> </span><span class="n">apps</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="fm">vec!</span><span class="p">[</span><span class="n">AppConfig</span><span class="w"> </span><span class="p">{</span>
+<span class="w">    </span><span class="n">key</span>: <span class="s">&quot;demo&quot;</span><span class="p">.</span><span class="n">to_string</span><span class="p">(),</span>
+<span class="w">    </span><span class="n">title</span>: <span class="s">&quot;Demo app&quot;</span><span class="p">.</span><span class="n">to_string</span><span class="p">(),</span>
+<span class="w">    </span><span class="n">items</span>: <span class="nc">vec</span><span class="o">!</span><span class="p">[</span><span class="n">AppConfig</span><span class="w"> </span><span class="p">{</span>
+<span class="w">        </span><span class="n">key</span>: <span class="s">&quot;v1&quot;</span><span class="p">.</span><span class="n">to_string</span><span class="p">(),</span>
+<span class="w">        </span><span class="n">title</span>: <span class="s">&quot;v1&quot;</span><span class="p">.</span><span class="n">to_string</span><span class="p">(),</span>
+<span class="w">        </span><span class="n">items</span>: <span class="nc">vec</span><span class="o">!</span><span class="p">[],</span>
+<span class="w">        </span><span class="n">password</span>: <span class="nb">None</span><span class="p">,</span>
+<span class="w">    </span><span class="p">}],</span>
+<span class="w">    </span><span class="n">password</span>: <span class="nb">None</span><span class="p">,</span>
+<span class="p">}];</span>
+</code></pre>
+
+<ul>
+<li>An <code>app</code> key missing from the config produces a stderr warning and falls back to the default app.</li>
+<li>The UI shows an app/version selector; tokens are stored per appKey.</li>
+<li>An app with a <code>password</code> uses only its app token; the app password takes precedence over the global password.</li>
+</ul>
+<h2 id="sec-13">Tables and document cache</h2>
+<pre class="highlight"><code class="language-rust"><span class="n">ApidocConfig</span><span class="w"> </span><span class="p">{</span>
+<span class="w">    </span><span class="n">tables</span>: <span class="nc">vec</span><span class="o">!</span><span class="p">[</span><span class="n">TableDef</span><span class="w"> </span><span class="p">{</span>
+<span class="w">        </span><span class="n">key</span>: <span class="s">&quot;user&quot;</span><span class="p">.</span><span class="n">into</span><span class="p">(),</span>
+<span class="w">        </span><span class="n">title</span>: <span class="s">&quot;User table&quot;</span><span class="p">.</span><span class="n">into</span><span class="p">(),</span>
+<span class="w">        </span><span class="n">fields</span>: <span class="nc">vec</span><span class="o">!</span><span class="p">[</span>
+<span class="w">            </span><span class="n">TableField</span><span class="w"> </span><span class="p">{</span><span class="w"> </span><span class="n">name</span>: <span class="s">&quot;id&quot;</span><span class="p">.</span><span class="n">into</span><span class="p">(),</span><span class="w"> </span><span class="n">ty</span>: <span class="s">&quot;int&quot;</span><span class="p">.</span><span class="n">into</span><span class="p">(),</span><span class="w"> </span><span class="n">required</span>: <span class="nc">true</span><span class="p">,</span><span class="w"> </span><span class="n">desc</span>: <span class="nb">Some</span><span class="p">(</span><span class="s">&quot;User ID&quot;</span><span class="p">.</span><span class="n">into</span><span class="p">()),</span><span class="w"> </span><span class="o">..</span><span class="nb">Default</span>::<span class="n">default</span><span class="p">()</span><span class="w"> </span><span class="p">},</span>
+<span class="w">            </span><span class="n">TableField</span><span class="w"> </span><span class="p">{</span><span class="w"> </span><span class="n">name</span>: <span class="s">&quot;name&quot;</span><span class="p">.</span><span class="n">into</span><span class="p">(),</span><span class="w"> </span><span class="n">ty</span>: <span class="s">&quot;string&quot;</span><span class="p">.</span><span class="n">into</span><span class="p">(),</span><span class="w"> </span><span class="n">mock</span>: <span class="nb">Some</span><span class="p">(</span><span class="s">&quot;erik&quot;</span><span class="p">.</span><span class="n">into</span><span class="p">()),</span><span class="w"> </span><span class="o">..</span><span class="nb">Default</span>::<span class="n">default</span><span class="p">()</span><span class="w"> </span><span class="p">},</span>
+<span class="w">        </span><span class="p">],</span>
+<span class="w">    </span><span class="p">}],</span>
+<span class="w">    </span><span class="n">cache</span>: <span class="nb">Some</span><span class="p">(</span><span class="n">CacheConfig</span><span class="w"> </span><span class="p">{</span><span class="w"> </span><span class="n">enable</span>: <span class="nc">true</span><span class="p">,</span><span class="w"> </span><span class="n">ttl</span>: <span class="mi">60</span><span class="w"> </span><span class="p">}),</span>
+<span class="w">    </span><span class="o">..</span><span class="nb">Default</span>::<span class="n">default</span><span class="p">()</span>
+<span class="p">}</span>
+</code></pre>
+
+<p><code>#[apidoc::table("user")]</code> flattens the configured fields into <code>returned</code>. Missing keys only warn. <code>cache.ttl</code> controls the in-process <code>/apidoc/mock</code> cache; 0 means permanent. <code>api.json</code> and exports are materialized when the router is built and do not use this cache.</p>
+<h2 id="sec-14">Sharing, exports and code generation</h2>
+<pre class="highlight"><code class="language-text">GET /apidoc/share?app=api&amp;url=/api/user/info&amp;method=GET&amp;base=https://example.com
+GET /apidoc/export?format=md
+GET /apidoc/export?format=ts
+GET /apidoc/export?format=swagger
+GET /apidoc/generate?template=api.ts
+</code></pre>
+
+<ul>
+<li><code>share</code> returns a deep link; when auth is enabled it includes a token so the link opens without a password.</li>
+<li><code>export</code> supports Markdown, TypeScript and Swagger/OpenAPI 3.0.0; an unknown format returns 400.</li>
+<li><code>generate</code> ships <code>api.ts</code>, <code>handler.rs</code> and <code>schema.sql</code> templates. A custom template with the same name overrides the built-in one. Templates support <code>{{variable}}</code> and <code>{{#each ...}}</code>, including endpoints, tables, field values and SQL fragment variables.</li>
+</ul>
+<h2 id="sec-15">Common scenarios</h2>
+<h3 id="sec-16">REST CRUD</h3>
+<p>Attach <code>title</code>, <code>url</code>, <code>method</code>, params and response fields to each handler, then group with <code>group</code> / <code>tag</code>. Compile-time checks catch bad URLs, methods and parameter names before commit.</p>
+<h3 id="sec-17">Pagination and shared fields</h3>
+<p>Use <code>ref</code> to reuse the list endpoint's <code>returned</code> fields, or extract pagination params into a shared definition. <code>table</code> is useful when the response mirrors a configured database table.</p>
+<h3 id="sec-18">Login and auth</h3>
+<p>With <code>AuthConfig</code>, the UI shows a password overlay. Use app passwords to separate teams. Multi-instance deployments need a fixed <code>secret_key</code>.</p>
+<h3 id="sec-19">Multiple versions</h3>
+<p>Build the tree with <code>AppConfig.items</code> and attach endpoints with <code>#[apidoc::app("key")]</code>. The UI switches apps and versions.</p>
+<h3 id="sec-20">Front-end types and backend skeletons</h3>
+<p><code>export?format=ts</code> hands types to the front-end. <code>generate?template=handler.rs</code> / <code>schema.sql</code> produces a backend skeleton and table SQL.</p>
+<h3 id="sec-21">Table-driven docs</h3>
+<p>Rust does not connect to the database. Define tables and fields in <code>ApidocConfig.tables</code>, then reference them with <code>table</code> so docs and configuration stay aligned.</p>
+<h2 id="sec-22">Rules and troubleshooting</h2>
+<div class="table-scroll"><table>
+<thead>
+<tr>
+<th>Problem</th>
+<th>Check</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Compile error on <code>apidoc::url</code></td>
+<td>Does the URL start with <code>/</code>? Is the method in the whitelist?</td>
+</tr>
+<tr>
+<td>Compile error around <code>linkme</code></td>
+<td>Is <code>linkme</code> a direct dependency? Is the doc-only crate actually linked?</td>
+</tr>
+<tr>
+<td>Endpoint is missing</td>
+<td>Is the macro on a handler function? Is the crate linked? Did you call <code>collect_doc</code>?</td>
+</tr>
+<tr>
+<td><code>ref</code> does not work</td>
+<td>Is it written as <code>#[apidoc::r#ref("fn_name")]</code>? Is the target function name correct?</td>
+</tr>
+<tr>
+<td><code>app</code> falls back to default</td>
+<td>Is the key present in <code>ApidocConfig.apps</code>?</td>
+</tr>
+<tr>
+<td>Tokens die after restart</td>
+<td>Set a fixed <code>secret_key</code>.</td>
+</tr>
+<tr>
+<td>Debug CORS fails</td>
+<td>Is <code>cors_layer</code> mounted? Does <code>allow_origins</code> include the page origin?</td>
+</tr>
+<tr>
+<td>Page is stale</td>
+<td>Doc artifacts are materialized when the router is built; restart or rebuild.</td>
+</tr>
+</tbody>
+</table></div>
+<h2 id="sec-23">Reference</h2>
+<ul>
+<li><a href="https://github.com/erikwang2013/apidoc-rust" target="_blank" rel="noopener">apidoc-rust README</a></li>
+<li><a href="https://github.com/erikwang2013/apidoc-rust/releases" target="_blank" rel="noopener">apidoc-rust Releases</a></li>
+<li><a href="https://crates.io/crates/apidoc-rust" target="_blank" rel="noopener">crates.io apidoc-rust</a></li>
+<li>Architecture, features and lifecycle diagrams are shown above and in README <code>docs/images/</code>.</li>
+</ul>
+    <div class="docs-end">
+  <div><p><strong>Install</strong></p><div class="command-box"><code id="doc-install-rust">apidoc-rust = &quot;2.0&quot;</code><button class="copy-btn copy-btn--light" type="button" data-copy="doc-install-rust">Copy</button></div></div>
+  <a class="btn btn-secondary" href="index.html">Back to guides</a>
+</div>
+<div class="docs-next"><h2>Other language guides</h2><div class="docs-next-grid"><a class="docs-next-link" href="php.html"><span class="lang-badge">PHP</span><strong>PHP Guide</strong><svg class="icon icon-xs" aria-hidden="true"><use href="#i-arrow"></use></svg></a><a class="docs-next-link" href="go.html"><span class="lang-badge">Go</span><strong>Go Guide</strong><svg class="icon icon-xs" aria-hidden="true"><use href="#i-arrow"></use></svg></a><a class="docs-next-link" href="ui.html"><span class="lang-badge">UI</span><strong>apidoc-ui Guide</strong><svg class="icon icon-xs" aria-hidden="true"><use href="#i-arrow"></use></svg></a></div></div>
+<div class="docs-end docs-help">
+  <div><p><strong>Need help?</strong></p><p>Open a GitHub Issue, or read the repository README first.</p></div>
+  <a class="btn btn-secondary" href="https://github.com/erikwang2013/apidoc-rust/issues" target="_blank" rel="noopener">Open an Issue <svg class="icon " aria-hidden="true"><use href="#i-external"></use></svg></a>
+</div>
+  </article>
+</div>
+  </main>
+  <footer class="site-footer">
+  <div class="wrap footer-grid">
+    <div class="footer-brand">
+      <img src="../../assets/img/pet/coquettish.svg" width="64" height="64" alt="" aria-hidden="true">
+      <div><strong>Apidoc</strong><p>API documentation for PHP, Go and Rust.</p></div>
+    </div>
+    <nav class="footer-col" aria-label="Guides">
+      <h2>Guides</h2>
+      <a href="php.html">PHP Guide</a><a href="go.html">Go Guide</a><a href="rust.html">Rust Guide</a><a href="ui.html">apidoc-ui Guide</a>
+      <a href="index.html">Usage guides</a>
+    </nav>
+    <nav class="footer-col" aria-label="Projects">
+      <h2>Projects</h2>
+      <a href="https://github.com/erikwang2013/apidoc-php" target="_blank" rel="noopener">PHP <svg class="icon icon-xs" aria-hidden="true"><use href="#i-external"></use></svg></a><a href="https://github.com/erikwang2013/apidoc-go" target="_blank" rel="noopener">Go <svg class="icon icon-xs" aria-hidden="true"><use href="#i-external"></use></svg></a><a href="https://github.com/erikwang2013/apidoc-rust" target="_blank" rel="noopener">Rust <svg class="icon icon-xs" aria-hidden="true"><use href="#i-external"></use></svg></a><a href="https://github.com/erikwang2013/apidoc-ui" target="_blank" rel="noopener">UI <svg class="icon icon-xs" aria-hidden="true"><use href="#i-external"></use></svg></a>
+    </nav>
+    <div class="footer-col">
+      <h2>About</h2>
+      <a href="https://erik.xyz" target="_blank" rel="noopener">艾瑞可 erik</a>
+      <a href="https://beian.miit.gov.cn" target="_blank" rel="noopener">粤ICP备2020136226号-8</a>
+      <a href="mailto:erik@erik.xyz">erik@erik.xyz</a>
+      <a href="https://github.com/HGthecode/apidoc-php" target="_blank" rel="noopener">Upstream HGthecode/apidoc-php</a>
+      <a href="https://packagist.org/packages/hg/apidoc" target="_blank" rel="noopener">hg/apidoc</a>
+      <a href="../../docs/rust.html" hreflang="zh" lang="zh">中文</a>
+    </div>
+  </div>
+  <div class="wrap footer-bottom">
+    <p>© 2026 erik. Apidoc. MIT License.</p>
+    <p>Visual assets are owned by the author. Commercial use requires permission. <a href="https://github.com/erikwang2013/apidoc-php/blob/main/ASSETS-LICENSE.md" target="_blank" rel="noopener">ASSETS-LICENSE.md</a></p>
+  </div>
+  <div class="wrap footer-info" id="busuanzi"><script async src="//busuanzi.ibruce.info/busuanzi/2.3/busuanzi.pure.mini.js"></script><span id="busuanzi_container_site_pv">Total visits <b id="busuanzi_value_site_pv">0</b> 👀</span><span class="dot">·</span><span id="busuanzi_container_site_uv">Visitors <b id="busuanzi_value_site_uv">0</b> 🧑‍🚀</span></div>
+</footer>
+  <button class="to-top" id="to-top" type="button" aria-label="Back to top" title="Back to top" data-label="Back to top" data-cute="../../assets/img/pet/cute.svg">
+    <svg class="to-top-ring" viewBox="0 0 64 64" aria-hidden="true"><circle cx="32" cy="32" r="30"></circle></svg>
+    <img class="to-top-pet" src="../../assets/img/apidoc-pet.svg" width="48" height="48" alt="">
+  </button>
+  <script src="../../assets/js/main.js" defer></script>
+</body>
+</html>

@@ -1,0 +1,615 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>PHP Guide · Apidoc</title>
+  <meta name="description" content="Write PHP 8 attributes in Laravel, ThinkPHP, Hyperf, Webman, Yii2 or Yii3 and get a browsable, debuggable, exportable API portal.">
+  <meta name="theme-color" content="#f7f6fc">
+  <link rel="icon" href="../../assets/img/apidoc-pet.svg" type="image/svg+xml">
+  <link rel="preload" href="../../assets/img/apidoc-pet.svg" as="image">
+  <link rel="stylesheet" href="../../assets/css/style.css">
+  <link rel="alternate" hreflang="zh-CN" href="../../docs/php.html">
+  <link rel="alternate" hreflang="en" href="php.html">
+  <noscript>
+    <style>
+      .nav-toggle { display: none !important; }
+      .site-nav { position: static !important; display: flex !important; flex-wrap: wrap; opacity: 1 !important; visibility: visible !important; transform: none !important; padding: 0 !important; border: 0 !important; background: transparent !important; box-shadow: none !important; margin-left: auto; }
+      @media (max-width: 960px) {
+        .header-inner { flex-wrap: wrap; padding-block: 10px; }
+        .site-nav { width: 100%; margin: 6px 0 0; }
+      }
+    </style>
+  </noscript>
+  <meta property="og:type" content="article">
+  <meta property="og:title" content="PHP Guide · Apidoc">
+  <meta property="og:description" content="Write PHP 8 attributes in Laravel, ThinkPHP, Hyperf, Webman, Yii2 or Yii3 and get a browsable, debuggable, exportable API portal.">
+  <meta property="og:image" content="../../assets/img/php/social-preview-en.png">
+  <meta property="og:image:width" content="1280">
+  <meta property="og:image:height" content="640">
+  <meta property="og:site_name" content="Apidoc">
+  <meta property="og:locale" content="en_US">
+  <meta property="og:locale:alternate" content="zh_CN">
+  <meta name="twitter:card" content="summary_large_image">
+  <meta name="twitter:title" content="PHP Guide · Apidoc">
+  <meta name="twitter:description" content="Write PHP 8 attributes in Laravel, ThinkPHP, Hyperf, Webman, Yii2 or Yii3 and get a browsable, debuggable, exportable API portal.">
+  <meta name="twitter:image" content="../../assets/img/php/social-preview-en.png">
+  
+</head>
+<body data-copy-label="Copy" data-copied-label="Copied" data-menu-open="Open menu" data-menu-close="Close menu">
+  <a class="skip-link" href="#main">Skip to main content</a>
+  <svg class="icon-sprite" aria-hidden="true" focusable="false" xmlns="http://www.w3.org/2000/svg">
+  <symbol id="i-arrow" viewBox="0 0 20 20"><path d="M3 10h13M11 5l5 5-5 5"/></symbol>
+  <symbol id="i-external" viewBox="0 0 20 20"><path d="M8 4h8v8M16 4L4 16"/></symbol>
+  <symbol id="i-code" viewBox="0 0 24 24"><path d="M8 6l-5 6 5 6M16 6l5 6-5 6"/></symbol>
+  <symbol id="i-terminal" viewBox="0 0 24 24"><path d="M3 5h18v14H3zM6 9l3 3-3 3M12 15h5"/></symbol>
+  <symbol id="i-spark" viewBox="0 0 24 24"><path d="M12 3v4M12 17v4M3 12h4M17 12h4M6 6l2.5 2.5M15.5 15.5L18 18M18 6l-2.5 2.5M8.5 15.5L6 18"/></symbol>
+  <symbol id="i-layers" viewBox="0 0 24 24"><path d="M12 3l9 5-9 5-9-5 9-5ZM3 12l9 5 9-5M3 16l9 5 9-5"/></symbol>
+  <symbol id="i-file-code" viewBox="0 0 24 24"><path d="M6 3h8l4 4v14H6zM14 3v5h4M10 12l-2 2 2 2M14 12l2 2-2 2"/></symbol>
+  <symbol id="i-file-text" viewBox="0 0 24 24"><path d="M6 3h8l4 4v14H6zM14 3v5h4M9 12h6M9 16h6"/></symbol>
+  <symbol id="i-list" viewBox="0 0 24 24"><path d="M4 6h16M4 12h10M4 18h7"/></symbol>
+  <symbol id="i-wand" viewBox="0 0 24 24"><path d="M15 4l5 5M13 6l5 5M4 20L14 10M6 4l1.5 3L11 8.5 7.5 10 6 13l-1.5-3L1 8.5 4.5 7 6 4Z"/></symbol>
+  <symbol id="i-shield" viewBox="0 0 24 24"><path d="M12 3l8 3v6c0 5-3.5 8-8 9-4.5-1-8-4-8-9V6l8-3ZM9 12l2 2 4-4"/></symbol>
+  <symbol id="i-share" viewBox="0 0 24 24"><path d="M4 12v7h16v-7M12 3v13M8 7l4-4 4 4"/></symbol>
+  <symbol id="i-download" viewBox="0 0 24 24"><path d="M12 3v12M7 10l5 5 5-5M4 20h16"/></symbol>
+  <symbol id="i-check" viewBox="0 0 20 20"><path d="M4 10l4 4 8-8"/></symbol>
+  <symbol id="i-globe" viewBox="0 0 24 24"><path d="M12 3a9 9 0 1 0 0 18 9 9 0 0 0 0-18ZM3 12h18M12 3c2.5 2.5 4 5.5 4 9s-1.5 6.5-4 9c-2.5-2.5-4-5.5-4-9s1.5-6.5 4-9Z"/></symbol>
+  <symbol id="i-book" viewBox="0 0 24 24"><path d="M4 5a3 3 0 0 1 3-3h13v18H7a3 3 0 0 0-3 3V5ZM4 20a3 3 0 0 1 3-3h13"/></symbol>
+  <symbol id="i-layout" viewBox="0 0 24 24"><path d="M3 4h18v16H3zM3 9h18M9 9v11"/></symbol>
+  <symbol id="i-rocket" viewBox="0 0 24 24"><path d="M14 4c3-2 6-1 6-1s1 3-1 6l-6 6-4-4 5-7ZM8 15l-3 3M10 17l-2 3M7 14l-3 2"/></symbol>
+</svg>
+  <header class="site-header" id="top">
+  <div class="wrap header-inner">
+    <a class="brand" href="../index.html" aria-label="Apidoc">
+      <img src="../../assets/img/apidoc-pet.svg" width="38" height="38" alt="">
+      <span class="brand-name">Apidoc <span class="brand-tag">API</span></span>
+    </a>
+    <div class="lang-switch" aria-label="Language">
+      <span class="is-active" aria-current="true">EN</span>
+      <a href="../../docs/php.html" hreflang="zh-CN" lang="zh-CN">中文</a>
+    </div>
+    <button class="nav-toggle" type="button" aria-expanded="false" aria-controls="site-nav">
+      <span class="nav-toggle-bars" aria-hidden="true"></span>
+      <span class="sr-only">Open menu</span>
+    </button>
+    <nav class="site-nav" id="site-nav" aria-label="Main navigation">
+      <a href="../index.html#languages">Languages</a><a href="../index.html#features">Features</a><a href="index.html" class="is-active">Guides</a><a href="../index.html#install">Install</a><a href="../index.html#versions">Versions</a><a href="../index.html#download">Downloads</a>
+      <a class="nav-mobile-only" href="https://github.com/erikwang2013" target="_blank" rel="noopener">GitHub <svg class="icon icon-xs" aria-hidden="true"><use href="#i-external"></use></svg></a>
+    </nav>
+    <a class="header-cta" href="https://github.com/erikwang2013" target="_blank" rel="noopener">
+      GitHub <svg class="icon icon-xs" aria-hidden="true"><use href="#i-external"></use></svg>
+    </a>
+  </div>
+</header>
+  <main id="main">
+  <section class="docs-hero">
+  <div class="wrap">
+    <p class="docs-breadcrumb"><a href="../index.html">Home</a><span>/</span><a href="index.html">Usage guides</a><span>/</span>PHP</p>
+    <div class="docs-badges"><span class="lang-badge">PHP</span><span class="version-pill">v1.0.6</span></div>
+    <h1>PHP Guide</h1>
+    <p>Write PHP 8 attributes in Laravel, ThinkPHP, Hyperf, Webman, Yii2 or Yii3 and get a browsable, debuggable, exportable API portal.</p>
+    <div class="docs-actions"><a class="text-link" href="https://github.com/erikwang2013/apidoc-php" target="_blank" rel="noopener">GitHub <svg class="icon icon-xs" aria-hidden="true"><use href="#i-external"></use></svg></a><a class="text-link" href="https://github.com/erikwang2013/apidoc-php/blob/main/docs/ATTRIBUTES.md" target="_blank" rel="noopener">View source <svg class="icon icon-xs" aria-hidden="true"><use href="#i-external"></use></svg></a></div>
+    <p class="docs-meta">Version v1.0.6 / Full reference: docs/ATTRIBUTES.md</p>
+  </div>
+</section><div class="wrap docs-layout">
+  <aside class="docs-sidebar">
+    <p class="docs-sidebar-title">On this page</p>
+    <ul class="docs-toc"><li><a href="#sec-1">When to use it</a></li><li><a href="#sec-2">Requirements and installation</a></li><li><a href="#sec-3">Minimal setup</a></li><li><a href="#sec-4">Framework setup</a></li><li><a href="#sec-5">Parsing rules</a></li><li><a href="#sec-6">Controller and endpoint annotations</a></li><li><a href="#sec-7">Request parameters</a></li><li><a href="#sec-8">Responses and nesting</a></li><li><a href="#sec-9">Reuse: definitions, ref, models and entities</a></li><li><a href="#sec-10">Apps, versions and groups</a></li><li><a href="#sec-11">Mock and live debugging</a></li><li><a href="#sec-12">Auth, caching and security</a></li><li><a href="#sec-13">Exports, sharing and code generation</a></li><li><a href="#sec-14">Common scenarios</a></li><li class="is-sub"><a href="#sec-15">Lists and pagination</a></li><li class="is-sub"><a href="#sec-16">Login and tokens</a></li><li class="is-sub"><a href="#sec-17">File upload</a></li><li class="is-sub"><a href="#sec-18">Multiple versions</a></li><li class="is-sub"><a href="#sec-19">Front-end handoff</a></li><li><a href="#sec-20">Rules and troubleshooting</a></li><li><a href="#sec-21">Reference</a></li></ul>
+    <a class="docs-edit" href="https://github.com/erikwang2013/apidoc-php/blob/main/docs/ATTRIBUTES.md" target="_blank" rel="noopener">View source <svg class="icon icon-xs" aria-hidden="true"><use href="#i-external"></use></svg></a>
+  </aside>
+  <article class="docs-article">
+    <details class="docs-toc-mobile"><summary>On this page</summary><ul class="docs-toc"><li><a href="#sec-1">When to use it</a></li><li><a href="#sec-2">Requirements and installation</a></li><li><a href="#sec-3">Minimal setup</a></li><li><a href="#sec-4">Framework setup</a></li><li><a href="#sec-5">Parsing rules</a></li><li><a href="#sec-6">Controller and endpoint annotations</a></li><li><a href="#sec-7">Request parameters</a></li><li><a href="#sec-8">Responses and nesting</a></li><li><a href="#sec-9">Reuse: definitions, ref, models and entities</a></li><li><a href="#sec-10">Apps, versions and groups</a></li><li><a href="#sec-11">Mock and live debugging</a></li><li><a href="#sec-12">Auth, caching and security</a></li><li><a href="#sec-13">Exports, sharing and code generation</a></li><li><a href="#sec-14">Common scenarios</a></li><li class="is-sub"><a href="#sec-15">Lists and pagination</a></li><li class="is-sub"><a href="#sec-16">Login and tokens</a></li><li class="is-sub"><a href="#sec-17">File upload</a></li><li class="is-sub"><a href="#sec-18">Multiple versions</a></li><li class="is-sub"><a href="#sec-19">Front-end handoff</a></li><li><a href="#sec-20">Rules and troubleshooting</a></li><li><a href="#sec-21">Reference</a></li></ul></details>
+    <p>The PHP edition puts API documentation in PHP 8 attributes next to your controllers and endpoint methods. Install it, open <code>/apidoc</code>, and you get browsable, debuggable and exportable docs that stay next to the code. It fits projects that already have a controller structure and want documentation maintained with the code.</p>
+<figure class="doc-figure"><img loading="lazy" decoding="async" src="../../assets/img/php/social-preview-en.svg" alt="Apidoc PHP social preview"><figcaption>Apidoc PHP: the pet and annotation code share one document model with the Go and Rust editions.</figcaption></figure>
+
+<h2 id="sec-1">When to use it</h2>
+<ul>
+<li>PHP services built with Laravel, ThinkPHP, Hyperf, Webman, Yii2 or Yii3.</li>
+<li>Teams that already describe params and responses in controller methods and want to stop maintaining separate Markdown or Postman collections.</li>
+<li>Projects that need live debugging, Mock data, apps/versions, sharing, Swagger or TypeScript exports.</li>
+<li>Projects running PHP 8.0 or newer that accept the attributes-only syntax.</li>
+</ul>
+<blockquote>
+<p>This project only parses PHP 8 attributes. The old doctrine/annotations <code>@annotation</code> syntax is not supported. PHP 7 projects must upgrade to PHP 8 first.</p>
+</blockquote>
+<h2 id="sec-2">Requirements and installation</h2>
+<pre class="highlight"><code class="language-bash">composer<span class="w"> </span>require<span class="w"> </span>erikwang2013/apidoc-php
+</code></pre>
+
+<p>PHP 8.0+ is required. The docs are mounted at <code>/apidoc</code> by default; change <code>route_prefix</code> to use another path.</p>
+<h2 id="sec-3">Minimal setup</h2>
+<p>A ThinkPHP example, in <code>config/apidoc.php</code>:</p>
+<pre class="highlight"><code class="language-php"><span class="k">return</span> <span class="p">[</span>
+    <span class="s1">&#39;apps&#39;</span> <span class="o">=&gt;</span> <span class="p">[</span>
+        <span class="p">[</span><span class="s1">&#39;title&#39;</span> <span class="o">=&gt;</span> <span class="s1">&#39;API&#39;</span><span class="p">,</span> <span class="s1">&#39;path&#39;</span> <span class="o">=&gt;</span> <span class="s1">&#39;app\controller&#39;</span><span class="p">,</span> <span class="s1">&#39;key&#39;</span> <span class="o">=&gt;</span> <span class="s1">&#39;api&#39;</span><span class="p">],</span>
+    <span class="p">],</span>
+    <span class="s1">&#39;definitions&#39;</span> <span class="o">=&gt;</span> <span class="s2">&quot;app\common\controller\Definitions&quot;</span><span class="p">,</span>
+<span class="p">];</span>
+</code></pre>
+
+<p>Import the annotation alias and declare the controller and endpoint:</p>
+<pre class="highlight"><code class="language-php"><span class="o">&lt;?</span><span class="nx">php</span>
+<span class="k">namespace</span> <span class="nx">app\controller</span><span class="p">;</span>
+
+<span class="k">use</span> <span class="nx">erikwang2013\apidoc\annotation</span> <span class="k">as</span> <span class="nx">Apidoc</span><span class="p">;</span>
+
+<span class="p">#[</span><span class="nd">Apidoc\Title</span><span class="p">(</span><span class="s2">&quot;User&quot;</span><span class="p">)]</span>
+<span class="p">#[</span><span class="nd">Apidoc\Desc</span><span class="p">(</span><span class="s2">&quot;User endpoints&quot;</span><span class="p">)]</span>
+<span class="k">class</span> <span class="nc">User</span>
+<span class="p">{</span>
+    <span class="p">#[</span>
+        <span class="nd">Apidoc\Title</span><span class="p">(</span><span class="s2">&quot;Get user&quot;</span><span class="p">),</span>
+        <span class="nd">Apidoc\Method</span><span class="p">(</span><span class="s2">&quot;GET&quot;</span><span class="p">),</span>
+        <span class="nd">Apidoc\Url</span><span class="p">(</span><span class="s2">&quot;/user/info&quot;</span><span class="p">),</span>
+        <span class="nd">Apidoc\Query</span><span class="p">(</span><span class="nx">name</span><span class="o">:</span> <span class="s2">&quot;id&quot;</span><span class="p">,</span> <span class="nx">type</span><span class="o">:</span> <span class="s2">&quot;int&quot;</span><span class="p">,</span> <span class="k">require</span><span class="o">:</span> <span class="k">true</span><span class="p">,</span> <span class="nx">desc</span><span class="o">:</span> <span class="s2">&quot;User ID&quot;</span><span class="p">),</span>
+        <span class="nd">Apidoc\Returned</span><span class="p">(</span><span class="nx">name</span><span class="o">:</span> <span class="s2">&quot;nickname&quot;</span><span class="p">,</span> <span class="nx">type</span><span class="o">:</span> <span class="s2">&quot;string&quot;</span><span class="p">,</span> <span class="nx">desc</span><span class="o">:</span> <span class="s2">&quot;Nickname&quot;</span><span class="p">),</span>
+    <span class="p">]</span>
+    <span class="k">public</span> <span class="k">function</span> <span class="nf">info</span><span class="p">()</span>
+    <span class="p">{</span>
+        <span class="c1">// ...</span>
+    <span class="p">}</span>
+<span class="p">}</span>
+</code></pre>
+
+<p>Open <code>http://your-domain/apidoc</code>. If no endpoints appear, check that <code>apps[].path</code> points at the real controller directory and that the annotation alias is imported.</p>
+<h2 id="sec-4">Framework setup</h2>
+<div class="table-scroll"><table>
+<thead>
+<tr>
+<th>Framework</th>
+<th>Version</th>
+<th>Setup</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Laravel</td>
+<td>8+</td>
+<td>Auto-registered through <code>extra.laravel.providers</code>; publish config with <code>php artisan vendor:publish --provider="erikwang2013\apidoc\providers\LaravelService"</code>.</td>
+</tr>
+<tr>
+<td>ThinkPHP</td>
+<td>5.1+</td>
+<td>Auto-registered through <code>extra.think.services</code>; the package <code>src/config.php</code> becomes the <code>apidoc</code> app config key.</td>
+</tr>
+<tr>
+<td>Hyperf</td>
+<td>2+</td>
+<td><code>extra.hyperf.config</code> points at <code>erikwang2013\apidoc\ConfigProvider</code>; copy the package config to <code>config/autoload/apidoc.php</code>.</td>
+</tr>
+<tr>
+<td>Webman</td>
+<td>1+</td>
+<td>Run <code>php webman install</code>; config is published to <code>config/plugin/erikwang2013/apidoc/</code>.</td>
+</tr>
+<tr>
+<td>Yii2</td>
+<td>2.0+</td>
+<td>Enable <code>urlManager.enablePrettyUrl</code> and call <code>Yii2Service::register()</code> in the entry script.</td>
+</tr>
+<tr>
+<td>Yii3</td>
+<td>3.0+</td>
+<td>Call <code>Yii3Service::register($container, $config)</code>; provide config through <code>params['apidoc']</code>.</td>
+</tr>
+</tbody>
+</table></div>
+<p>Other useful keys:</p>
+<pre class="highlight"><code class="language-php"><span class="k">return</span> <span class="p">[</span>
+    <span class="s1">&#39;title&#39;</span> <span class="o">=&gt;</span> <span class="s1">&#39;Apidoc&#39;</span><span class="p">,</span>
+    <span class="s1">&#39;route_prefix&#39;</span> <span class="o">=&gt;</span> <span class="s1">&#39;/apidoc&#39;</span><span class="p">,</span>
+    <span class="s1">&#39;default_author&#39;</span> <span class="o">=&gt;</span> <span class="s1">&#39;erik&#39;</span><span class="p">,</span>
+    <span class="s1">&#39;default_method&#39;</span> <span class="o">=&gt;</span> <span class="s1">&#39;GET&#39;</span><span class="p">,</span>
+    <span class="s1">&#39;allowCrossDomain&#39;</span> <span class="o">=&gt;</span> <span class="k">false</span><span class="p">,</span>
+    <span class="s1">&#39;cors_origins&#39;</span> <span class="o">=&gt;</span> <span class="p">[],</span>
+    <span class="s1">&#39;ignored_methods&#39;</span> <span class="o">=&gt;</span> <span class="p">[],</span>
+<span class="p">];</span>
+</code></pre>
+
+<h2 id="sec-5">Parsing rules</h2>
+<ul>
+<li>Only controllers under <code>apps[].path</code> are scanned. Each public method that matches the rules becomes an endpoint.</li>
+<li>Use <code>use erikwang2013\apidoc\annotation as Apidoc;</code> and write <code>#[Apidoc\Title(...)]</code>. Per-class imports of short names also work, but the alias is recommended.</li>
+<li><code>NotParse</code> skips a controller or method. <code>NotDebug</code> disables live debugging for a controller or endpoint.</li>
+<li><code>Title</code>, <code>Desc</code>, <code>Group</code> and <code>Sort</code> set the display title, description, group and order.</li>
+<li>If <code>Url</code> is omitted, it is generated from the controller path and <code>auto_url</code>. If <code>Method</code> is omitted, <code>default_method</code> is used.</li>
+<li><code>RouteParam</code> describes <code>{name}</code> / <code>{phone}</code> path parameters. Use <code>Query</code> for URL query fields and <code>Param</code> for body fields.</li>
+<li>Every parameter annotation can use <code>ref</code> to reuse definitions, service methods, models or entity classes.</li>
+</ul>
+<h2 id="sec-6">Controller and endpoint annotations</h2>
+<p>Controller-level annotations:</p>
+<div class="table-scroll"><table>
+<thead>
+<tr>
+<th>Annotation</th>
+<th>Purpose</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>Title</code></td>
+<td>Controller title</td>
+</tr>
+<tr>
+<td><code>Group</code></td>
+<td>Group name from the <code>groups</code> config</td>
+</tr>
+<tr>
+<td><code>Sort</code></td>
+<td>Controller sort order</td>
+</tr>
+<tr>
+<td><code>NotParse</code></td>
+<td>Skip this controller</td>
+</tr>
+<tr>
+<td><code>NotDebug</code></td>
+<td>Disable debugging for all endpoints in the controller</td>
+</tr>
+</tbody>
+</table></div>
+<p>Endpoint-level annotations:</p>
+<div class="table-scroll"><table>
+<thead>
+<tr>
+<th>Annotation</th>
+<th>Purpose</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>Title</code> / <code>Desc</code></td>
+<td>Endpoint name and description</td>
+</tr>
+<tr>
+<td><code>Method</code> / <code>Url</code></td>
+<td>HTTP method and real URL</td>
+</tr>
+<tr>
+<td><code>Header</code> / <code>Query</code> / <code>Param</code></td>
+<td>Request headers, query fields and body fields</td>
+</tr>
+<tr>
+<td><code>RouteParam</code></td>
+<td>Path parameters such as <code>/user/{id}</code></td>
+</tr>
+<tr>
+<td><code>Returned</code></td>
+<td>Response fields</td>
+</tr>
+<tr>
+<td><code>Tag</code> / <code>Author</code> / <code>Sort</code></td>
+<td>Tags, author and order</td>
+</tr>
+<tr>
+<td><code>ParamType</code></td>
+<td>Request body type: <code>json</code> or <code>formdata</code></td>
+</tr>
+<tr>
+<td><code>ContentType</code></td>
+<td>Content-Type used by the debugger</td>
+</tr>
+<tr>
+<td><code>Md</code></td>
+<td>Extra Markdown; <code>ref</code> can point to a Markdown file</td>
+</tr>
+<tr>
+<td><code>ResponseSuccess</code> / <code>ResponseError</code></td>
+<td>Success and error envelopes; <code>main: true</code> marks where <code>Returned</code> is mounted</td>
+</tr>
+<tr>
+<td><code>ResponseStatus</code></td>
+<td>Documented response status codes</td>
+</tr>
+<tr>
+<td><code>Before</code> / <code>After</code></td>
+<td>Debug events before and after the request</td>
+</tr>
+<tr>
+<td><code>RouteMiddleware</code></td>
+<td>Middleware used when auto-registering routes</td>
+</tr>
+</tbody>
+</table></div>
+<p>A request with headers, path params, body fields and a response:</p>
+<pre class="highlight"><code class="language-php"><span class="p">#[</span>
+    <span class="nd">Apidoc\Title</span><span class="p">(</span><span class="s2">&quot;Update user&quot;</span><span class="p">),</span>
+    <span class="nd">Apidoc\Method</span><span class="p">(</span><span class="s2">&quot;POST&quot;</span><span class="p">),</span>
+    <span class="nd">Apidoc\Url</span><span class="p">(</span><span class="s2">&quot;/user/{id}&quot;</span><span class="p">),</span>
+    <span class="nd">Apidoc\Header</span><span class="p">(</span><span class="nx">name</span><span class="o">:</span> <span class="s2">&quot;Authorization&quot;</span><span class="p">,</span> <span class="nx">type</span><span class="o">:</span> <span class="s2">&quot;string&quot;</span><span class="p">,</span> <span class="k">require</span><span class="o">:</span> <span class="k">true</span><span class="p">,</span> <span class="nx">desc</span><span class="o">:</span> <span class="s2">&quot;Token&quot;</span><span class="p">),</span>
+    <span class="nd">Apidoc\RouteParam</span><span class="p">(</span><span class="nx">name</span><span class="o">:</span> <span class="s2">&quot;id&quot;</span><span class="p">,</span> <span class="nx">type</span><span class="o">:</span> <span class="s2">&quot;int&quot;</span><span class="p">,</span> <span class="k">require</span><span class="o">:</span> <span class="k">true</span><span class="p">,</span> <span class="nx">desc</span><span class="o">:</span> <span class="s2">&quot;User ID&quot;</span><span class="p">),</span>
+    <span class="nd">Apidoc\Param</span><span class="p">(</span><span class="nx">name</span><span class="o">:</span> <span class="s2">&quot;nickname&quot;</span><span class="p">,</span> <span class="nx">type</span><span class="o">:</span> <span class="s2">&quot;string&quot;</span><span class="p">,</span> <span class="k">require</span><span class="o">:</span> <span class="k">true</span><span class="p">,</span> <span class="nx">desc</span><span class="o">:</span> <span class="s2">&quot;Nickname&quot;</span><span class="p">),</span>
+    <span class="nd">Apidoc\Param</span><span class="p">(</span><span class="nx">name</span><span class="o">:</span> <span class="s2">&quot;avatar&quot;</span><span class="p">,</span> <span class="nx">type</span><span class="o">:</span> <span class="s2">&quot;file&quot;</span><span class="p">,</span> <span class="nx">desc</span><span class="o">:</span> <span class="s2">&quot;Avatar file&quot;</span><span class="p">),</span>
+    <span class="nd">Apidoc\Returned</span><span class="p">(</span><span class="nx">name</span><span class="o">:</span> <span class="s2">&quot;id&quot;</span><span class="p">,</span> <span class="nx">type</span><span class="o">:</span> <span class="s2">&quot;int&quot;</span><span class="p">,</span> <span class="nx">desc</span><span class="o">:</span> <span class="s2">&quot;User ID&quot;</span><span class="p">),</span>
+    <span class="nd">Apidoc\Returned</span><span class="p">(</span><span class="nx">name</span><span class="o">:</span> <span class="s2">&quot;nickname&quot;</span><span class="p">,</span> <span class="nx">type</span><span class="o">:</span> <span class="s2">&quot;string&quot;</span><span class="p">,</span> <span class="nx">desc</span><span class="o">:</span> <span class="s2">&quot;Nickname&quot;</span><span class="p">),</span>
+<span class="p">]</span>
+<span class="k">public</span> <span class="k">function</span> <span class="nf">update</span><span class="p">(</span><span class="nx">Request</span> <span class="nv">$request</span><span class="p">,</span> <span class="nx">int</span> <span class="nv">$id</span><span class="p">)</span>
+<span class="p">{</span>
+    <span class="c1">// ...</span>
+<span class="p">}</span>
+</code></pre>
+
+<h2 id="sec-7">Request parameters</h2>
+<p><code>Header</code>, <code>Query</code>, <code>Param</code>, <code>RouteParam</code> and <code>Returned</code> share the same field arguments:</p>
+<div class="table-scroll"><table>
+<thead>
+<tr>
+<th>Argument</th>
+<th>Description</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>name</code></td>
+<td>Field name; optional when using <code>ref</code></td>
+</tr>
+<tr>
+<td><code>type</code></td>
+<td><code>string</code>, <code>int</code>, <code>boolean</code>, <code>array</code>, <code>object</code>, <code>tree</code>, <code>file</code>, <code>float</code>, <code>date</code>, <code>time</code>, <code>datetime</code></td>
+</tr>
+<tr>
+<td><code>require</code></td>
+<td>Whether the field is required</td>
+</tr>
+<tr>
+<td><code>default</code></td>
+<td>Default value</td>
+</tr>
+<tr>
+<td><code>desc</code></td>
+<td>Field description</td>
+</tr>
+<tr>
+<td><code>mock</code></td>
+<td>Value generated for debugging</td>
+</tr>
+<tr>
+<td><code>ref</code></td>
+<td>Reuse a definition, service method, model or entity class</td>
+</tr>
+<tr>
+<td><code>field</code></td>
+<td>Keep only listed fields when using <code>ref</code>, such as <code>id,username</code></td>
+</tr>
+<tr>
+<td><code>withoutField</code></td>
+<td>Exclude listed fields when using <code>ref</code></td>
+</tr>
+<tr>
+<td><code>children</code></td>
+<td>Nested child fields</td>
+</tr>
+<tr>
+<td><code>childrenField</code> / <code>childrenDesc</code> / <code>childrenType</code></td>
+<td>Child configuration for <code>tree</code> / <code>array</code></td>
+</tr>
+</tbody>
+</table></div>
+<p><code>Param</code> is a body field, <code>Query</code> is a URL query field, <code>Header</code> is a request header and <code>RouteParam</code> is a path field. The debugger builds the body according to <code>ParamType</code> (<code>json</code> by default).</p>
+<h2 id="sec-8">Responses and nesting</h2>
+<p>Use <code>Returned</code> for response fields and <code>children</code> for nested structures:</p>
+<pre class="highlight"><code class="language-php"><span class="p">#[</span>
+    <span class="nd">Apidoc\Method</span><span class="p">(</span><span class="s2">&quot;POST&quot;</span><span class="p">),</span>
+    <span class="nd">Apidoc\Param</span><span class="p">(</span><span class="nx">name</span><span class="o">:</span> <span class="s2">&quot;info&quot;</span><span class="p">,</span> <span class="nx">type</span><span class="o">:</span> <span class="s2">&quot;object&quot;</span><span class="p">,</span> <span class="nx">desc</span><span class="o">:</span> <span class="s2">&quot;Info&quot;</span><span class="p">,</span> <span class="nx">children</span><span class="o">:</span> <span class="p">[</span>
+        <span class="p">[</span><span class="s1">&#39;name&#39;</span> <span class="o">=&gt;</span> <span class="s1">&#39;name&#39;</span><span class="p">,</span> <span class="s1">&#39;type&#39;</span> <span class="o">=&gt;</span> <span class="s1">&#39;string&#39;</span><span class="p">,</span> <span class="s1">&#39;desc&#39;</span> <span class="o">=&gt;</span> <span class="s1">&#39;Name&#39;</span><span class="p">],</span>
+        <span class="p">[</span><span class="s1">&#39;name&#39;</span> <span class="o">=&gt;</span> <span class="s1">&#39;sex&#39;</span><span class="p">,</span> <span class="s1">&#39;type&#39;</span> <span class="o">=&gt;</span> <span class="s1">&#39;string&#39;</span><span class="p">,</span> <span class="s1">&#39;desc&#39;</span> <span class="o">=&gt;</span> <span class="s1">&#39;Sex&#39;</span><span class="p">],</span>
+        <span class="p">[</span><span class="s1">&#39;name&#39;</span> <span class="o">=&gt;</span> <span class="s1">&#39;group&#39;</span><span class="p">,</span> <span class="s1">&#39;type&#39;</span> <span class="o">=&gt;</span> <span class="s1">&#39;object&#39;</span><span class="p">,</span> <span class="s1">&#39;desc&#39;</span> <span class="o">=&gt;</span> <span class="s1">&#39;Group&#39;</span><span class="p">,</span> <span class="s1">&#39;children&#39;</span> <span class="o">=&gt;</span> <span class="p">[</span>
+            <span class="p">[</span><span class="s1">&#39;name&#39;</span> <span class="o">=&gt;</span> <span class="s1">&#39;group_id&#39;</span><span class="p">,</span> <span class="s1">&#39;type&#39;</span> <span class="o">=&gt;</span> <span class="s1">&#39;int&#39;</span><span class="p">,</span> <span class="s1">&#39;desc&#39;</span> <span class="o">=&gt;</span> <span class="s1">&#39;Group ID&#39;</span><span class="p">],</span>
+            <span class="p">[</span><span class="s1">&#39;name&#39;</span> <span class="o">=&gt;</span> <span class="s1">&#39;group_name&#39;</span><span class="p">,</span> <span class="s1">&#39;type&#39;</span> <span class="o">=&gt;</span> <span class="s1">&#39;string&#39;</span><span class="p">,</span> <span class="s1">&#39;desc&#39;</span> <span class="o">=&gt;</span> <span class="s1">&#39;Group name&#39;</span><span class="p">],</span>
+        <span class="p">]],</span>
+    <span class="p">]),</span>
+<span class="p">]</span>
+<span class="k">public</span> <span class="k">function</span> <span class="nf">nested</span><span class="p">()</span>
+<span class="p">{</span>
+    <span class="c1">// ...</span>
+<span class="p">}</span>
+</code></pre>
+
+<p>Define the global success/error envelope in config and override it per endpoint with <code>ResponseSuccess</code> / <code>ResponseError</code>. The field marked <code>main: true</code> is where endpoint <code>Returned</code> fields are mounted:</p>
+<pre class="highlight"><code class="language-php"><span class="s1">&#39;responses&#39;</span> <span class="o">=&gt;</span> <span class="p">[</span>
+    <span class="s1">&#39;success&#39;</span> <span class="o">=&gt;</span> <span class="p">[</span>
+        <span class="p">[</span><span class="s1">&#39;name&#39;</span> <span class="o">=&gt;</span> <span class="s1">&#39;code&#39;</span><span class="p">,</span> <span class="s1">&#39;type&#39;</span> <span class="o">=&gt;</span> <span class="s1">&#39;int&#39;</span><span class="p">,</span> <span class="s1">&#39;require&#39;</span> <span class="o">=&gt;</span> <span class="mi">1</span><span class="p">],</span>
+        <span class="p">[</span><span class="s1">&#39;name&#39;</span> <span class="o">=&gt;</span> <span class="s1">&#39;message&#39;</span><span class="p">,</span> <span class="s1">&#39;type&#39;</span> <span class="o">=&gt;</span> <span class="s1">&#39;string&#39;</span><span class="p">,</span> <span class="s1">&#39;require&#39;</span> <span class="o">=&gt;</span> <span class="mi">1</span><span class="p">],</span>
+        <span class="p">[</span><span class="s1">&#39;name&#39;</span> <span class="o">=&gt;</span> <span class="s1">&#39;data&#39;</span><span class="p">,</span> <span class="s1">&#39;type&#39;</span> <span class="o">=&gt;</span> <span class="s1">&#39;object&#39;</span><span class="p">,</span> <span class="s1">&#39;main&#39;</span> <span class="o">=&gt;</span> <span class="k">true</span><span class="p">,</span> <span class="s1">&#39;require&#39;</span> <span class="o">=&gt;</span> <span class="mi">1</span><span class="p">],</span>
+    <span class="p">],</span>
+    <span class="s1">&#39;error&#39;</span> <span class="o">=&gt;</span> <span class="p">[</span>
+        <span class="p">[</span><span class="s1">&#39;name&#39;</span> <span class="o">=&gt;</span> <span class="s1">&#39;code&#39;</span><span class="p">,</span> <span class="s1">&#39;type&#39;</span> <span class="o">=&gt;</span> <span class="s1">&#39;int&#39;</span><span class="p">,</span> <span class="s1">&#39;require&#39;</span> <span class="o">=&gt;</span> <span class="mi">1</span><span class="p">],</span>
+        <span class="p">[</span><span class="s1">&#39;name&#39;</span> <span class="o">=&gt;</span> <span class="s1">&#39;message&#39;</span><span class="p">,</span> <span class="s1">&#39;type&#39;</span> <span class="o">=&gt;</span> <span class="s1">&#39;string&#39;</span><span class="p">,</span> <span class="s1">&#39;require&#39;</span> <span class="o">=&gt;</span> <span class="mi">1</span><span class="p">],</span>
+    <span class="p">],</span>
+<span class="p">],</span>
+</code></pre>
+
+<h2 id="sec-9">Reuse: definitions, ref, models and entities</h2>
+<p>Point the config at a definitions class:</p>
+<pre class="highlight"><code class="language-php"><span class="s1">&#39;definitions&#39;</span> <span class="o">=&gt;</span> <span class="s2">&quot;app\controller\Definitions&quot;</span><span class="p">,</span>
+</code></pre>
+
+<p>Define reusable fields:</p>
+<pre class="highlight"><code class="language-php"><span class="k">class</span> <span class="nc">Definitions</span>
+<span class="p">{</span>
+    <span class="p">#[</span>
+        <span class="nd">Apidoc\Query</span><span class="p">(</span><span class="nx">name</span><span class="o">:</span> <span class="s2">&quot;pageIndex&quot;</span><span class="p">,</span> <span class="nx">type</span><span class="o">:</span> <span class="s2">&quot;int&quot;</span><span class="p">,</span> <span class="k">require</span><span class="o">:</span> <span class="k">true</span><span class="p">,</span> <span class="k">default</span><span class="o">:</span> <span class="mi">1</span><span class="p">,</span> <span class="nx">desc</span><span class="o">:</span> <span class="s2">&quot;Page&quot;</span><span class="p">),</span>
+        <span class="nd">Apidoc\Query</span><span class="p">(</span><span class="nx">name</span><span class="o">:</span> <span class="s2">&quot;pageSize&quot;</span><span class="p">,</span> <span class="nx">type</span><span class="o">:</span> <span class="s2">&quot;int&quot;</span><span class="p">,</span> <span class="k">require</span><span class="o">:</span> <span class="k">true</span><span class="p">,</span> <span class="k">default</span><span class="o">:</span> <span class="mi">20</span><span class="p">,</span> <span class="nx">desc</span><span class="o">:</span> <span class="s2">&quot;Page size&quot;</span><span class="p">),</span>
+        <span class="nd">Apidoc\Returned</span><span class="p">(</span><span class="nx">name</span><span class="o">:</span> <span class="s2">&quot;total&quot;</span><span class="p">,</span> <span class="nx">type</span><span class="o">:</span> <span class="s2">&quot;int&quot;</span><span class="p">,</span> <span class="nx">desc</span><span class="o">:</span> <span class="s2">&quot;Total&quot;</span><span class="p">),</span>
+    <span class="p">]</span>
+    <span class="k">public</span> <span class="k">function</span> <span class="nf">pagingParam</span><span class="p">()</span> <span class="p">{}</span>
+<span class="p">}</span>
+</code></pre>
+
+<p>Reference them from an endpoint:</p>
+<pre class="highlight"><code class="language-php"><span class="p">#[</span>
+    <span class="nd">Apidoc\Query</span><span class="p">(</span><span class="nx">ref</span><span class="o">:</span> <span class="p">[</span><span class="nx">Definitions</span><span class="o">::</span><span class="na">class</span><span class="p">,</span> <span class="s2">&quot;pagingParam&quot;</span><span class="p">]),</span>
+    <span class="nx">Apidoc\Returned</span><span class="p">(</span><span class="nx">name</span><span class="o">:</span> <span class="s2">&quot;data&quot;</span><span class="p">,</span> <span class="nx">type</span><span class="o">:</span> <span class="s2">&quot;array&quot;</span><span class="p">,</span> <span class="nx">ref</span><span class="o">:</span> <span class="s2">&quot;dictionary&quot;</span><span class="p">,</span> <span class="nx">desc</span><span class="o">:</span> <span class="s2">&quot;Dictionary list&quot;</span><span class="p">),</span>
+<span class="p">]</span>
+</code></pre>
+
+<p><code>ref</code> accepts definitions, service methods, model methods and entity classes, for example <code>ref: "pagingParam"</code>, <code>ref: "app\services\ApiDocService@getUserInfo"</code> and <code>ref: "app\model\User@getList"</code>. Use <code>field</code> / <code>withoutField</code> to trim imported fields.</p>
+<h2 id="sec-10">Apps, versions and groups</h2>
+<p>Each entry in <code>apps</code> is an app with a unique <code>key</code> and a controller <code>path</code>. A multi-version project can use multiple apps, or split by controller directories and use groups:</p>
+<pre class="highlight"><code class="language-php"><span class="s1">&#39;apps&#39;</span> <span class="o">=&gt;</span> <span class="p">[</span>
+    <span class="p">[</span><span class="s1">&#39;title&#39;</span> <span class="o">=&gt;</span> <span class="s1">&#39;Public API&#39;</span><span class="p">,</span> <span class="s1">&#39;path&#39;</span> <span class="o">=&gt;</span> <span class="s1">&#39;app\api\controller&#39;</span><span class="p">,</span> <span class="s1">&#39;key&#39;</span> <span class="o">=&gt;</span> <span class="s1">&#39;api&#39;</span><span class="p">],</span>
+    <span class="p">[</span><span class="s1">&#39;title&#39;</span> <span class="o">=&gt;</span> <span class="s1">&#39;Admin API&#39;</span><span class="p">,</span> <span class="s1">&#39;path&#39;</span> <span class="o">=&gt;</span> <span class="s1">&#39;app\admin\controller&#39;</span><span class="p">,</span> <span class="s1">&#39;key&#39;</span> <span class="o">=&gt;</span> <span class="s1">&#39;admin&#39;</span><span class="p">],</span>
+<span class="p">],</span>
+</code></pre>
+
+<p>Use <code>Group</code> for the group, <code>Tag</code> for tags and <code>Sort</code> for ordering. The UI app/version selector follows the configured tree.</p>
+<h2 id="sec-11">Mock and live debugging</h2>
+<p>The <code>mock</code> argument generates values in the debugger:</p>
+<pre class="highlight"><code class="language-php"><span class="p">#[</span>
+    <span class="nd">Apidoc\Query</span><span class="p">(</span><span class="nx">name</span><span class="o">:</span> <span class="s2">&quot;name&quot;</span><span class="p">,</span> <span class="nx">type</span><span class="o">:</span> <span class="s2">&quot;string&quot;</span><span class="p">,</span> <span class="nx">mock</span><span class="o">:</span> <span class="s2">&quot;@name&quot;</span><span class="p">),</span>
+    <span class="nd">Apidoc\Query</span><span class="p">(</span><span class="nx">name</span><span class="o">:</span> <span class="s2">&quot;age&quot;</span><span class="p">,</span> <span class="nx">type</span><span class="o">:</span> <span class="s2">&quot;int&quot;</span><span class="p">,</span> <span class="nx">mock</span><span class="o">:</span> <span class="s2">&quot;@integer(1, 100)&quot;</span><span class="p">),</span>
+    <span class="nd">Apidoc\Query</span><span class="p">(</span><span class="nx">name</span><span class="o">:</span> <span class="s2">&quot;phone&quot;</span><span class="p">,</span> <span class="nx">type</span><span class="o">:</span> <span class="s2">&quot;string&quot;</span><span class="p">,</span> <span class="nx">mock</span><span class="o">:</span> <span class="s2">&quot;@phone&quot;</span><span class="p">),</span>
+    <span class="nd">Apidoc\Query</span><span class="p">(</span><span class="nx">name</span><span class="o">:</span> <span class="s2">&quot;fixed&quot;</span><span class="p">,</span> <span class="nx">type</span><span class="o">:</span> <span class="s2">&quot;string&quot;</span><span class="p">,</span> <span class="nx">mock</span><span class="o">:</span> <span class="s2">&quot;fixed text&quot;</span><span class="p">),</span>
+<span class="p">]</span>
+</code></pre>
+
+<p>The debug panel supports global Header/Query/Body params, Mock prefill, file upload and <code>Before</code> / <code>After</code> events. Cross-origin debugging needs <code>allowCrossDomain</code> and <code>cors_origins</code>; do not leave the allowlist open in production.</p>
+<h2 id="sec-12">Auth, caching and security</h2>
+<pre class="highlight"><code class="language-php"><span class="s1">&#39;auth&#39;</span> <span class="o">=&gt;</span> <span class="p">[</span>
+    <span class="s1">&#39;enable&#39;</span> <span class="o">=&gt;</span> <span class="k">true</span><span class="p">,</span>
+    <span class="s1">&#39;password&#39;</span> <span class="o">=&gt;</span> <span class="s1">&#39;your-password&#39;</span><span class="p">,</span>
+    <span class="s1">&#39;secret_key&#39;</span> <span class="o">=&gt;</span> <span class="s1">&#39;your-secret-key&#39;</span><span class="p">,</span>
+    <span class="s1">&#39;expire&#39;</span> <span class="o">=&gt;</span> <span class="mi">86400</span><span class="p">,</span>
+<span class="p">],</span>
+<span class="s1">&#39;cache&#39;</span> <span class="o">=&gt;</span> <span class="p">[</span><span class="s1">&#39;enable&#39;</span> <span class="o">=&gt;</span> <span class="k">true</span><span class="p">],</span>
+</code></pre>
+
+<ul>
+<li>Global and per-app/version passwords can be used together; the app password takes precedence.</li>
+<li>Passwords are checked at login time and tokens expire. Never commit <code>secret_key</code> to a public repository.</li>
+<li>Caching reuses parsed documentation. Clear the cache when annotations do not appear after an edit.</li>
+<li>Security releases add identifier allowlists, path checks and constant-time comparison.</li>
+</ul>
+<h2 id="sec-13">Exports, sharing and code generation</h2>
+<ul>
+<li>Every endpoint can produce JSON request/response examples and TypeScript type definitions.</li>
+<li><code>swagger.json</code> export can be imported into Swagger UI or code generators.</li>
+<li>Sharing creates a link for an app or endpoint. Enable it with <code>share.enable</code>.</li>
+<li>The code generator and templates turn documented fields into business code, table definitions and front-end API files. See <code>generator</code> / <code>code_template</code>.</li>
+</ul>
+<h2 id="sec-14">Common scenarios</h2>
+<h3 id="sec-15">Lists and pagination</h3>
+<p>Define pagination once and reference it:</p>
+<pre class="highlight"><code class="language-php"><span class="p">#[</span>
+    <span class="nd">Apidoc\Title</span><span class="p">(</span><span class="s2">&quot;User list&quot;</span><span class="p">),</span>
+    <span class="nd">Apidoc\Method</span><span class="p">(</span><span class="s2">&quot;GET&quot;</span><span class="p">),</span>
+    <span class="nd">Apidoc\Query</span><span class="p">(</span><span class="nx">ref</span><span class="o">:</span> <span class="p">[</span><span class="nx">Definitions</span><span class="o">::</span><span class="na">class</span><span class="p">,</span> <span class="s2">&quot;pagingParam&quot;</span><span class="p">]),</span>
+    <span class="nx">Apidoc\Returned</span><span class="p">(</span><span class="nx">name</span><span class="o">:</span> <span class="s2">&quot;list&quot;</span><span class="p">,</span> <span class="nx">type</span><span class="o">:</span> <span class="s2">&quot;array&quot;</span><span class="p">,</span> <span class="nx">children</span><span class="o">:</span> <span class="p">[</span>
+        <span class="p">[</span><span class="s1">&#39;name&#39;</span> <span class="o">=&gt;</span> <span class="s1">&#39;id&#39;</span><span class="p">,</span> <span class="s1">&#39;type&#39;</span> <span class="o">=&gt;</span> <span class="s1">&#39;int&#39;</span><span class="p">],</span>
+        <span class="p">[</span><span class="s1">&#39;name&#39;</span> <span class="o">=&gt;</span> <span class="s1">&#39;nickname&#39;</span><span class="p">,</span> <span class="s1">&#39;type&#39;</span> <span class="o">=&gt;</span> <span class="s1">&#39;string&#39;</span><span class="p">],</span>
+    <span class="p">]),</span>
+<span class="p">]</span>
+<span class="k">public</span> <span class="k">function</span> <span class="nf">list</span><span class="p">()</span>
+<span class="p">{</span>
+    <span class="c1">// ...</span>
+<span class="p">}</span>
+</code></pre>
+
+<h3 id="sec-16">Login and tokens</h3>
+<p>Declare <code>Authorization</code> as a Header and reuse the definition across protected endpoints. In the debugger, add it through global headers or a <code>Before</code> event.</p>
+<h3 id="sec-17">File upload</h3>
+<p>Use <code>type: "file"</code> and set <code>ParamType</code> to <code>formdata</code>. The docs page renders a file picker in the debug panel.</p>
+<h3 id="sec-18">Multiple versions</h3>
+<p>Configure multiple apps or controller directories, then switch apps and versions inside the same documentation UI.</p>
+<h3 id="sec-19">Front-end handoff</h3>
+<p>Open the JSON or TypeScript view for an endpoint and copy the types into the front-end, or share a link that exposes only the selected endpoint.</p>
+<h2 id="sec-20">Rules and troubleshooting</h2>
+<div class="table-scroll"><table>
+<thead>
+<tr>
+<th>Problem</th>
+<th>Check</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>/apidoc</code> returns 404</td>
+<td>Check <code>route_prefix</code>, framework route registration, and whether the Webman plugin was installed.</td>
+</tr>
+<tr>
+<td>No endpoints appear</td>
+<td>Check <code>apps[].path</code>, public visibility, <code>NotParse</code>, and the imported annotation namespace.</td>
+</tr>
+<tr>
+<td>Annotations do not work</td>
+<td>Only PHP 8 attributes are parsed; the old <code>@annotation</code> syntax is ignored.</td>
+</tr>
+<tr>
+<td>Wrong URL</td>
+<td>Check <code>auto_url</code>, <code>prefix</code> and <code>Apidoc\Url</code>; use <code>RouteParam</code> for path fields.</td>
+</tr>
+<tr>
+<td><code>ref</code> target missing</td>
+<td>Confirm the target method and namespace; class references can use <code>Class::class</code>.</td>
+</tr>
+<tr>
+<td>Page does not update</td>
+<td>Clear the document cache; confirm the config file was published where the framework reads it.</td>
+</tr>
+<tr>
+<td>Debug CORS fails</td>
+<td>Configure <code>allowCrossDomain</code> / <code>cors_origins</code> and only allow the origins you need.</td>
+</tr>
+<tr>
+<td>Auth fails</td>
+<td>Check the password, <code>secret_key</code>, token expiry and app-password precedence.</td>
+</tr>
+</tbody>
+</table></div>
+<h2 id="sec-21">Reference</h2>
+<ul>
+<li>Full annotation reference and section-by-section examples: <a href="https://github.com/erikwang2013/apidoc-php/blob/main/docs/ATTRIBUTES.md" target="_blank" rel="noopener">docs/ATTRIBUTES.md</a></li>
+<li>Upstream project: <a href="https://github.com/HGthecode/apidoc-php" target="_blank" rel="noopener">HGthecode/apidoc-php</a> / <a href="https://packagist.org/packages/hg/apidoc" target="_blank" rel="noopener">hg/apidoc</a></li>
+<li>Project README: <a href="https://github.com/erikwang2013/apidoc-php" target="_blank" rel="noopener">apidoc-php</a></li>
+<li>Releases: <a href="https://github.com/erikwang2013/apidoc-php/releases" target="_blank" rel="noopener">Releases</a></li>
+</ul>
+    <div class="docs-end">
+  <div><p><strong>Install</strong></p><div class="command-box"><code id="doc-install-php">composer require erikwang2013/apidoc-php</code><button class="copy-btn copy-btn--light" type="button" data-copy="doc-install-php">Copy</button></div></div>
+  <a class="btn btn-secondary" href="index.html">Back to guides</a>
+</div>
+<div class="docs-next"><h2>Other language guides</h2><div class="docs-next-grid"><a class="docs-next-link" href="go.html"><span class="lang-badge">Go</span><strong>Go Guide</strong><svg class="icon icon-xs" aria-hidden="true"><use href="#i-arrow"></use></svg></a><a class="docs-next-link" href="rust.html"><span class="lang-badge">Rust</span><strong>Rust Guide</strong><svg class="icon icon-xs" aria-hidden="true"><use href="#i-arrow"></use></svg></a><a class="docs-next-link" href="ui.html"><span class="lang-badge">UI</span><strong>apidoc-ui Guide</strong><svg class="icon icon-xs" aria-hidden="true"><use href="#i-arrow"></use></svg></a></div></div>
+<div class="docs-end docs-help">
+  <div><p><strong>Need help?</strong></p><p>Open a GitHub Issue, or read the repository README first.</p></div>
+  <a class="btn btn-secondary" href="https://github.com/erikwang2013/apidoc-php/issues" target="_blank" rel="noopener">Open an Issue <svg class="icon " aria-hidden="true"><use href="#i-external"></use></svg></a>
+</div>
+  </article>
+</div>
+  </main>
+  <footer class="site-footer">
+  <div class="wrap footer-grid">
+    <div class="footer-brand">
+      <img src="../../assets/img/pet/coquettish.svg" width="64" height="64" alt="" aria-hidden="true">
+      <div><strong>Apidoc</strong><p>API documentation for PHP, Go and Rust.</p></div>
+    </div>
+    <nav class="footer-col" aria-label="Guides">
+      <h2>Guides</h2>
+      <a href="php.html">PHP Guide</a><a href="go.html">Go Guide</a><a href="rust.html">Rust Guide</a><a href="ui.html">apidoc-ui Guide</a>
+      <a href="index.html">Usage guides</a>
+    </nav>
+    <nav class="footer-col" aria-label="Projects">
+      <h2>Projects</h2>
+      <a href="https://github.com/erikwang2013/apidoc-php" target="_blank" rel="noopener">PHP <svg class="icon icon-xs" aria-hidden="true"><use href="#i-external"></use></svg></a><a href="https://github.com/erikwang2013/apidoc-go" target="_blank" rel="noopener">Go <svg class="icon icon-xs" aria-hidden="true"><use href="#i-external"></use></svg></a><a href="https://github.com/erikwang2013/apidoc-rust" target="_blank" rel="noopener">Rust <svg class="icon icon-xs" aria-hidden="true"><use href="#i-external"></use></svg></a><a href="https://github.com/erikwang2013/apidoc-ui" target="_blank" rel="noopener">UI <svg class="icon icon-xs" aria-hidden="true"><use href="#i-external"></use></svg></a>
+    </nav>
+    <div class="footer-col">
+      <h2>About</h2>
+      <a href="https://erik.xyz" target="_blank" rel="noopener">艾瑞可 erik</a>
+      <a href="https://beian.miit.gov.cn" target="_blank" rel="noopener">粤ICP备2020136226号-8</a>
+      <a href="mailto:erik@erik.xyz">erik@erik.xyz</a>
+      <a href="https://github.com/HGthecode/apidoc-php" target="_blank" rel="noopener">Upstream HGthecode/apidoc-php</a>
+      <a href="https://packagist.org/packages/hg/apidoc" target="_blank" rel="noopener">hg/apidoc</a>
+      <a href="../../docs/php.html" hreflang="zh" lang="zh">中文</a>
+    </div>
+  </div>
+  <div class="wrap footer-bottom">
+    <p>© 2026 erik. Apidoc. MIT License.</p>
+    <p>Visual assets are owned by the author. Commercial use requires permission. <a href="https://github.com/erikwang2013/apidoc-php/blob/main/ASSETS-LICENSE.md" target="_blank" rel="noopener">ASSETS-LICENSE.md</a></p>
+  </div>
+  <div class="wrap footer-info" id="busuanzi"><script async src="//busuanzi.ibruce.info/busuanzi/2.3/busuanzi.pure.mini.js"></script><span id="busuanzi_container_site_pv">Total visits <b id="busuanzi_value_site_pv">0</b> 👀</span><span class="dot">·</span><span id="busuanzi_container_site_uv">Visitors <b id="busuanzi_value_site_uv">0</b> 🧑‍🚀</span></div>
+</footer>
+  <button class="to-top" id="to-top" type="button" aria-label="Back to top" title="Back to top" data-label="Back to top" data-cute="../../assets/img/pet/cute.svg">
+    <svg class="to-top-ring" viewBox="0 0 64 64" aria-hidden="true"><circle cx="32" cy="32" r="30"></circle></svg>
+    <img class="to-top-pet" src="../../assets/img/apidoc-pet.svg" width="48" height="48" alt="">
+  </button>
+  <script src="../../assets/js/main.js" defer></script>
+</body>
+</html>

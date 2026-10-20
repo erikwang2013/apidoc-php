@@ -1,0 +1,651 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Rust 使用指南 · Apidoc</title>
+  <meta name="description" content="用过程宏在 handler 上声明文档，编译期静态注册，运行期零成本聚合；兼容 axum 与 actix-web，内置鉴权、Mock、导出、分享与代码生成。">
+  <meta name="theme-color" content="#f7f6fc">
+  <link rel="icon" href="../assets/img/apidoc-pet.svg" type="image/svg+xml">
+  <link rel="preload" href="../assets/img/apidoc-pet.svg" as="image">
+  <link rel="stylesheet" href="../assets/css/style.css">
+  <link rel="alternate" hreflang="zh-CN" href="rust.html">
+  <link rel="alternate" hreflang="en" href="../en/docs/rust.html">
+  <noscript>
+    <style>
+      .nav-toggle { display: none !important; }
+      .site-nav { position: static !important; display: flex !important; flex-wrap: wrap; opacity: 1 !important; visibility: visible !important; transform: none !important; padding: 0 !important; border: 0 !important; background: transparent !important; box-shadow: none !important; margin-left: auto; }
+      @media (max-width: 960px) {
+        .header-inner { flex-wrap: wrap; padding-block: 10px; }
+        .site-nav { width: 100%; margin: 6px 0 0; }
+      }
+    </style>
+  </noscript>
+  <meta property="og:type" content="article">
+  <meta property="og:title" content="Rust 使用指南 · Apidoc">
+  <meta property="og:description" content="用过程宏在 handler 上声明文档，编译期静态注册，运行期零成本聚合；兼容 axum 与 actix-web，内置鉴权、Mock、导出、分享与代码生成。">
+  <meta property="og:image" content="../assets/img/social-preview.png">
+  <meta property="og:image:width" content="1280">
+  <meta property="og:image:height" content="640">
+  <meta property="og:site_name" content="Apidoc">
+  <meta property="og:locale" content="zh_CN">
+  <meta property="og:locale:alternate" content="en_US">
+  <meta name="twitter:card" content="summary_large_image">
+  <meta name="twitter:title" content="Rust 使用指南 · Apidoc">
+  <meta name="twitter:description" content="用过程宏在 handler 上声明文档，编译期静态注册，运行期零成本聚合；兼容 axum 与 actix-web，内置鉴权、Mock、导出、分享与代码生成。">
+  <meta name="twitter:image" content="../assets/img/social-preview.png">
+  
+</head>
+<body data-copy-label="复制" data-copied-label="已复制" data-menu-open="打开菜单" data-menu-close="关闭菜单">
+  <a class="skip-link" href="#main">跳到主要内容</a>
+  <svg class="icon-sprite" aria-hidden="true" focusable="false" xmlns="http://www.w3.org/2000/svg">
+  <symbol id="i-arrow" viewBox="0 0 20 20"><path d="M3 10h13M11 5l5 5-5 5"/></symbol>
+  <symbol id="i-external" viewBox="0 0 20 20"><path d="M8 4h8v8M16 4L4 16"/></symbol>
+  <symbol id="i-code" viewBox="0 0 24 24"><path d="M8 6l-5 6 5 6M16 6l5 6-5 6"/></symbol>
+  <symbol id="i-terminal" viewBox="0 0 24 24"><path d="M3 5h18v14H3zM6 9l3 3-3 3M12 15h5"/></symbol>
+  <symbol id="i-spark" viewBox="0 0 24 24"><path d="M12 3v4M12 17v4M3 12h4M17 12h4M6 6l2.5 2.5M15.5 15.5L18 18M18 6l-2.5 2.5M8.5 15.5L6 18"/></symbol>
+  <symbol id="i-layers" viewBox="0 0 24 24"><path d="M12 3l9 5-9 5-9-5 9-5ZM3 12l9 5 9-5M3 16l9 5 9-5"/></symbol>
+  <symbol id="i-file-code" viewBox="0 0 24 24"><path d="M6 3h8l4 4v14H6zM14 3v5h4M10 12l-2 2 2 2M14 12l2 2-2 2"/></symbol>
+  <symbol id="i-file-text" viewBox="0 0 24 24"><path d="M6 3h8l4 4v14H6zM14 3v5h4M9 12h6M9 16h6"/></symbol>
+  <symbol id="i-list" viewBox="0 0 24 24"><path d="M4 6h16M4 12h10M4 18h7"/></symbol>
+  <symbol id="i-wand" viewBox="0 0 24 24"><path d="M15 4l5 5M13 6l5 5M4 20L14 10M6 4l1.5 3L11 8.5 7.5 10 6 13l-1.5-3L1 8.5 4.5 7 6 4Z"/></symbol>
+  <symbol id="i-shield" viewBox="0 0 24 24"><path d="M12 3l8 3v6c0 5-3.5 8-8 9-4.5-1-8-4-8-9V6l8-3ZM9 12l2 2 4-4"/></symbol>
+  <symbol id="i-share" viewBox="0 0 24 24"><path d="M4 12v7h16v-7M12 3v13M8 7l4-4 4 4"/></symbol>
+  <symbol id="i-download" viewBox="0 0 24 24"><path d="M12 3v12M7 10l5 5 5-5M4 20h16"/></symbol>
+  <symbol id="i-check" viewBox="0 0 20 20"><path d="M4 10l4 4 8-8"/></symbol>
+  <symbol id="i-globe" viewBox="0 0 24 24"><path d="M12 3a9 9 0 1 0 0 18 9 9 0 0 0 0-18ZM3 12h18M12 3c2.5 2.5 4 5.5 4 9s-1.5 6.5-4 9c-2.5-2.5-4-5.5-4-9s1.5-6.5 4-9Z"/></symbol>
+  <symbol id="i-book" viewBox="0 0 24 24"><path d="M4 5a3 3 0 0 1 3-3h13v18H7a3 3 0 0 0-3 3V5ZM4 20a3 3 0 0 1 3-3h13"/></symbol>
+  <symbol id="i-layout" viewBox="0 0 24 24"><path d="M3 4h18v16H3zM3 9h18M9 9v11"/></symbol>
+  <symbol id="i-rocket" viewBox="0 0 24 24"><path d="M14 4c3-2 6-1 6-1s1 3-1 6l-6 6-4-4 5-7ZM8 15l-3 3M10 17l-2 3M7 14l-3 2"/></symbol>
+</svg>
+  <header class="site-header" id="top">
+  <div class="wrap header-inner">
+    <a class="brand" href="../index.html" aria-label="Apidoc">
+      <img src="../assets/img/apidoc-pet.svg" width="38" height="38" alt="">
+      <span class="brand-name">Apidoc <span class="brand-tag">API</span></span>
+    </a>
+    <div class="lang-switch" aria-label="语言">
+      <span class="is-active" aria-current="true">中文</span>
+      <a href="../en/docs/rust.html" hreflang="en" lang="en">EN</a>
+    </div>
+    <button class="nav-toggle" type="button" aria-expanded="false" aria-controls="site-nav">
+      <span class="nav-toggle-bars" aria-hidden="true"></span>
+      <span class="sr-only">打开菜单</span>
+    </button>
+    <nav class="site-nav" id="site-nav" aria-label="Main navigation">
+      <a href="../index.html#languages">语言实现</a><a href="../index.html#features">核心能力</a><a href="index.html" class="is-active">使用文档</a><a href="../index.html#install">安装</a><a href="../index.html#versions">版本</a><a href="../index.html#download">下载</a>
+      <a class="nav-mobile-only" href="https://github.com/erikwang2013" target="_blank" rel="noopener">GitHub <svg class="icon icon-xs" aria-hidden="true"><use href="#i-external"></use></svg></a>
+    </nav>
+    <a class="header-cta" href="https://github.com/erikwang2013" target="_blank" rel="noopener">
+      GitHub <svg class="icon icon-xs" aria-hidden="true"><use href="#i-external"></use></svg>
+    </a>
+  </div>
+</header>
+  <main id="main">
+  <section class="docs-hero">
+  <div class="wrap">
+    <p class="docs-breadcrumb"><a href="../index.html">首页</a><span>/</span><a href="index.html">使用文档</a><span>/</span>Rust</p>
+    <div class="docs-badges"><span class="lang-badge">Rust</span><span class="version-pill">v2.0.0</span></div>
+    <h1>Rust 使用指南</h1>
+    <p>用过程宏在 handler 上声明文档，编译期静态注册，运行期零成本聚合；兼容 axum 与 actix-web，内置鉴权、Mock、导出、分享与代码生成。</p>
+    <div class="docs-actions"><a class="text-link" href="https://github.com/erikwang2013/apidoc-rust" target="_blank" rel="noopener">GitHub <svg class="icon icon-xs" aria-hidden="true"><use href="#i-external"></use></svg></a><a class="text-link" href="https://github.com/erikwang2013/apidoc-rust/blob/HEAD/README.md" target="_blank" rel="noopener">查看源文档 <svg class="icon icon-xs" aria-hidden="true"><use href="#i-external"></use></svg></a></div>
+    <p class="docs-meta">版本 v2.0.0 / 完整参考：Rust README</p>
+  </div>
+</section><div class="wrap docs-layout">
+  <aside class="docs-sidebar">
+    <p class="docs-sidebar-title">本页目录</p>
+    <ul class="docs-toc"><li><a href="#sec-1">适用场景</a></li><li><a href="#sec-2">安装与依赖</a></li><li><a href="#sec-3">核心模型与收集</a></li><li><a href="#sec-4">编写注解</a></li><li class="is-sub"><a href="#sec-5">注解一览</a></li><li class="is-sub"><a href="#sec-6">编译期规则</a></li><li><a href="#sec-7">收集、输出与引用</a></li><li><a href="#sec-8">axum 接入</a></li><li><a href="#sec-9">actix-web 接入</a></li><li><a href="#sec-10">Mock 与在线调试</a></li><li><a href="#sec-11">鉴权</a></li><li><a href="#sec-12">多应用与多版本</a></li><li><a href="#sec-13">数据表引用与文档缓存</a></li><li><a href="#sec-14">分享、导出与代码生成</a></li><li><a href="#sec-15">典型场景</a></li><li class="is-sub"><a href="#sec-16">REST CRUD</a></li><li class="is-sub"><a href="#sec-17">分页与通用字段</a></li><li class="is-sub"><a href="#sec-18">登录与鉴权</a></li><li class="is-sub"><a href="#sec-19">多版本</a></li><li class="is-sub"><a href="#sec-20">前端类型与后端骨架</a></li><li class="is-sub"><a href="#sec-21">数据表驱动</a></li><li><a href="#sec-22">规则与排错</a></li><li><a href="#sec-23">参考</a></li></ul>
+    <a class="docs-edit" href="https://github.com/erikwang2013/apidoc-rust/blob/HEAD/README.md" target="_blank" rel="noopener">查看源文档 <svg class="icon icon-xs" aria-hidden="true"><use href="#i-external"></use></svg></a>
+  </aside>
+  <article class="docs-article">
+    <details class="docs-toc-mobile"><summary>本页目录</summary><ul class="docs-toc"><li><a href="#sec-1">适用场景</a></li><li><a href="#sec-2">安装与依赖</a></li><li><a href="#sec-3">核心模型与收集</a></li><li><a href="#sec-4">编写注解</a></li><li class="is-sub"><a href="#sec-5">注解一览</a></li><li class="is-sub"><a href="#sec-6">编译期规则</a></li><li><a href="#sec-7">收集、输出与引用</a></li><li><a href="#sec-8">axum 接入</a></li><li><a href="#sec-9">actix-web 接入</a></li><li><a href="#sec-10">Mock 与在线调试</a></li><li><a href="#sec-11">鉴权</a></li><li><a href="#sec-12">多应用与多版本</a></li><li><a href="#sec-13">数据表引用与文档缓存</a></li><li><a href="#sec-14">分享、导出与代码生成</a></li><li><a href="#sec-15">典型场景</a></li><li class="is-sub"><a href="#sec-16">REST CRUD</a></li><li class="is-sub"><a href="#sec-17">分页与通用字段</a></li><li class="is-sub"><a href="#sec-18">登录与鉴权</a></li><li class="is-sub"><a href="#sec-19">多版本</a></li><li class="is-sub"><a href="#sec-20">前端类型与后端骨架</a></li><li class="is-sub"><a href="#sec-21">数据表驱动</a></li><li><a href="#sec-22">规则与排错</a></li><li><a href="#sec-23">参考</a></li></ul></details>
+    <p>Rust 版用过程宏在 handler 上声明文档，文档片段在编译期静态注册，运行期零成本聚合。它兼容 axum 与 actix-web，内置 Web UI、在线调试、Mock、鉴权、多应用版本、导出、分享与代码生成。适合希望文档严格跟随代码、并在编译期发现错误的 Rust 服务。</p>
+<figure class="doc-figure"><img loading="lazy" decoding="async" src="../assets/img/rust/social-preview.svg" alt="apidoc-rust social preview"><figcaption>apidoc-rust：过程宏驱动的 API 文档，兼容 axum 与 actix-web。</figcaption></figure>
+
+<h2 id="sec-1">适用场景</h2>
+<ul>
+<li>axum 或 actix-web 服务；后续版本通过薄适配器扩展其他框架。</li>
+<li>希望文档在编译期生成，接口与文档不会失同步。</li>
+<li>需要在线调试、Mock、HMAC 鉴权、多应用/版本、Markdown/TypeScript/Swagger 导出。</li>
+<li>项目使用 Rust 1.82+，接受过程宏 + <code>linkme</code> 的注册方式。</li>
+</ul>
+<h2 id="sec-2">安装与依赖</h2>
+<pre class="highlight"><code class="language-toml"><span class="k">[dependencies]</span>
+<span class="n">apidoc-rust</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s2">&quot;2.0&quot;</span>
+<span class="n">serde_json</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s2">&quot;1&quot;</span>
+<span class="n">linkme</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s2">&quot;0.3&quot;</span>
+</code></pre>
+
+<p>要求 Rust 1.82+。单个发布包是 <code>apidoc-rust</code>，库名是 <code>apidoc</code>；<code>apidoc-macros</code> 由 <code>apidoc</code> re-export，不需要单独依赖。默认构建不拉 Web 框架依赖，按框架开启 feature：</p>
+<ul>
+<li><code>features = ["axum"]</code>：axum 适配器，Mock 隐含启用。</li>
+<li><code>features = ["actix"]</code>：actix-web 适配器，功能与 axum 1:1。</li>
+<li><code>features = ["mock"]</code>：只开 Mock 引擎，不挂框架。</li>
+</ul>
+<p><code>linkme</code> 必须直接依赖，因为宏生成的注册代码会引用它。只注册文档、不直接使用其他 API 的 crate 还必须被链接，而不是只编译；调用任意 crate 导出项或注册 handler 可以强制链接。</p>
+<h2 id="sec-3">核心模型与收集</h2>
+<div class="table-scroll"><table>
+<thead>
+<tr>
+<th>类型</th>
+<th>作用</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>DocRegistry</code></td>
+<td>收集所有宏片段，合并为端点，解析 <code>ref</code> / <code>table</code>。</td>
+</tr>
+<tr>
+<td><code>ApidocConfig</code></td>
+<td>项目级配置：标题、描述、鉴权、应用树、版本、表、缓存、代码模板。</td>
+</tr>
+<tr>
+<td><code>DocEndpoint</code></td>
+<td>一个接口：title、desc、url、method、headers、params、querys、returned、group、tags 等。</td>
+</tr>
+<tr>
+<td><code>DocParam</code></td>
+<td>参数：name、type、required、default、desc、mock、children。</td>
+</tr>
+<tr>
+<td><code>AppConfig</code></td>
+<td>应用/版本节点：key、title、items、password。</td>
+</tr>
+<tr>
+<td><code>TableDef</code> / <code>TableField</code></td>
+<td>数据表字段引用，供 <code>#[apidoc::table]</code> 使用。</td>
+</tr>
+<tr>
+<td><code>CacheConfig</code></td>
+<td>Mock 输出的进程内缓存，ttl 秒，0 表示永久。</td>
+</tr>
+</tbody>
+</table></div>
+<p>生成完整文档：</p>
+<pre class="highlight"><code class="language-rust"><span class="k">use</span><span class="w"> </span><span class="n">apidoc</span>::<span class="p">{</span><span class="n">ApidocConfig</span><span class="p">,</span><span class="w"> </span><span class="n">DocRegistry</span><span class="p">};</span>
+
+<span class="k">fn</span> <span class="nf">main</span><span class="p">()</span><span class="w"> </span><span class="p">{</span>
+<span class="w">    </span><span class="kd">let</span><span class="w"> </span><span class="n">doc</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">DocRegistry</span>::<span class="n">collect_doc</span><span class="p">(</span><span class="n">ApidocConfig</span><span class="w"> </span><span class="p">{</span>
+<span class="w">        </span><span class="n">title</span>: <span class="s">&quot;My API&quot;</span><span class="p">.</span><span class="n">to_string</span><span class="p">(),</span>
+<span class="w">        </span><span class="n">description</span>: <span class="nb">Some</span><span class="p">(</span><span class="s">&quot;Internal API&quot;</span><span class="p">.</span><span class="n">to_string</span><span class="p">()),</span>
+<span class="w">        </span><span class="o">..</span><span class="nb">Default</span>::<span class="n">default</span><span class="p">()</span>
+<span class="w">    </span><span class="p">});</span>
+<span class="w">    </span><span class="fm">println!</span><span class="p">(</span><span class="s">&quot;{}&quot;</span><span class="p">,</span><span class="w"> </span><span class="n">serde_json</span>::<span class="n">to_string_pretty</span><span class="p">(</span><span class="o">&amp;</span><span class="n">doc</span><span class="p">).</span><span class="n">unwrap</span><span class="p">());</span>
+<span class="p">}</span>
+</code></pre>
+
+<p><code>DocRegistry::collect()</code> 只返回端点列表；<code>collect_doc()</code> 额外构建应用/版本树。未使用 <code>app</code> 或未配置 <code>apps</code> 时，输出与旧版本保持一致。</p>
+<h2 id="sec-4">编写注解</h2>
+<p>在 handler 函数上逐条挂属性宏：</p>
+<pre class="highlight"><code class="language-rust"><span class="k">use</span><span class="w"> </span><span class="n">apidoc</span>::<span class="o">*</span><span class="p">;</span>
+
+<span class="cp">#[apidoc::title(</span><span class="s">&quot;获取用户信息&quot;</span><span class="cp">)]</span>
+<span class="cp">#[apidoc::desc(</span><span class="s">&quot;根据用户 ID 查询用户详情&quot;</span><span class="cp">)]</span>
+<span class="cp">#[apidoc::url(</span><span class="s">&quot;/api/user/info&quot;</span><span class="cp">)]</span>
+<span class="cp">#[apidoc::method(</span><span class="s">&quot;GET&quot;</span><span class="cp">)]</span>
+<span class="cp">#[apidoc::param(name = </span><span class="s">&quot;user_id&quot;</span><span class="cp">, ty = </span><span class="s">&quot;int&quot;</span><span class="cp">, required, desc = </span><span class="s">&quot;用户ID&quot;</span><span class="cp">, mock = </span><span class="s">&quot;1&quot;</span><span class="cp">)]</span>
+<span class="cp">#[apidoc::query(name = </span><span class="s">&quot;lang&quot;</span><span class="cp">, ty = </span><span class="s">&quot;string&quot;</span><span class="cp">, desc = </span><span class="s">&quot;语言&quot;</span><span class="cp">, default = </span><span class="s">&quot;zh-CN&quot;</span><span class="cp">)]</span>
+<span class="cp">#[apidoc::returned(</span>
+<span class="cp">    name = </span><span class="s">&quot;data&quot;</span><span class="cp">,</span>
+<span class="cp">    ty = </span><span class="s">&quot;object&quot;</span><span class="cp">,</span>
+<span class="cp">    desc = </span><span class="s">&quot;用户数据&quot;</span><span class="cp">,</span>
+<span class="cp">    children = [</span>
+<span class="cp">        { name = </span><span class="s">&quot;id&quot;</span><span class="cp">, ty = </span><span class="s">&quot;int&quot;</span><span class="cp">, required, desc = </span><span class="s">&quot;用户ID&quot;</span><span class="cp"> },</span>
+<span class="cp">        { name = </span><span class="s">&quot;name&quot;</span><span class="cp">, ty = </span><span class="s">&quot;string&quot;</span><span class="cp">, required, desc = </span><span class="s">&quot;用户名&quot;</span><span class="cp">, mock = </span><span class="s">&quot;erik&quot;</span><span class="cp"> },</span>
+<span class="cp">    ]</span>
+<span class="cp">)]</span>
+<span class="k">fn</span> <span class="nf">get_user_info</span><span class="p">()</span><span class="w"> </span>-&gt; <span class="nb">String</span> <span class="p">{</span>
+<span class="w">    </span><span class="fm">unimplemented!</span><span class="p">()</span>
+<span class="p">}</span>
+</code></pre>
+
+<h3 id="sec-5">注解一览</h3>
+<div class="table-scroll"><table>
+<thead>
+<tr>
+<th>宏</th>
+<th>参数 / 说明</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>title</code> / <code>desc</code></td>
+<td>接口标题与描述。</td>
+</tr>
+<tr>
+<td><code>method</code></td>
+<td>HTTP 方法，编译期校验白名单。</td>
+</tr>
+<tr>
+<td><code>url</code></td>
+<td>接口 URL，必须以 <code>/</code> 开头。</td>
+</tr>
+<tr>
+<td><code>param</code> / <code>query</code> / <code>returned</code></td>
+<td>Body、Query、响应字段；参数见下表。</td>
+</tr>
+<tr>
+<td><code>header</code></td>
+<td><code>name</code>、<code>desc</code>，<code>name</code> 不能为空。</td>
+</tr>
+<tr>
+<td><code>route_param</code></td>
+<td>路由参数，参数同 <code>param</code>。</td>
+</tr>
+<tr>
+<td><code>tag</code></td>
+<td>标签，可重复挂载，追加。</td>
+</tr>
+<tr>
+<td><code>group</code></td>
+<td>分组，UI 优先使用。</td>
+</tr>
+<tr>
+<td><code>author</code></td>
+<td>作者。</td>
+</tr>
+<tr>
+<td><code>response_status</code></td>
+<td>状态码，可写多个，自动去重。</td>
+</tr>
+<tr>
+<td><code>success</code> / <code>error</code></td>
+<td><code>code</code>、<code>example</code> 示例响应。</td>
+</tr>
+<tr>
+<td><code>not_debug</code></td>
+<td>标志位，调试面板可过滤。</td>
+</tr>
+<tr>
+<td><code>md</code></td>
+<td>Markdown 补充说明，原样展示。</td>
+</tr>
+<tr>
+<td><code>sort</code></td>
+<td>组内排序权重，支持负数。</td>
+</tr>
+<tr>
+<td><code>r#ref</code></td>
+<td>引用其他接口的返回结构，按函数名全局匹配。</td>
+</tr>
+<tr>
+<td><code>app</code></td>
+<td>挂到 <code>ApidocConfig.apps</code> 中的某个 key。</td>
+</tr>
+<tr>
+<td><code>table</code></td>
+<td>引用 <code>ApidocConfig.tables</code> 中的表 key，字段平铺进 <code>returned</code>。</td>
+</tr>
+</tbody>
+</table></div>
+<p><code>param</code>、<code>query</code>、<code>returned</code> 的字段参数：</p>
+<div class="table-scroll"><table>
+<thead>
+<tr>
+<th>参数</th>
+<th>说明</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>name</code></td>
+<td>字段名，必填。</td>
+</tr>
+<tr>
+<td><code>ty</code></td>
+<td>类型，如 <code>string</code>、<code>int</code>、<code>object</code>、<code>array</code>。</td>
+</tr>
+<tr>
+<td><code>required</code></td>
+<td>是否必填，是标志位，不写值。</td>
+</tr>
+<tr>
+<td><code>default</code></td>
+<td>默认值。</td>
+</tr>
+<tr>
+<td><code>desc</code></td>
+<td>字段说明。</td>
+</tr>
+<tr>
+<td><code>mock</code></td>
+<td>Mock 值或 <code>fake:xxx</code> 规则。</td>
+</tr>
+<tr>
+<td><code>children</code></td>
+<td>嵌套子字段，用 <code>{ ... }</code> 数组书写。</td>
+</tr>
+</tbody>
+</table></div>
+<h3 id="sec-6">编译期规则</h3>
+<ul>
+<li><code>url</code> 必须以 <code>/</code> 开头；<code>method</code> 必须是 <code>GET</code>、<code>POST</code>、<code>PUT</code>、<code>DELETE</code>、<code>PATCH</code>、<code>HEAD</code>、<code>OPTIONS</code> 之一。</li>
+<li><code>header</code> 必须有非空 <code>name</code>；<code>group</code>、<code>author</code>、<code>ref</code>、<code>app</code>、<code>table</code> 不能为空。</li>
+<li><code>not_debug</code> 不接受参数；<code>sort</code> 只接受整数。</li>
+<li>参数名是必填的；嵌套 <code>children</code> 会递归解析。</li>
+<li>错误会带精确的 span 在编译期报出，不会等到运行时才失败。</li>
+</ul>
+<h2 id="sec-7">收集、输出与引用</h2>
+<pre class="highlight"><code class="language-rust"><span class="kd">let</span><span class="w"> </span><span class="n">doc</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">DocRegistry</span>::<span class="n">collect_doc</span><span class="p">(</span><span class="n">ApidocConfig</span><span class="w"> </span><span class="p">{</span>
+<span class="w">    </span><span class="n">title</span>: <span class="s">&quot;My API&quot;</span><span class="p">.</span><span class="n">to_string</span><span class="p">(),</span>
+<span class="w">    </span><span class="n">apps</span>: <span class="nc">vec</span><span class="o">!</span><span class="p">[</span><span class="n">AppConfig</span><span class="w"> </span><span class="p">{</span>
+<span class="w">        </span><span class="n">key</span>: <span class="s">&quot;demo&quot;</span><span class="p">.</span><span class="n">to_string</span><span class="p">(),</span>
+<span class="w">        </span><span class="n">title</span>: <span class="s">&quot;Demo&quot;</span><span class="p">.</span><span class="n">to_string</span><span class="p">(),</span>
+<span class="w">        </span><span class="n">items</span>: <span class="nc">vec</span><span class="o">!</span><span class="p">[],</span>
+<span class="w">        </span><span class="n">password</span>: <span class="nb">None</span><span class="p">,</span>
+<span class="w">    </span><span class="p">}],</span>
+<span class="w">    </span><span class="o">..</span><span class="nb">Default</span>::<span class="n">default</span><span class="p">()</span>
+<span class="p">});</span>
+</code></pre>
+
+<p><code>ref</code> 引用目标接口的 <code>returned</code>，例如：</p>
+<pre class="highlight"><code class="language-rust"><span class="cp">#[apidoc::r#ref(</span><span class="s">&quot;get_user_list&quot;</span><span class="cp">)]</span>
+<span class="k">fn</span> <span class="nf">get_user_detail</span><span class="p">()</span><span class="w"> </span>-&gt; <span class="nb">String</span> <span class="p">{</span><span class="w"> </span><span class="fm">unimplemented!</span><span class="p">()</span><span class="w"> </span><span class="p">}</span>
+</code></pre>
+
+<p><code>ref</code> 是 Rust 关键字，属性路径必须写 raw identifier：<code>#[apidoc::r#ref(...)]</code>。目标是函数名，全局匹配；引用方自己的 <code>returned</code> 会被目标整体覆盖；<code>collect</code> 时会在 stderr 输出警告。<code>table</code> 与 <code>ref</code> 可以同时使用，表字段会在引用解析后追加。</p>
+<h2 id="sec-8">axum 接入</h2>
+<pre class="highlight"><code class="language-toml"><span class="k">[dependencies]</span>
+<span class="n">apidoc-rust</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="p">{</span><span class="w"> </span><span class="n">version</span><span class="w"> </span><span class="p">=</span><span class="w"> </span><span class="s2">&quot;2.0&quot;</span><span class="p">,</span><span class="w"> </span><span class="n">features</span><span class="w"> </span><span class="p">=</span><span class="w"> </span><span class="p">[</span><span class="s2">&quot;axum&quot;</span><span class="p">]</span><span class="w"> </span><span class="p">}</span>
+</code></pre>
+
+<pre class="highlight"><code class="language-rust"><span class="k">use</span><span class="w"> </span><span class="n">apidoc</span>::<span class="n">axum</span>::<span class="p">{</span><span class="n">apidoc_routes</span><span class="p">,</span><span class="w"> </span><span class="n">cors_layer</span><span class="p">,</span><span class="w"> </span><span class="n">CorsConfig</span><span class="p">};</span>
+<span class="k">use</span><span class="w"> </span><span class="n">apidoc</span>::<span class="n">ApidocConfig</span><span class="p">;</span>
+<span class="k">use</span><span class="w"> </span><span class="n">axum</span>::<span class="p">{</span><span class="n">routing</span>::<span class="n">get</span><span class="p">,</span><span class="w"> </span><span class="n">Router</span><span class="p">};</span>
+
+<span class="kd">let</span><span class="w"> </span><span class="n">app</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">Router</span>::<span class="n">new</span><span class="p">()</span>
+<span class="w">    </span><span class="p">.</span><span class="n">route</span><span class="p">(</span><span class="s">&quot;/users&quot;</span><span class="p">,</span><span class="w"> </span><span class="n">get</span><span class="p">(</span><span class="n">list_users</span><span class="p">))</span>
+<span class="w">    </span><span class="p">.</span><span class="n">merge</span><span class="p">(</span><span class="n">apidoc_routes</span><span class="p">(</span><span class="n">ApidocConfig</span><span class="w"> </span><span class="p">{</span>
+<span class="w">        </span><span class="n">title</span>: <span class="s">&quot;My API&quot;</span><span class="p">.</span><span class="n">to_string</span><span class="p">(),</span>
+<span class="w">        </span><span class="o">..</span><span class="nb">Default</span>::<span class="n">default</span><span class="p">()</span>
+<span class="w">    </span><span class="p">}))</span>
+<span class="w">    </span><span class="p">.</span><span class="n">layer</span><span class="p">(</span><span class="n">cors_layer</span><span class="p">(</span><span class="n">CorsConfig</span><span class="w"> </span><span class="p">{</span>
+<span class="w">        </span><span class="n">allow_origins</span>: <span class="nc">vec</span><span class="o">!</span><span class="p">[</span><span class="s">&quot;https://admin.example.com&quot;</span><span class="p">.</span><span class="n">to_string</span><span class="p">()],</span>
+<span class="w">    </span><span class="p">}));</span>
+</code></pre>
+
+<p>挂载后：</p>
+<div class="table-scroll"><table>
+<thead>
+<tr>
+<th>路径</th>
+<th>作用</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>/apidoc</code></td>
+<td>文档 UI。</td>
+</tr>
+<tr>
+<td><code>/apidoc/api.json</code></td>
+<td>文档数据。</td>
+</tr>
+<tr>
+<td><code>/apidoc/mock</code></td>
+<td>Mock 响应。</td>
+</tr>
+<tr>
+<td><code>/apidoc/export</code></td>
+<td>导出：Markdown / TypeScript / Swagger。</td>
+</tr>
+<tr>
+<td><code>/apidoc/share</code></td>
+<td>分享链接。</td>
+</tr>
+<tr>
+<td><code>/apidoc/generate?template=api.ts</code></td>
+<td>代码生成。</td>
+</tr>
+<tr>
+<td><code>/apidoc/auth</code></td>
+<td>登录换取 token。</td>
+</tr>
+<tr>
+<td><code>/apidoc/pet.svg</code></td>
+<td>项目宠物图标。</td>
+</tr>
+</tbody>
+</table></div>
+<p><code>cors_layer</code> 应在最终 Router 上调用，确保业务路由也能被浏览器跨域直连。<code>CorsConfig { allow_origins: vec![] }</code> 或 <code>["*"]</code> 放行字面 <code>*</code>，不携带凭据；配置白名单时精确匹配 Origin。</p>
+<h2 id="sec-9">actix-web 接入</h2>
+<pre class="highlight"><code class="language-toml"><span class="k">[dependencies]</span>
+<span class="n">apidoc-rust</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="p">{</span><span class="w"> </span><span class="n">version</span><span class="w"> </span><span class="p">=</span><span class="w"> </span><span class="s2">&quot;2.0&quot;</span><span class="p">,</span><span class="w"> </span><span class="n">features</span><span class="w"> </span><span class="p">=</span><span class="w"> </span><span class="p">[</span><span class="s2">&quot;actix&quot;</span><span class="p">]</span><span class="w"> </span><span class="p">}</span>
+</code></pre>
+
+<pre class="highlight"><code class="language-rust"><span class="k">use</span><span class="w"> </span><span class="n">actix_web</span>::<span class="p">{</span><span class="n">App</span><span class="p">,</span><span class="w"> </span><span class="n">HttpServer</span><span class="p">};</span>
+<span class="k">use</span><span class="w"> </span><span class="n">apidoc</span>::<span class="n">actix</span>::<span class="p">{</span><span class="n">apidoc_routes</span><span class="p">,</span><span class="w"> </span><span class="n">cors_layer</span><span class="p">,</span><span class="w"> </span><span class="n">CorsConfig</span><span class="p">};</span>
+<span class="k">use</span><span class="w"> </span><span class="n">apidoc</span>::<span class="n">ApidocConfig</span><span class="p">;</span>
+
+<span class="cp">#[actix_web::main]</span>
+<span class="k">async</span><span class="w"> </span><span class="k">fn</span> <span class="nf">main</span><span class="p">()</span><span class="w"> </span>-&gt; <span class="nc">std</span>::<span class="n">io</span>::<span class="nb">Result</span><span class="o">&lt;</span><span class="p">()</span><span class="o">&gt;</span><span class="w"> </span><span class="p">{</span>
+<span class="w">    </span><span class="n">HttpServer</span>::<span class="n">new</span><span class="p">(</span><span class="o">||</span><span class="w"> </span><span class="p">{</span>
+<span class="w">        </span><span class="n">App</span>::<span class="n">new</span><span class="p">()</span>
+<span class="w">            </span><span class="p">.</span><span class="n">service</span><span class="p">(</span><span class="n">apidoc_routes</span><span class="p">(</span><span class="n">ApidocConfig</span><span class="w"> </span><span class="p">{</span>
+<span class="w">                </span><span class="n">title</span>: <span class="s">&quot;My API&quot;</span><span class="p">.</span><span class="n">to_string</span><span class="p">(),</span>
+<span class="w">                </span><span class="o">..</span><span class="nb">Default</span>::<span class="n">default</span><span class="p">()</span>
+<span class="w">            </span><span class="p">}))</span>
+<span class="w">            </span><span class="p">.</span><span class="n">wrap</span><span class="p">(</span><span class="n">cors_layer</span><span class="p">(</span><span class="n">CorsConfig</span>::<span class="n">default</span><span class="p">()))</span>
+<span class="w">    </span><span class="p">})</span>
+<span class="w">    </span><span class="p">.</span><span class="n">bind</span><span class="p">(</span><span class="s">&quot;127.0.0.1:8080&quot;</span><span class="p">)</span><span class="o">?</span>
+<span class="w">    </span><span class="p">.</span><span class="n">run</span><span class="p">()</span>
+<span class="w">    </span><span class="p">.</span><span class="k">await</span>
+<span class="p">}</span>
+</code></pre>
+
+<p>actix 适配器与 axum 功能 1:1，路由、Mock、导出、鉴权行为一致。</p>
+<h2 id="sec-10">Mock 与在线调试</h2>
+<p>Mock 规则有三种优先级：</p>
+<pre class="highlight"><code class="language-rust"><span class="cp">#[apidoc::param(name = </span><span class="s">&quot;email&quot;</span><span class="cp">, ty = </span><span class="s">&quot;string&quot;</span><span class="cp">, desc = </span><span class="s">&quot;邮箱&quot;</span><span class="cp">, mock = </span><span class="s">&quot;fake:email&quot;</span><span class="cp">)]</span>
+<span class="cp">#[apidoc::param(name = </span><span class="s">&quot;status&quot;</span><span class="cp">, ty = </span><span class="s">&quot;string&quot;</span><span class="cp">, desc = </span><span class="s">&quot;状态&quot;</span><span class="cp">, mock = </span><span class="s">&quot;1&quot;</span><span class="cp">)]</span>
+<span class="cp">#[apidoc::param(name = </span><span class="s">&quot;name&quot;</span><span class="cp">, ty = </span><span class="s">&quot;string&quot;</span><span class="cp">, desc = </span><span class="s">&quot;用户名&quot;</span><span class="cp">)]</span>
+<span class="k">fn</span> <span class="nf">create_user</span><span class="p">()</span><span class="w"> </span>-&gt; <span class="nb">String</span> <span class="p">{</span><span class="w"> </span><span class="fm">unimplemented!</span><span class="p">()</span><span class="w"> </span><span class="p">}</span>
+</code></pre>
+
+<ul>
+<li><code>fake:xxx</code> 走 15 条 fake 规则：<code>name</code>、<code>company</code>、<code>email</code>、<code>phone</code>、<code>url</code>、<code>ip</code>、<code>city</code>、<code>country</code>、<code>text</code>、<code>number</code>、<code>int</code>、<code>float</code>、<code>bool</code>、<code>uuid</code>、<code>date</code>。</li>
+<li>非空 <code>mock</code> 原样直出，例如 <code>"1"</code>。</li>
+<li>无 <code>mock</code> 时按 <code>ty</code> 生成：int → <code>"1"</code>、float → <code>"0.5"</code>、bool → <code>"true"</code>、object → <code>"{}"</code>、string → <code>"string"</code>；array 固定 2 项。</li>
+<li><code>children</code> 递归嵌套；<code>not_debug</code> 接口默认从调试面板隐藏，可勾选显示。</li>
+</ul>
+<p>在线调试由浏览器直连目标接口，需要适配器的 <code>cors_layer</code> 放行跨域。v2 调试面板支持前置/后置脚本：</p>
+<pre class="highlight"><code class="language-js"><span class="c1">// 前置：请求前执行，可改 ctx.url / method / headers / body</span>
+<span class="nx">ctx</span><span class="p">.</span><span class="nx">headers</span><span class="p">[</span><span class="s1">&#39;X-Token&#39;</span><span class="p">]</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="nx">localStorage</span><span class="p">.</span><span class="nx">getItem</span><span class="p">(</span><span class="s1">&#39;token&#39;</span><span class="p">)</span><span class="w"> </span><span class="o">||</span><span class="w"> </span><span class="s1">&#39;&#39;</span><span class="p">;</span>
+</code></pre>
+
+<pre class="highlight"><code class="language-js"><span class="c1">// 后置：响应后执行，ctx = { status, ms, text, url, method, ep }</span>
+<span class="k">return</span><span class="w"> </span><span class="s1">&#39;HTTP &#39;</span><span class="w"> </span><span class="o">+</span><span class="w"> </span><span class="nx">ctx</span><span class="p">.</span><span class="nx">status</span><span class="w"> </span><span class="o">+</span><span class="w"> </span><span class="s1">&#39; · &#39;</span><span class="w"> </span><span class="o">+</span><span class="w"> </span><span class="nx">ctx</span><span class="p">.</span><span class="nx">ms</span><span class="w"> </span><span class="o">+</span><span class="w"> </span><span class="s1">&#39;ms\n&#39;</span><span class="w"> </span><span class="o">+</span><span class="w"> </span><span class="nx">ctx</span><span class="p">.</span><span class="nx">text</span><span class="p">;</span>
+</code></pre>
+
+<p>脚本报错只在结果区提示，不中断请求。</p>
+<h2 id="sec-11">鉴权</h2>
+<pre class="highlight"><code class="language-rust"><span class="k">use</span><span class="w"> </span><span class="n">apidoc</span>::<span class="n">auth</span>::<span class="n">AuthConfig</span><span class="p">;</span>
+
+<span class="kd">let</span><span class="w"> </span><span class="n">config</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">ApidocConfig</span><span class="w"> </span><span class="p">{</span>
+<span class="w">    </span><span class="n">title</span>: <span class="s">&quot;My API&quot;</span><span class="p">.</span><span class="n">to_string</span><span class="p">(),</span>
+<span class="w">    </span><span class="n">auth</span>: <span class="nb">Some</span><span class="p">(</span><span class="n">AuthConfig</span><span class="w"> </span><span class="p">{</span>
+<span class="w">        </span><span class="n">enable</span>: <span class="nc">true</span><span class="p">,</span>
+<span class="w">        </span><span class="n">password</span>: <span class="s">&quot;your-password&quot;</span><span class="p">.</span><span class="n">to_string</span><span class="p">(),</span>
+<span class="w">        </span><span class="n">secret_key</span>: <span class="s">&quot;your-secret-key&quot;</span><span class="p">.</span><span class="n">to_string</span><span class="p">(),</span>
+<span class="w">        </span><span class="n">expire</span>: <span class="mi">86400</span><span class="p">,</span>
+<span class="w">    </span><span class="p">}),</span>
+<span class="w">    </span><span class="o">..</span><span class="nb">Default</span>::<span class="n">default</span><span class="p">()</span>
+<span class="p">};</span>
+</code></pre>
+
+<p>流程：</p>
+<ol>
+<li>客户端 <code>POST /apidoc/auth</code>，JSON body <code>{"password":"...","appKey":"&lt;key&gt;"}</code> 换取 <code>{"token":"..."}</code>；密码错误 401，body 非法 400。</li>
+<li>数据路由 <code>/apidoc/api.json</code>、<code>/apidoc/export</code>、<code>/apidoc/mock</code> 需要 <code>?token=xxx</code>，选择应用时同时带 <code>&amp;appKey=</code>。</li>
+<li>token 是 <code>base64url(payload).base64url(HMAC-SHA256(payload))</code>，载荷包含过期时间；改密码会作废旧 token。</li>
+<li><code>password</code> / <code>secret_key</code> 永不序列化；应用密码优先于全局密码；空密码失败关闭。</li>
+<li>连续登录失败按指数退避拒绝；带凭据/token 的响应统一 <code>Cache-Control: no-store</code>。</li>
+</ol>
+<p><code>secret_key</code> 缺省时使用进程内随机密钥，进程重启后旧 token 失效；多实例部署必须显式配置一致的 <code>secret_key</code>。</p>
+<h2 id="sec-12">多应用与多版本</h2>
+<pre class="highlight"><code class="language-rust"><span class="cp">#[apidoc::app(</span><span class="s">&quot;demo&quot;</span><span class="cp">)]</span>
+<span class="cp">#[apidoc::title(</span><span class="s">&quot;获取用户信息&quot;</span><span class="cp">)]</span>
+<span class="k">fn</span> <span class="nf">get_user_info</span><span class="p">()</span><span class="w"> </span>-&gt; <span class="nb">String</span> <span class="p">{</span><span class="w"> </span><span class="fm">unimplemented!</span><span class="p">()</span><span class="w"> </span><span class="p">}</span>
+</code></pre>
+
+<pre class="highlight"><code class="language-rust"><span class="kd">let</span><span class="w"> </span><span class="n">apps</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="fm">vec!</span><span class="p">[</span><span class="n">AppConfig</span><span class="w"> </span><span class="p">{</span>
+<span class="w">    </span><span class="n">key</span>: <span class="s">&quot;demo&quot;</span><span class="p">.</span><span class="n">to_string</span><span class="p">(),</span>
+<span class="w">    </span><span class="n">title</span>: <span class="s">&quot;演示应用&quot;</span><span class="p">.</span><span class="n">to_string</span><span class="p">(),</span>
+<span class="w">    </span><span class="n">items</span>: <span class="nc">vec</span><span class="o">!</span><span class="p">[</span><span class="n">AppConfig</span><span class="w"> </span><span class="p">{</span>
+<span class="w">        </span><span class="n">key</span>: <span class="s">&quot;v1&quot;</span><span class="p">.</span><span class="n">to_string</span><span class="p">(),</span>
+<span class="w">        </span><span class="n">title</span>: <span class="s">&quot;v1&quot;</span><span class="p">.</span><span class="n">to_string</span><span class="p">(),</span>
+<span class="w">        </span><span class="n">items</span>: <span class="nc">vec</span><span class="o">!</span><span class="p">[],</span>
+<span class="w">        </span><span class="n">password</span>: <span class="nb">None</span><span class="p">,</span>
+<span class="w">    </span><span class="p">}],</span>
+<span class="w">    </span><span class="n">password</span>: <span class="nb">None</span><span class="p">,</span>
+<span class="p">}];</span>
+</code></pre>
+
+<ul>
+<li><code>app</code> 引用了未配置的 key 时会在 stderr 警告并落到默认应用。</li>
+<li>UI 顶部出现应用/版本选择器，token 按 appKey 分开存储。</li>
+<li>应用配置了 <code>password</code> 时只校验应用 token；应用密码优先于全局密码。</li>
+</ul>
+<h2 id="sec-13">数据表引用与文档缓存</h2>
+<pre class="highlight"><code class="language-rust"><span class="n">ApidocConfig</span><span class="w"> </span><span class="p">{</span>
+<span class="w">    </span><span class="n">tables</span>: <span class="nc">vec</span><span class="o">!</span><span class="p">[</span><span class="n">TableDef</span><span class="w"> </span><span class="p">{</span>
+<span class="w">        </span><span class="n">key</span>: <span class="s">&quot;user&quot;</span><span class="p">.</span><span class="n">into</span><span class="p">(),</span>
+<span class="w">        </span><span class="n">title</span>: <span class="s">&quot;用户表&quot;</span><span class="p">.</span><span class="n">into</span><span class="p">(),</span>
+<span class="w">        </span><span class="n">fields</span>: <span class="nc">vec</span><span class="o">!</span><span class="p">[</span>
+<span class="w">            </span><span class="n">TableField</span><span class="w"> </span><span class="p">{</span><span class="w"> </span><span class="n">name</span>: <span class="s">&quot;id&quot;</span><span class="p">.</span><span class="n">into</span><span class="p">(),</span><span class="w"> </span><span class="n">ty</span>: <span class="s">&quot;int&quot;</span><span class="p">.</span><span class="n">into</span><span class="p">(),</span><span class="w"> </span><span class="n">required</span>: <span class="nc">true</span><span class="p">,</span><span class="w"> </span><span class="n">desc</span>: <span class="nb">Some</span><span class="p">(</span><span class="s">&quot;用户ID&quot;</span><span class="p">.</span><span class="n">into</span><span class="p">()),</span><span class="w"> </span><span class="o">..</span><span class="nb">Default</span>::<span class="n">default</span><span class="p">()</span><span class="w"> </span><span class="p">},</span>
+<span class="w">            </span><span class="n">TableField</span><span class="w"> </span><span class="p">{</span><span class="w"> </span><span class="n">name</span>: <span class="s">&quot;name&quot;</span><span class="p">.</span><span class="n">into</span><span class="p">(),</span><span class="w"> </span><span class="n">ty</span>: <span class="s">&quot;string&quot;</span><span class="p">.</span><span class="n">into</span><span class="p">(),</span><span class="w"> </span><span class="n">mock</span>: <span class="nb">Some</span><span class="p">(</span><span class="s">&quot;erik&quot;</span><span class="p">.</span><span class="n">into</span><span class="p">()),</span><span class="w"> </span><span class="o">..</span><span class="nb">Default</span>::<span class="n">default</span><span class="p">()</span><span class="w"> </span><span class="p">},</span>
+<span class="w">        </span><span class="p">],</span>
+<span class="w">    </span><span class="p">}],</span>
+<span class="w">    </span><span class="n">cache</span>: <span class="nb">Some</span><span class="p">(</span><span class="n">CacheConfig</span><span class="w"> </span><span class="p">{</span><span class="w"> </span><span class="n">enable</span>: <span class="nc">true</span><span class="p">,</span><span class="w"> </span><span class="n">ttl</span>: <span class="mi">60</span><span class="w"> </span><span class="p">}),</span>
+<span class="w">    </span><span class="o">..</span><span class="nb">Default</span>::<span class="n">default</span><span class="p">()</span>
+<span class="p">}</span>
+</code></pre>
+
+<p><code>#[apidoc::table("user")]</code> 会把表字段平铺追加到 <code>returned</code>；未配置的 key 只警告不报错。<code>cache.ttl</code> 控制 <code>/apidoc/mock</code> 的进程内缓存，0 表示永久；<code>api.json</code> / 导出在构建路由时已物化，不走该缓存。</p>
+<h2 id="sec-14">分享、导出与代码生成</h2>
+<pre class="highlight"><code class="language-text">GET /apidoc/share?app=api&amp;url=/api/user/info&amp;method=GET&amp;base=https://example.com
+GET /apidoc/export?format=md
+GET /apidoc/export?format=ts
+GET /apidoc/export?format=swagger
+GET /apidoc/generate?template=api.ts
+</code></pre>
+
+<ul>
+<li><code>share</code> 返回深链；鉴权开启时附带 token，打开免密。</li>
+<li><code>export</code> 支持 Markdown、TypeScript、Swagger/OpenAPI 3.0.0；未知 format 返回 400。</li>
+<li><code>generate</code> 内置 <code>api.ts</code>、<code>handler.rs</code>、<code>schema.sql</code>，同名自定义模板可以覆盖。模板支持 <code>{{变量}}</code> 与 <code>{{#each ...}}</code>，变量包括 endpoints、tables、字段与 SQL 片段变量。</li>
+</ul>
+<h2 id="sec-15">典型场景</h2>
+<h3 id="sec-16">REST CRUD</h3>
+<p>为每个 handler 挂 <code>title</code>、<code>url</code>、<code>method</code>、参数与返回；用 <code>group</code> / <code>tag</code> 归类。编译期校验能在提交前发现 URL、method 和参数名错误。</p>
+<h3 id="sec-17">分页与通用字段</h3>
+<p>用 <code>ref</code> 复用列表接口的 <code>returned</code>，或把分页参数抽成公共定义；<code>table</code> 适合把配置好的表字段平铺进响应。</p>
+<h3 id="sec-18">登录与鉴权</h3>
+<p>开启 <code>AuthConfig</code> 后，UI 自动显示密码遮罩；应用级密码适合把不同团队的应用拆开。多实例要配置固定的 <code>secret_key</code>。</p>
+<h3 id="sec-19">多版本</h3>
+<p>用 <code>AppConfig.items</code> 建树，用 <code>#[apidoc::app("key")]</code> 挂接口；UI 按应用/版本切换。</p>
+<h3 id="sec-20">前端类型与后端骨架</h3>
+<p><code>export?format=ts</code> 直接给前端类型；<code>generate?template=handler.rs</code> / <code>schema.sql</code> 生成后端骨架和建表 SQL。</p>
+<h3 id="sec-21">数据表驱动</h3>
+<p>Rust 侧不连数据库：在 <code>ApidocConfig.tables</code> 里配置表和字段，再用 <code>table</code> 注解引用，文档与配置保持一致。</p>
+<h2 id="sec-22">规则与排错</h2>
+<div class="table-scroll"><table>
+<thead>
+<tr>
+<th>问题</th>
+<th>检查</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>编译报错 <code>apidoc::url</code></td>
+<td>URL 是否以 <code>/</code> 开头；method 是否在白名单内。</td>
+</tr>
+<tr>
+<td>编译报错 <code>linkme</code> 相关</td>
+<td>是否直接依赖 <code>linkme</code>；只注册文档的 crate 是否被链接。</td>
+</tr>
+<tr>
+<td>接口不出现</td>
+<td>宏是否挂在 handler 函数上；crate 是否被链接；是否调用了 <code>collect_doc</code>。</td>
+</tr>
+<tr>
+<td><code>ref</code> 不生效</td>
+<td>是否写成 <code>#[apidoc::r#ref("fn_name")]</code>；目标函数名是否正确。</td>
+</tr>
+<tr>
+<td><code>app</code> 落默认应用</td>
+<td><code>ApidocConfig.apps</code> 是否有对应 key。</td>
+</tr>
+<tr>
+<td>鉴权 token 重启失效</td>
+<td>显式配置固定 <code>secret_key</code>。</td>
+</tr>
+<tr>
+<td>调试跨域失败</td>
+<td>是否挂 <code>cors_layer</code>；<code>allow_origins</code> 是否包含页面来源。</td>
+</tr>
+<tr>
+<td>页面旧数据</td>
+<td>文档产物在路由构建时物化；重启服务或重新构建。</td>
+</tr>
+</tbody>
+</table></div>
+<h2 id="sec-23">参考</h2>
+<ul>
+<li><a href="https://github.com/erikwang2013/apidoc-rust" target="_blank" rel="noopener">apidoc-rust README</a></li>
+<li><a href="https://github.com/erikwang2013/apidoc-rust/releases" target="_blank" rel="noopener">apidoc-rust Releases</a></li>
+<li><a href="https://crates.io/crates/apidoc-rust" target="_blank" rel="noopener">crates.io apidoc-rust</a></li>
+<li>架构、功能、生命周期图见本页顶部与 README <code>docs/images/</code>。</li>
+</ul>
+    <div class="docs-end">
+  <div><p><strong>安装</strong></p><div class="command-box"><code id="doc-install-rust">apidoc-rust = &quot;2.0&quot;</code><button class="copy-btn copy-btn--light" type="button" data-copy="doc-install-rust">复制</button></div></div>
+  <a class="btn btn-secondary" href="index.html">返回文档中心</a>
+</div>
+<div class="docs-next"><h2>其他语言指南</h2><div class="docs-next-grid"><a class="docs-next-link" href="php.html"><span class="lang-badge">PHP</span><strong>PHP 使用指南</strong><svg class="icon icon-xs" aria-hidden="true"><use href="#i-arrow"></use></svg></a><a class="docs-next-link" href="go.html"><span class="lang-badge">Go</span><strong>Go 使用指南</strong><svg class="icon icon-xs" aria-hidden="true"><use href="#i-arrow"></use></svg></a><a class="docs-next-link" href="ui.html"><span class="lang-badge">UI</span><strong>apidoc-ui 使用指南</strong><svg class="icon icon-xs" aria-hidden="true"><use href="#i-arrow"></use></svg></a></div></div>
+<div class="docs-end docs-help">
+  <div><p><strong>需要帮助？</strong></p><p>到 GitHub Issues 提问，或先看仓库 README。</p></div>
+  <a class="btn btn-secondary" href="https://github.com/erikwang2013/apidoc-rust/issues" target="_blank" rel="noopener">提交 Issue <svg class="icon " aria-hidden="true"><use href="#i-external"></use></svg></a>
+</div>
+  </article>
+</div>
+  </main>
+  <footer class="site-footer">
+  <div class="wrap footer-grid">
+    <div class="footer-brand">
+      <img src="../assets/img/pet/coquettish.svg" width="64" height="64" alt="" aria-hidden="true">
+      <div><strong>Apidoc</strong><p>PHP、Go、Rust 通用 API 文档体系。</p></div>
+    </div>
+    <nav class="footer-col" aria-label="使用指南">
+      <h2>使用指南</h2>
+      <a href="php.html">PHP 使用指南</a><a href="go.html">Go 使用指南</a><a href="rust.html">Rust 使用指南</a><a href="ui.html">apidoc-ui 使用指南</a>
+      <a href="index.html">使用文档</a>
+    </nav>
+    <nav class="footer-col" aria-label="项目">
+      <h2>项目</h2>
+      <a href="https://github.com/erikwang2013/apidoc-php" target="_blank" rel="noopener">PHP <svg class="icon icon-xs" aria-hidden="true"><use href="#i-external"></use></svg></a><a href="https://github.com/erikwang2013/apidoc-go" target="_blank" rel="noopener">Go <svg class="icon icon-xs" aria-hidden="true"><use href="#i-external"></use></svg></a><a href="https://github.com/erikwang2013/apidoc-rust" target="_blank" rel="noopener">Rust <svg class="icon icon-xs" aria-hidden="true"><use href="#i-external"></use></svg></a><a href="https://github.com/erikwang2013/apidoc-ui" target="_blank" rel="noopener">UI <svg class="icon icon-xs" aria-hidden="true"><use href="#i-external"></use></svg></a>
+    </nav>
+    <div class="footer-col">
+      <h2>关于</h2>
+      <a href="https://erik.xyz" target="_blank" rel="noopener">艾瑞可 erik</a>
+      <a href="https://beian.miit.gov.cn" target="_blank" rel="noopener">粤ICP备2020136226号-8</a>
+      <a href="mailto:erik@erik.xyz">erik@erik.xyz</a>
+      <a href="https://github.com/HGthecode/apidoc-php" target="_blank" rel="noopener">参考项目 HGthecode/apidoc-php</a>
+      <a href="https://packagist.org/packages/hg/apidoc" target="_blank" rel="noopener">hg/apidoc</a>
+      <a href="../en/docs/rust.html" hreflang="en" lang="en">English</a>
+    </div>
+  </div>
+  <div class="wrap footer-bottom">
+    <p>© 2026 erik. Apidoc. MIT License.</p>
+    <p>视觉资产版权归作者所有，商业使用需取得授权。 <a href="https://github.com/erikwang2013/apidoc-php/blob/main/ASSETS-LICENSE.md" target="_blank" rel="noopener">ASSETS-LICENSE.md</a></p>
+  </div>
+  <div class="wrap footer-info" id="busuanzi"><script async src="//busuanzi.ibruce.info/busuanzi/2.3/busuanzi.pure.mini.js"></script><span id="busuanzi_container_site_pv">本站总访问量 <b id="busuanzi_value_site_pv">0</b> 次 👀</span><span class="dot">·</span><span id="busuanzi_container_site_uv">访客数 <b id="busuanzi_value_site_uv">0</b> 人次 🧑‍🚀</span></div>
+</footer>
+  <button class="to-top" id="to-top" type="button" aria-label="回到顶部" title="回到顶部" data-label="回到顶部" data-cute="../assets/img/pet/cute.svg">
+    <svg class="to-top-ring" viewBox="0 0 64 64" aria-hidden="true"><circle cx="32" cy="32" r="30"></circle></svg>
+    <img class="to-top-pet" src="../assets/img/apidoc-pet.svg" width="48" height="48" alt="">
+  </button>
+  <script src="../assets/js/main.js" defer></script>
+</body>
+</html>

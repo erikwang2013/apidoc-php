@@ -1,0 +1,558 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Go 使用指南 · Apidoc</title>
+  <meta name="description" content="接口文档以类型化结构体随路由注册，内嵌 Web UI 提供浏览与在线调试；兼容 net/http、Gin、Echo、Chi、Fiber、beego、Kratos、go-zero。">
+  <meta name="theme-color" content="#f7f6fc">
+  <link rel="icon" href="../assets/img/apidoc-pet.svg" type="image/svg+xml">
+  <link rel="preload" href="../assets/img/apidoc-pet.svg" as="image">
+  <link rel="stylesheet" href="../assets/css/style.css">
+  <link rel="alternate" hreflang="zh-CN" href="go.html">
+  <link rel="alternate" hreflang="en" href="../en/docs/go.html">
+  <noscript>
+    <style>
+      .nav-toggle { display: none !important; }
+      .site-nav { position: static !important; display: flex !important; flex-wrap: wrap; opacity: 1 !important; visibility: visible !important; transform: none !important; padding: 0 !important; border: 0 !important; background: transparent !important; box-shadow: none !important; margin-left: auto; }
+      @media (max-width: 960px) {
+        .header-inner { flex-wrap: wrap; padding-block: 10px; }
+        .site-nav { width: 100%; margin: 6px 0 0; }
+      }
+    </style>
+  </noscript>
+  <meta property="og:type" content="article">
+  <meta property="og:title" content="Go 使用指南 · Apidoc">
+  <meta property="og:description" content="接口文档以类型化结构体随路由注册，内嵌 Web UI 提供浏览与在线调试；兼容 net/http、Gin、Echo、Chi、Fiber、beego、Kratos、go-zero。">
+  <meta property="og:image" content="../assets/img/social-preview.png">
+  <meta property="og:image:width" content="1280">
+  <meta property="og:image:height" content="640">
+  <meta property="og:site_name" content="Apidoc">
+  <meta property="og:locale" content="zh_CN">
+  <meta property="og:locale:alternate" content="en_US">
+  <meta name="twitter:card" content="summary_large_image">
+  <meta name="twitter:title" content="Go 使用指南 · Apidoc">
+  <meta name="twitter:description" content="接口文档以类型化结构体随路由注册，内嵌 Web UI 提供浏览与在线调试；兼容 net/http、Gin、Echo、Chi、Fiber、beego、Kratos、go-zero。">
+  <meta name="twitter:image" content="../assets/img/social-preview.png">
+  
+</head>
+<body data-copy-label="复制" data-copied-label="已复制" data-menu-open="打开菜单" data-menu-close="关闭菜单">
+  <a class="skip-link" href="#main">跳到主要内容</a>
+  <svg class="icon-sprite" aria-hidden="true" focusable="false" xmlns="http://www.w3.org/2000/svg">
+  <symbol id="i-arrow" viewBox="0 0 20 20"><path d="M3 10h13M11 5l5 5-5 5"/></symbol>
+  <symbol id="i-external" viewBox="0 0 20 20"><path d="M8 4h8v8M16 4L4 16"/></symbol>
+  <symbol id="i-code" viewBox="0 0 24 24"><path d="M8 6l-5 6 5 6M16 6l5 6-5 6"/></symbol>
+  <symbol id="i-terminal" viewBox="0 0 24 24"><path d="M3 5h18v14H3zM6 9l3 3-3 3M12 15h5"/></symbol>
+  <symbol id="i-spark" viewBox="0 0 24 24"><path d="M12 3v4M12 17v4M3 12h4M17 12h4M6 6l2.5 2.5M15.5 15.5L18 18M18 6l-2.5 2.5M8.5 15.5L6 18"/></symbol>
+  <symbol id="i-layers" viewBox="0 0 24 24"><path d="M12 3l9 5-9 5-9-5 9-5ZM3 12l9 5 9-5M3 16l9 5 9-5"/></symbol>
+  <symbol id="i-file-code" viewBox="0 0 24 24"><path d="M6 3h8l4 4v14H6zM14 3v5h4M10 12l-2 2 2 2M14 12l2 2-2 2"/></symbol>
+  <symbol id="i-file-text" viewBox="0 0 24 24"><path d="M6 3h8l4 4v14H6zM14 3v5h4M9 12h6M9 16h6"/></symbol>
+  <symbol id="i-list" viewBox="0 0 24 24"><path d="M4 6h16M4 12h10M4 18h7"/></symbol>
+  <symbol id="i-wand" viewBox="0 0 24 24"><path d="M15 4l5 5M13 6l5 5M4 20L14 10M6 4l1.5 3L11 8.5 7.5 10 6 13l-1.5-3L1 8.5 4.5 7 6 4Z"/></symbol>
+  <symbol id="i-shield" viewBox="0 0 24 24"><path d="M12 3l8 3v6c0 5-3.5 8-8 9-4.5-1-8-4-8-9V6l8-3ZM9 12l2 2 4-4"/></symbol>
+  <symbol id="i-share" viewBox="0 0 24 24"><path d="M4 12v7h16v-7M12 3v13M8 7l4-4 4 4"/></symbol>
+  <symbol id="i-download" viewBox="0 0 24 24"><path d="M12 3v12M7 10l5 5 5-5M4 20h16"/></symbol>
+  <symbol id="i-check" viewBox="0 0 20 20"><path d="M4 10l4 4 8-8"/></symbol>
+  <symbol id="i-globe" viewBox="0 0 24 24"><path d="M12 3a9 9 0 1 0 0 18 9 9 0 0 0 0-18ZM3 12h18M12 3c2.5 2.5 4 5.5 4 9s-1.5 6.5-4 9c-2.5-2.5-4-5.5-4-9s1.5-6.5 4-9Z"/></symbol>
+  <symbol id="i-book" viewBox="0 0 24 24"><path d="M4 5a3 3 0 0 1 3-3h13v18H7a3 3 0 0 0-3 3V5ZM4 20a3 3 0 0 1 3-3h13"/></symbol>
+  <symbol id="i-layout" viewBox="0 0 24 24"><path d="M3 4h18v16H3zM3 9h18M9 9v11"/></symbol>
+  <symbol id="i-rocket" viewBox="0 0 24 24"><path d="M14 4c3-2 6-1 6-1s1 3-1 6l-6 6-4-4 5-7ZM8 15l-3 3M10 17l-2 3M7 14l-3 2"/></symbol>
+</svg>
+  <header class="site-header" id="top">
+  <div class="wrap header-inner">
+    <a class="brand" href="../index.html" aria-label="Apidoc">
+      <img src="../assets/img/apidoc-pet.svg" width="38" height="38" alt="">
+      <span class="brand-name">Apidoc <span class="brand-tag">API</span></span>
+    </a>
+    <div class="lang-switch" aria-label="语言">
+      <span class="is-active" aria-current="true">中文</span>
+      <a href="../en/docs/go.html" hreflang="en" lang="en">EN</a>
+    </div>
+    <button class="nav-toggle" type="button" aria-expanded="false" aria-controls="site-nav">
+      <span class="nav-toggle-bars" aria-hidden="true"></span>
+      <span class="sr-only">打开菜单</span>
+    </button>
+    <nav class="site-nav" id="site-nav" aria-label="Main navigation">
+      <a href="../index.html#languages">语言实现</a><a href="../index.html#features">核心能力</a><a href="index.html" class="is-active">使用文档</a><a href="../index.html#install">安装</a><a href="../index.html#versions">版本</a><a href="../index.html#download">下载</a>
+      <a class="nav-mobile-only" href="https://github.com/erikwang2013" target="_blank" rel="noopener">GitHub <svg class="icon icon-xs" aria-hidden="true"><use href="#i-external"></use></svg></a>
+    </nav>
+    <a class="header-cta" href="https://github.com/erikwang2013" target="_blank" rel="noopener">
+      GitHub <svg class="icon icon-xs" aria-hidden="true"><use href="#i-external"></use></svg>
+    </a>
+  </div>
+</header>
+  <main id="main">
+  <section class="docs-hero">
+  <div class="wrap">
+    <p class="docs-breadcrumb"><a href="../index.html">首页</a><span>/</span><a href="index.html">使用文档</a><span>/</span>Go</p>
+    <div class="docs-badges"><span class="lang-badge">Go</span><span class="version-pill">v1.0.7</span></div>
+    <h1>Go 使用指南</h1>
+    <p>接口文档以类型化结构体随路由注册，内嵌 Web UI 提供浏览与在线调试；兼容 net/http、Gin、Echo、Chi、Fiber、beego、Kratos、go-zero。</p>
+    <div class="docs-actions"><a class="text-link" href="https://github.com/erikwang2013/apidoc-go" target="_blank" rel="noopener">GitHub <svg class="icon icon-xs" aria-hidden="true"><use href="#i-external"></use></svg></a><a class="text-link" href="https://github.com/erikwang2013/apidoc-go/blob/main/README.md" target="_blank" rel="noopener">查看源文档 <svg class="icon icon-xs" aria-hidden="true"><use href="#i-external"></use></svg></a></div>
+    <p class="docs-meta">版本 v1.0.7 / 完整参考：Go README</p>
+  </div>
+</section><div class="wrap docs-layout">
+  <aside class="docs-sidebar">
+    <p class="docs-sidebar-title">本页目录</p>
+    <ul class="docs-toc"><li><a href="#sec-1">适用场景</a></li><li><a href="#sec-2">安装</a></li><li><a href="#sec-3">最小示例（net/http）</a></li><li><a href="#sec-4">核心模型与注册规则</a></li><li><a href="#sec-5">Config</a></li><li><a href="#sec-6">框架适配器</a></li><li><a href="#sec-7">写文档：Doc / Param / Response</a></li><li><a href="#sec-8">参数自动补全（reflect）</a></li><li><a href="#sec-9">注释解析（go/ast）</a></li><li><a href="#sec-10">Mock 与在线调试</a></li><li><a href="#sec-11">鉴权</a></li><li><a href="#sec-12">多应用与多版本</a></li><li><a href="#sec-13">导出</a></li><li><a href="#sec-14">典型场景</a></li><li class="is-sub"><a href="#sec-15">REST CRUD</a></li><li class="is-sub"><a href="#sec-16">分页</a></li><li class="is-sub"><a href="#sec-17">登录与 Token</a></li><li class="is-sub"><a href="#sec-18">文件上传</a></li><li class="is-sub"><a href="#sec-19">多版本</a></li><li class="is-sub"><a href="#sec-20">注释驱动</a></li><li><a href="#sec-21">规则与排错</a></li><li><a href="#sec-22">可视概览</a></li><li><a href="#sec-23">参考</a></li></ul>
+    <a class="docs-edit" href="https://github.com/erikwang2013/apidoc-go/blob/main/README.md" target="_blank" rel="noopener">查看源文档 <svg class="icon icon-xs" aria-hidden="true"><use href="#i-external"></use></svg></a>
+  </aside>
+  <article class="docs-article">
+    <details class="docs-toc-mobile"><summary>本页目录</summary><ul class="docs-toc"><li><a href="#sec-1">适用场景</a></li><li><a href="#sec-2">安装</a></li><li><a href="#sec-3">最小示例（net/http）</a></li><li><a href="#sec-4">核心模型与注册规则</a></li><li><a href="#sec-5">Config</a></li><li><a href="#sec-6">框架适配器</a></li><li><a href="#sec-7">写文档：Doc / Param / Response</a></li><li><a href="#sec-8">参数自动补全（reflect）</a></li><li><a href="#sec-9">注释解析（go/ast）</a></li><li><a href="#sec-10">Mock 与在线调试</a></li><li><a href="#sec-11">鉴权</a></li><li><a href="#sec-12">多应用与多版本</a></li><li><a href="#sec-13">导出</a></li><li><a href="#sec-14">典型场景</a></li><li class="is-sub"><a href="#sec-15">REST CRUD</a></li><li class="is-sub"><a href="#sec-16">分页</a></li><li class="is-sub"><a href="#sec-17">登录与 Token</a></li><li class="is-sub"><a href="#sec-18">文件上传</a></li><li class="is-sub"><a href="#sec-19">多版本</a></li><li class="is-sub"><a href="#sec-20">注释驱动</a></li><li><a href="#sec-21">规则与排错</a></li><li><a href="#sec-22">可视概览</a></li><li><a href="#sec-23">参考</a></li></ul></details>
+    <p>Go 版把接口文档声明成类型化结构体，并和路由注册放在一起。文档与路由同生，内嵌 Web UI 提供浏览、在线调试、Mock、鉴权、缓存与导出。它适合已经使用 Go HTTP 框架、希望文档跟着路由走的项目。</p>
+<figure class="doc-figure"><img loading="lazy" decoding="async" src="../assets/img/go/zh/architecture.svg" alt="apidoc-go architecture"><figcaption>apidoc-go 架构：路由注册、文档存储、JSON API 与内嵌 UI。</figcaption></figure>
+
+<h2 id="sec-1">适用场景</h2>
+<ul>
+<li>net/http、Gin、Echo、Chi、Fiber、beego、Kratos、go-zero 服务端项目。</li>
+<li>路由注册和文档声明希望放在同一处，避免文档与 handler 脱节。</li>
+<li>需要在线调试、Mock、多应用/多版本、密码鉴权、ETag 缓存、JSON/TypeScript 导出。</li>
+<li>接受 Go 1.24+，并且能把文档注册写进现有路由初始化流程。</li>
+</ul>
+<h2 id="sec-2">安装</h2>
+<pre class="highlight"><code class="language-bash">go<span class="w"> </span>get<span class="w"> </span>github.com/erikwang2013/apidoc-go
+</code></pre>
+
+<h2 id="sec-3">最小示例（net/http）</h2>
+<pre class="highlight"><code class="language-go"><span class="kn">package</span><span class="w"> </span><span class="nx">main</span>
+
+<span class="kn">import</span><span class="w"> </span><span class="p">(</span>
+<span class="w">    </span><span class="s">&quot;net/http&quot;</span>
+
+<span class="w">    </span><span class="s">&quot;github.com/erikwang2013/apidoc-go&quot;</span>
+<span class="w">    </span><span class="s">&quot;github.com/erikwang2013/apidoc-go/adapter&quot;</span>
+<span class="p">)</span>
+
+<span class="kd">func</span><span class="w"> </span><span class="nx">main</span><span class="p">()</span><span class="w"> </span><span class="p">{</span>
+<span class="w">    </span><span class="nx">mux</span><span class="w"> </span><span class="o">:=</span><span class="w"> </span><span class="nx">http</span><span class="p">.</span><span class="nx">NewServeMux</span><span class="p">()</span>
+<span class="w">    </span><span class="nx">s</span><span class="w"> </span><span class="o">:=</span><span class="w"> </span><span class="nx">apidoc</span><span class="p">.</span><span class="nx">New</span><span class="p">(</span><span class="nx">apidoc</span><span class="p">.</span><span class="nx">Config</span><span class="p">{</span><span class="nx">Title</span><span class="p">:</span><span class="w"> </span><span class="s">&quot;My API&quot;</span><span class="p">})</span>
+
+<span class="w">    </span><span class="k">if</span><span class="w"> </span><span class="nx">err</span><span class="w"> </span><span class="o">:=</span><span class="w"> </span><span class="nx">s</span><span class="p">.</span><span class="nx">Register</span><span class="p">(</span><span class="nx">apidoc</span><span class="p">.</span><span class="nx">Route</span><span class="p">{</span>
+<span class="w">        </span><span class="nx">Method</span><span class="p">:</span><span class="w"> </span><span class="s">&quot;GET&quot;</span><span class="p">,</span>
+<span class="w">        </span><span class="nx">URL</span><span class="p">:</span><span class="w">    </span><span class="s">&quot;/hello&quot;</span><span class="p">,</span>
+<span class="w">        </span><span class="nx">Handler</span><span class="p">:</span><span class="w"> </span><span class="nx">http</span><span class="p">.</span><span class="nx">HandlerFunc</span><span class="p">(</span><span class="kd">func</span><span class="p">(</span><span class="nx">w</span><span class="w"> </span><span class="nx">http</span><span class="p">.</span><span class="nx">ResponseWriter</span><span class="p">,</span><span class="w"> </span><span class="nx">r</span><span class="w"> </span><span class="o">*</span><span class="nx">http</span><span class="p">.</span><span class="nx">Request</span><span class="p">)</span><span class="w"> </span><span class="p">{</span>
+<span class="w">            </span><span class="nx">w</span><span class="p">.</span><span class="nx">Write</span><span class="p">([]</span><span class="nb">byte</span><span class="p">(</span><span class="s">&quot;hello&quot;</span><span class="p">))</span>
+<span class="w">        </span><span class="p">}),</span>
+<span class="w">        </span><span class="nx">Doc</span><span class="p">:</span><span class="w"> </span><span class="nx">apidoc</span><span class="p">.</span><span class="nx">Doc</span><span class="p">{</span>
+<span class="w">            </span><span class="nx">App</span><span class="p">:</span><span class="w">     </span><span class="s">&quot;demo&quot;</span><span class="p">,</span>
+<span class="w">            </span><span class="nx">Version</span><span class="p">:</span><span class="w"> </span><span class="s">&quot;v1&quot;</span><span class="p">,</span>
+<span class="w">            </span><span class="nx">Title</span><span class="p">:</span><span class="w">   </span><span class="s">&quot;Say hello&quot;</span><span class="p">,</span>
+<span class="w">            </span><span class="nx">Params</span><span class="p">:</span><span class="w"> </span><span class="p">[]</span><span class="nx">apidoc</span><span class="p">.</span><span class="nx">Param</span><span class="p">{</span>
+<span class="w">                </span><span class="p">{</span><span class="nx">Name</span><span class="p">:</span><span class="w"> </span><span class="s">&quot;name&quot;</span><span class="p">,</span><span class="w"> </span><span class="nx">In</span><span class="p">:</span><span class="w"> </span><span class="s">&quot;query&quot;</span><span class="p">,</span><span class="w"> </span><span class="nx">Type</span><span class="p">:</span><span class="w"> </span><span class="s">&quot;string&quot;</span><span class="p">,</span><span class="w"> </span><span class="nx">Required</span><span class="p">:</span><span class="w"> </span><span class="kc">true</span><span class="p">,</span><span class="w"> </span><span class="nx">Desc</span><span class="p">:</span><span class="w"> </span><span class="s">&quot;Your name&quot;</span><span class="p">},</span>
+<span class="w">            </span><span class="p">},</span>
+<span class="w">            </span><span class="nx">Responses</span><span class="p">:</span><span class="w"> </span><span class="p">[]</span><span class="nx">apidoc</span><span class="p">.</span><span class="nx">Response</span><span class="p">{</span>
+<span class="w">                </span><span class="p">{</span><span class="nx">Name</span><span class="p">:</span><span class="w"> </span><span class="s">&quot;message&quot;</span><span class="p">,</span><span class="w"> </span><span class="nx">Type</span><span class="p">:</span><span class="w"> </span><span class="s">&quot;string&quot;</span><span class="p">,</span><span class="w"> </span><span class="nx">Desc</span><span class="p">:</span><span class="w"> </span><span class="s">&quot;Greeting&quot;</span><span class="p">},</span>
+<span class="w">            </span><span class="p">},</span>
+<span class="w">        </span><span class="p">},</span>
+<span class="w">    </span><span class="p">});</span><span class="w"> </span><span class="nx">err</span><span class="w"> </span><span class="o">!=</span><span class="w"> </span><span class="kc">nil</span><span class="w"> </span><span class="p">{</span>
+<span class="w">        </span><span class="nb">panic</span><span class="p">(</span><span class="nx">err</span><span class="p">)</span>
+<span class="w">    </span><span class="p">}</span>
+
+<span class="w">    </span><span class="k">if</span><span class="w"> </span><span class="nx">err</span><span class="w"> </span><span class="o">:=</span><span class="w"> </span><span class="nx">s</span><span class="p">.</span><span class="nx">Mount</span><span class="p">(</span><span class="nx">adapter</span><span class="p">.</span><span class="nx">NewNetHTTP</span><span class="p">(</span><span class="nx">mux</span><span class="p">));</span><span class="w"> </span><span class="nx">err</span><span class="w"> </span><span class="o">!=</span><span class="w"> </span><span class="kc">nil</span><span class="w"> </span><span class="p">{</span>
+<span class="w">        </span><span class="nb">panic</span><span class="p">(</span><span class="nx">err</span><span class="p">)</span>
+<span class="w">    </span><span class="p">}</span>
+<span class="w">    </span><span class="nx">http</span><span class="p">.</span><span class="nx">ListenAndServe</span><span class="p">(</span><span class="s">&quot;:8080&quot;</span><span class="p">,</span><span class="w"> </span><span class="nx">mux</span><span class="p">)</span>
+<span class="p">}</span>
+</code></pre>
+
+<p>打开 <code>http://localhost:8080/apidoc</code>。文档 UI、JSON API 和导出接口都由 <code>Mount</code> 挂载到同一个前缀下。</p>
+<h2 id="sec-4">核心模型与注册规则</h2>
+<div class="table-scroll"><table>
+<thead>
+<tr>
+<th>类型</th>
+<th>作用</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>apidoc.Server</code></td>
+<td>文档服务器实例，由 <code>apidoc.New(Config)</code> 创建。</td>
+</tr>
+<tr>
+<td><code>apidoc.Route</code></td>
+<td>一条路由：<code>Method</code>、<code>URL</code>、框架原生 <code>Handler</code>、<code>Doc</code>。</td>
+</tr>
+<tr>
+<td><code>apidoc.Doc</code></td>
+<td>文档声明：应用、版本、控制器、标题、描述、参数、响应、Markdown、排序。</td>
+</tr>
+<tr>
+<td><code>apidoc.Param</code></td>
+<td>输入参数：<code>Name</code>、<code>In</code>、<code>Type</code>、<code>Desc</code>、<code>Required</code>、<code>Default</code>、<code>Mock</code>、<code>Children</code>。</td>
+</tr>
+<tr>
+<td><code>apidoc.Response</code></td>
+<td>响应结构：<code>Name</code>、<code>Type</code>、<code>Desc</code>、<code>Mock</code>、<code>Fields</code>。</td>
+</tr>
+</tbody>
+</table></div>
+<p>注册规则：</p>
+<ul>
+<li><code>Register</code> 记录文档，并把 handler 转发给已挂载的框架适配器；尚未 <code>Mount</code> 时会先排队，<code>Mount</code> 时重放。</li>
+<li>同一 <code>(app, version, method, url)</code> 再次注册会替换文档，后注册的生效。</li>
+<li>相同的 <code>method + url</code> 不会重复注册到框架，避免路由冲突。</li>
+<li><code>Method</code> 和 <code>URL</code> 是必填项；路由参数写法遵循所属框架的语法（例如 Gin 的 <code>:id</code> 或 <code>*path</code>）。</li>
+<li><code>Register</code> 的返回值需要检查；适配器注册失败会在 <code>Mount</code> / <code>Register</code> 时返回错误。</li>
+</ul>
+<h2 id="sec-5">Config</h2>
+<pre class="highlight"><code class="language-go"><span class="nx">s</span><span class="w"> </span><span class="o">:=</span><span class="w"> </span><span class="nx">apidoc</span><span class="p">.</span><span class="nx">New</span><span class="p">(</span><span class="nx">apidoc</span><span class="p">.</span><span class="nx">Config</span><span class="p">{</span>
+<span class="w">    </span><span class="nx">Prefix</span><span class="p">:</span><span class="w">       </span><span class="s">&quot;/apidoc&quot;</span><span class="p">,</span>
+<span class="w">    </span><span class="nx">Title</span><span class="p">:</span><span class="w">        </span><span class="s">&quot;My API&quot;</span><span class="p">,</span>
+<span class="w">    </span><span class="nx">Desc</span><span class="p">:</span><span class="w">         </span><span class="s">&quot;Internal API documentation&quot;</span><span class="p">,</span>
+<span class="w">    </span><span class="nx">GlobalParams</span><span class="p">:</span><span class="w"> </span><span class="p">[]</span><span class="nx">apidoc</span><span class="p">.</span><span class="nx">Param</span><span class="p">{</span>
+<span class="w">        </span><span class="p">{</span><span class="nx">Name</span><span class="p">:</span><span class="w"> </span><span class="s">&quot;Authorization&quot;</span><span class="p">,</span><span class="w"> </span><span class="nx">In</span><span class="p">:</span><span class="w"> </span><span class="s">&quot;header&quot;</span><span class="p">,</span><span class="w"> </span><span class="nx">Type</span><span class="p">:</span><span class="w"> </span><span class="s">&quot;string&quot;</span><span class="p">,</span><span class="w"> </span><span class="nx">Required</span><span class="p">:</span><span class="w"> </span><span class="kc">true</span><span class="p">,</span><span class="w"> </span><span class="nx">Desc</span><span class="p">:</span><span class="w"> </span><span class="s">&quot;Token&quot;</span><span class="p">},</span>
+<span class="w">    </span><span class="p">},</span>
+<span class="w">    </span><span class="nx">Auth</span><span class="p">:</span><span class="w"> </span><span class="nx">apidoc</span><span class="p">.</span><span class="nx">AuthConfig</span><span class="p">{</span>
+<span class="w">        </span><span class="nx">Enable</span><span class="p">:</span><span class="w">   </span><span class="kc">true</span><span class="p">,</span>
+<span class="w">        </span><span class="nx">Password</span><span class="p">:</span><span class="w"> </span><span class="s">&quot;your-password&quot;</span><span class="p">,</span>
+<span class="w">        </span><span class="nx">Secret</span><span class="p">:</span><span class="w">   </span><span class="s">&quot;your-secret&quot;</span><span class="p">,</span>
+<span class="w">        </span><span class="nx">Expire</span><span class="p">:</span><span class="w">   </span><span class="mi">24</span><span class="w"> </span><span class="o">*</span><span class="w"> </span><span class="nx">time</span><span class="p">.</span><span class="nx">Hour</span><span class="p">,</span>
+<span class="w">        </span><span class="nx">Secure</span><span class="p">:</span><span class="w">   </span><span class="kc">true</span><span class="p">,</span>
+<span class="w">    </span><span class="p">},</span>
+<span class="w">    </span><span class="nx">Apps</span><span class="p">:</span><span class="w"> </span><span class="p">[]</span><span class="nx">apidoc</span><span class="p">.</span><span class="nx">AppConfig</span><span class="p">{</span>
+<span class="w">        </span><span class="p">{</span><span class="nx">Key</span><span class="p">:</span><span class="w"> </span><span class="s">&quot;api&quot;</span><span class="p">,</span><span class="w"> </span><span class="nx">Title</span><span class="p">:</span><span class="w"> </span><span class="s">&quot;Public API&quot;</span><span class="p">},</span>
+<span class="w">        </span><span class="p">{</span><span class="nx">Key</span><span class="p">:</span><span class="w"> </span><span class="s">&quot;admin&quot;</span><span class="p">,</span><span class="w"> </span><span class="nx">Title</span><span class="p">:</span><span class="w"> </span><span class="s">&quot;Admin API&quot;</span><span class="p">,</span><span class="w"> </span><span class="nx">Password</span><span class="p">:</span><span class="w"> </span><span class="s">&quot;admin-password&quot;</span><span class="p">},</span>
+<span class="w">    </span><span class="p">},</span>
+<span class="w">    </span><span class="nx">DebugOrigins</span><span class="p">:</span><span class="w"> </span><span class="p">[]</span><span class="kt">string</span><span class="p">{</span><span class="s">&quot;https://admin.example.com&quot;</span><span class="p">},</span>
+<span class="p">})</span>
+</code></pre>
+
+<div class="table-scroll"><table>
+<thead>
+<tr>
+<th>配置</th>
+<th>默认值</th>
+<th>说明</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>Prefix</code></td>
+<td><code>/apidoc</code></td>
+<td>文档挂载路径。</td>
+</tr>
+<tr>
+<td><code>Title</code></td>
+<td><code>API Docs</code></td>
+<td>文档标题。</td>
+</tr>
+<tr>
+<td><code>Desc</code></td>
+<td>空</td>
+<td>文档描述。</td>
+</tr>
+<tr>
+<td><code>GlobalParams</code></td>
+<td>空</td>
+<td>合并进每个接口的全局参数，按 <code>(Name, In)</code> 覆盖。</td>
+</tr>
+<tr>
+<td><code>Auth</code></td>
+<td>关闭</td>
+<td><code>Enable</code>、<code>Password</code>、<code>Secret</code>、<code>Expire</code>、<code>Secure</code>。</td>
+</tr>
+<tr>
+<td><code>Apps</code></td>
+<td>空</td>
+<td>应用配置：<code>Key</code>、<code>Title</code>、<code>Password</code>。</td>
+</tr>
+<tr>
+<td><code>DebugOrigins</code></td>
+<td>空</td>
+<td>允许跨域调试的来源白名单，默认不放行任何来源。</td>
+</tr>
+</tbody>
+</table></div>
+<h2 id="sec-6">框架适配器</h2>
+<div class="table-scroll"><table>
+<thead>
+<tr>
+<th>框架</th>
+<th>构造器</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>net/http</td>
+<td><code>adapter.NewNetHTTP(mux)</code></td>
+</tr>
+<tr>
+<td>Gin</td>
+<td><code>adapter.NewGin(engine)</code></td>
+</tr>
+<tr>
+<td>Echo</td>
+<td><code>adapter.NewEcho(e)</code></td>
+</tr>
+<tr>
+<td>Chi</td>
+<td><code>adapter.NewChi(mux)</code></td>
+</tr>
+<tr>
+<td>Fiber</td>
+<td><code>adapter.NewFiber(app)</code></td>
+</tr>
+<tr>
+<td>beego</td>
+<td><code>adapter.NewBeego(app)</code></td>
+</tr>
+<tr>
+<td>Kratos</td>
+<td><code>adapter.NewKratos(srv)</code></td>
+</tr>
+<tr>
+<td>go-zero</td>
+<td><code>adapter.NewGoZero(srv)</code></td>
+</tr>
+</tbody>
+</table></div>
+<p>Gin 示例：</p>
+<pre class="highlight"><code class="language-go"><span class="nx">r</span><span class="w"> </span><span class="o">:=</span><span class="w"> </span><span class="nx">gin</span><span class="p">.</span><span class="nx">Default</span><span class="p">()</span>
+<span class="nx">s</span><span class="w"> </span><span class="o">:=</span><span class="w"> </span><span class="nx">apidoc</span><span class="p">.</span><span class="nx">New</span><span class="p">(</span><span class="nx">apidoc</span><span class="p">.</span><span class="nx">Config</span><span class="p">{</span><span class="nx">Title</span><span class="p">:</span><span class="w"> </span><span class="s">&quot;My API&quot;</span><span class="p">})</span>
+
+<span class="nx">s</span><span class="p">.</span><span class="nx">Register</span><span class="p">(</span><span class="nx">apidoc</span><span class="p">.</span><span class="nx">Route</span><span class="p">{</span>
+<span class="w">    </span><span class="nx">Method</span><span class="p">:</span><span class="w">  </span><span class="s">&quot;GET&quot;</span><span class="p">,</span>
+<span class="w">    </span><span class="nx">URL</span><span class="p">:</span><span class="w">     </span><span class="s">&quot;/users/:id&quot;</span><span class="p">,</span>
+<span class="w">    </span><span class="nx">Handler</span><span class="p">:</span><span class="w"> </span><span class="nx">getUser</span><span class="p">,</span>
+<span class="w">    </span><span class="nx">Doc</span><span class="p">:</span><span class="w"> </span><span class="nx">apidoc</span><span class="p">.</span><span class="nx">Doc</span><span class="p">{</span>
+<span class="w">        </span><span class="nx">Title</span><span class="p">:</span><span class="w"> </span><span class="s">&quot;Get user&quot;</span><span class="p">,</span>
+<span class="w">        </span><span class="nx">Params</span><span class="p">:</span><span class="w"> </span><span class="p">[]</span><span class="nx">apidoc</span><span class="p">.</span><span class="nx">Param</span><span class="p">{</span>
+<span class="w">            </span><span class="p">{</span><span class="nx">Name</span><span class="p">:</span><span class="w"> </span><span class="s">&quot;id&quot;</span><span class="p">,</span><span class="w"> </span><span class="nx">In</span><span class="p">:</span><span class="w"> </span><span class="s">&quot;path&quot;</span><span class="p">,</span><span class="w"> </span><span class="nx">Type</span><span class="p">:</span><span class="w"> </span><span class="s">&quot;int&quot;</span><span class="p">,</span><span class="w"> </span><span class="nx">Required</span><span class="p">:</span><span class="w"> </span><span class="kc">true</span><span class="p">,</span><span class="w"> </span><span class="nx">Desc</span><span class="p">:</span><span class="w"> </span><span class="s">&quot;User ID&quot;</span><span class="p">},</span>
+<span class="w">        </span><span class="p">},</span>
+<span class="w">        </span><span class="nx">Responses</span><span class="p">:</span><span class="w"> </span><span class="p">[]</span><span class="nx">apidoc</span><span class="p">.</span><span class="nx">Response</span><span class="p">{</span>
+<span class="w">            </span><span class="p">{</span><span class="nx">Name</span><span class="p">:</span><span class="w"> </span><span class="s">&quot;name&quot;</span><span class="p">,</span><span class="w"> </span><span class="nx">Type</span><span class="p">:</span><span class="w"> </span><span class="s">&quot;string&quot;</span><span class="p">,</span><span class="w"> </span><span class="nx">Desc</span><span class="p">:</span><span class="w"> </span><span class="s">&quot;User name&quot;</span><span class="p">},</span>
+<span class="w">        </span><span class="p">},</span>
+<span class="w">    </span><span class="p">},</span>
+<span class="p">})</span>
+
+<span class="nx">s</span><span class="p">.</span><span class="nx">Mount</span><span class="p">(</span><span class="nx">adapter</span><span class="p">.</span><span class="nx">NewGin</span><span class="p">(</span><span class="nx">r</span><span class="p">))</span>
+<span class="nx">r</span><span class="p">.</span><span class="nx">Run</span><span class="p">(</span><span class="s">&quot;:8080&quot;</span><span class="p">)</span>
+</code></pre>
+
+<p>Echo、Chi、Fiber 只需替换适配器构造器，注册代码保持一致。beego 每个路径只保留一个 handler，同一 URL 的多个 method 需要按框架能力拆分；Kratos / go-zero 使用各自的 <code>Server</code> 类型。</p>
+<h2 id="sec-7">写文档：Doc / Param / Response</h2>
+<pre class="highlight"><code class="language-go"><span class="nx">s</span><span class="p">.</span><span class="nx">Register</span><span class="p">(</span><span class="nx">apidoc</span><span class="p">.</span><span class="nx">Route</span><span class="p">{</span>
+<span class="w">    </span><span class="nx">Method</span><span class="p">:</span><span class="w"> </span><span class="s">&quot;POST&quot;</span><span class="p">,</span>
+<span class="w">    </span><span class="nx">URL</span><span class="p">:</span><span class="w">    </span><span class="s">&quot;/users&quot;</span><span class="p">,</span>
+<span class="w">    </span><span class="nx">Handler</span><span class="p">:</span><span class="w"> </span><span class="nx">createUser</span><span class="p">,</span>
+<span class="w">    </span><span class="nx">Doc</span><span class="p">:</span><span class="w"> </span><span class="nx">apidoc</span><span class="p">.</span><span class="nx">Doc</span><span class="p">{</span>
+<span class="w">        </span><span class="nx">App</span><span class="p">:</span><span class="w">        </span><span class="s">&quot;api&quot;</span><span class="p">,</span>
+<span class="w">        </span><span class="nx">Version</span><span class="p">:</span><span class="w">    </span><span class="s">&quot;v1&quot;</span><span class="p">,</span>
+<span class="w">        </span><span class="nx">Controller</span><span class="p">:</span><span class="w"> </span><span class="s">&quot;User&quot;</span><span class="p">,</span>
+<span class="w">        </span><span class="nx">Title</span><span class="p">:</span><span class="w">      </span><span class="s">&quot;Create user&quot;</span><span class="p">,</span>
+<span class="w">        </span><span class="nx">Desc</span><span class="p">:</span><span class="w">       </span><span class="s">&quot;Create a user and return the profile&quot;</span><span class="p">,</span>
+<span class="w">        </span><span class="nx">Author</span><span class="p">:</span><span class="w">     </span><span class="s">&quot;erik&quot;</span><span class="p">,</span>
+<span class="w">        </span><span class="nx">Sort</span><span class="p">:</span><span class="w">       </span><span class="mi">10</span><span class="p">,</span>
+<span class="w">        </span><span class="nx">Markdown</span><span class="p">:</span><span class="w">   </span><span class="s">&quot;Requires an admin token.&quot;</span><span class="p">,</span>
+<span class="w">        </span><span class="nx">Params</span><span class="p">:</span><span class="w"> </span><span class="p">[]</span><span class="nx">apidoc</span><span class="p">.</span><span class="nx">Param</span><span class="p">{</span>
+<span class="w">            </span><span class="p">{</span><span class="nx">Name</span><span class="p">:</span><span class="w"> </span><span class="s">&quot;name&quot;</span><span class="p">,</span><span class="w"> </span><span class="nx">In</span><span class="p">:</span><span class="w"> </span><span class="s">&quot;body&quot;</span><span class="p">,</span><span class="w"> </span><span class="nx">Type</span><span class="p">:</span><span class="w"> </span><span class="s">&quot;string&quot;</span><span class="p">,</span><span class="w"> </span><span class="nx">Required</span><span class="p">:</span><span class="w"> </span><span class="kc">true</span><span class="p">,</span><span class="w"> </span><span class="nx">Desc</span><span class="p">:</span><span class="w"> </span><span class="s">&quot;User name&quot;</span><span class="p">},</span>
+<span class="w">            </span><span class="p">{</span><span class="nx">Name</span><span class="p">:</span><span class="w"> </span><span class="s">&quot;email&quot;</span><span class="p">,</span><span class="w"> </span><span class="nx">In</span><span class="p">:</span><span class="w"> </span><span class="s">&quot;body&quot;</span><span class="p">,</span><span class="w"> </span><span class="nx">Type</span><span class="p">:</span><span class="w"> </span><span class="s">&quot;string&quot;</span><span class="p">,</span><span class="w"> </span><span class="nx">Required</span><span class="p">:</span><span class="w"> </span><span class="kc">true</span><span class="p">,</span><span class="w"> </span><span class="nx">Desc</span><span class="p">:</span><span class="w"> </span><span class="s">&quot;Email&quot;</span><span class="p">},</span>
+<span class="w">            </span><span class="p">{</span><span class="nx">Name</span><span class="p">:</span><span class="w"> </span><span class="s">&quot;roles&quot;</span><span class="p">,</span><span class="w"> </span><span class="nx">In</span><span class="p">:</span><span class="w"> </span><span class="s">&quot;body&quot;</span><span class="p">,</span><span class="w"> </span><span class="nx">Type</span><span class="p">:</span><span class="w"> </span><span class="s">&quot;array&quot;</span><span class="p">,</span><span class="w"> </span><span class="nx">Children</span><span class="p">:</span><span class="w"> </span><span class="p">[]</span><span class="nx">apidoc</span><span class="p">.</span><span class="nx">Param</span><span class="p">{</span>
+<span class="w">                </span><span class="p">{</span><span class="nx">Name</span><span class="p">:</span><span class="w"> </span><span class="s">&quot;id&quot;</span><span class="p">,</span><span class="w"> </span><span class="nx">Type</span><span class="p">:</span><span class="w"> </span><span class="s">&quot;int&quot;</span><span class="p">,</span><span class="w"> </span><span class="nx">Required</span><span class="p">:</span><span class="w"> </span><span class="kc">true</span><span class="p">},</span>
+<span class="w">            </span><span class="p">}},</span>
+<span class="w">        </span><span class="p">},</span>
+<span class="w">        </span><span class="nx">Responses</span><span class="p">:</span><span class="w"> </span><span class="p">[]</span><span class="nx">apidoc</span><span class="p">.</span><span class="nx">Response</span><span class="p">{</span>
+<span class="w">            </span><span class="p">{</span><span class="nx">Name</span><span class="p">:</span><span class="w"> </span><span class="s">&quot;id&quot;</span><span class="p">,</span><span class="w"> </span><span class="nx">Type</span><span class="p">:</span><span class="w"> </span><span class="s">&quot;int&quot;</span><span class="p">,</span><span class="w"> </span><span class="nx">Desc</span><span class="p">:</span><span class="w"> </span><span class="s">&quot;User ID&quot;</span><span class="p">},</span>
+<span class="w">            </span><span class="p">{</span><span class="nx">Name</span><span class="p">:</span><span class="w"> </span><span class="s">&quot;name&quot;</span><span class="p">,</span><span class="w"> </span><span class="nx">Type</span><span class="p">:</span><span class="w"> </span><span class="s">&quot;string&quot;</span><span class="p">,</span><span class="w"> </span><span class="nx">Desc</span><span class="p">:</span><span class="w"> </span><span class="s">&quot;User name&quot;</span><span class="p">},</span>
+<span class="w">        </span><span class="p">},</span>
+<span class="w">    </span><span class="p">},</span>
+<span class="p">})</span>
+</code></pre>
+
+<p><code>Param.In</code> 可选 <code>header</code>、<code>query</code>、<code>body</code>、<code>path</code>。<code>Children</code> 用于对象/数组字段；<code>Response.Fields</code> 用于响应里的嵌套字段。<code>Markdown</code> 会以 Markdown 渲染到详情页。</p>
+<h2 id="sec-8">参数自动补全（reflect）</h2>
+<p>如果 <code>Doc.Params</code> 为空，<code>Register</code> 会用 reflect 从 handler 签名推断参数：结构体参数按 <code>json</code> tag 展开为 body 字段，框架 Context（如 <code>*gin.Context</code>、<code>echo.Context</code>、<code>*fiber.Ctx</code>）自动跳过。适合 handler 已经有强类型请求结构体的项目：</p>
+<pre class="highlight"><code class="language-go"><span class="kd">type</span><span class="w"> </span><span class="nx">CreateUserReq</span><span class="w"> </span><span class="kd">struct</span><span class="w"> </span><span class="p">{</span>
+<span class="w">    </span><span class="nx">Name</span><span class="w">  </span><span class="kt">string</span><span class="w"> </span><span class="s">`json:&quot;name&quot;`</span>
+<span class="w">    </span><span class="nx">Email</span><span class="w"> </span><span class="kt">string</span><span class="w"> </span><span class="s">`json:&quot;email&quot;`</span>
+<span class="p">}</span>
+
+<span class="kd">func</span><span class="w"> </span><span class="nx">CreateUser</span><span class="p">(</span><span class="nx">c</span><span class="w"> </span><span class="o">*</span><span class="nx">gin</span><span class="p">.</span><span class="nx">Context</span><span class="p">,</span><span class="w"> </span><span class="nx">req</span><span class="w"> </span><span class="nx">CreateUserReq</span><span class="p">)</span><span class="w"> </span><span class="p">{</span><span class="w"> </span><span class="cm">/* ... */</span><span class="w"> </span><span class="p">}</span>
+</code></pre>
+
+<p>自动补全只提供字段与类型，不替代手写描述；重要接口仍建议显式写 <code>Doc.Params</code>。</p>
+<h2 id="sec-9">注释解析（go/ast）</h2>
+<p>在 handler 上方写 <code>@apidoc</code> 注释，用 <code>parse.ParseDir</code> 解析后注册：</p>
+<pre class="highlight"><code class="language-go"><span class="c1">// @apidoc</span>
+<span class="c1">// @method POST</span>
+<span class="c1">// @url /api/v1/users</span>
+<span class="c1">// @title Create user</span>
+<span class="c1">// @param name string true &quot;User name&quot;</span>
+<span class="c1">// @success ok User &quot;Success&quot;</span>
+<span class="kd">func</span><span class="w"> </span><span class="nx">CreateUser</span><span class="p">(</span><span class="nx">c</span><span class="w"> </span><span class="o">*</span><span class="nx">gin</span><span class="p">.</span><span class="nx">Context</span><span class="p">,</span><span class="w"> </span><span class="nx">req</span><span class="w"> </span><span class="o">*</span><span class="nx">CreateUserReq</span><span class="p">)</span><span class="w"> </span><span class="p">{</span><span class="w"> </span><span class="cm">/* ... */</span><span class="w"> </span><span class="p">}</span>
+</code></pre>
+
+<pre class="highlight"><code class="language-go"><span class="nx">results</span><span class="p">,</span><span class="w"> </span><span class="nx">err</span><span class="w"> </span><span class="o">:=</span><span class="w"> </span><span class="nx">parse</span><span class="p">.</span><span class="nx">ParseDir</span><span class="p">(</span><span class="s">&quot;./handlers&quot;</span><span class="p">)</span>
+<span class="k">if</span><span class="w"> </span><span class="nx">err</span><span class="w"> </span><span class="o">!=</span><span class="w"> </span><span class="kc">nil</span><span class="w"> </span><span class="p">{</span>
+<span class="w">    </span><span class="nx">log</span><span class="p">.</span><span class="nx">Fatal</span><span class="p">(</span><span class="nx">err</span><span class="p">)</span>
+<span class="p">}</span>
+<span class="k">for</span><span class="w"> </span><span class="nx">_</span><span class="p">,</span><span class="w"> </span><span class="nx">r</span><span class="w"> </span><span class="o">:=</span><span class="w"> </span><span class="k">range</span><span class="w"> </span><span class="nx">results</span><span class="w"> </span><span class="p">{</span>
+<span class="w">    </span><span class="nx">s</span><span class="p">.</span><span class="nx">Register</span><span class="p">(</span><span class="nx">apidoc</span><span class="p">.</span><span class="nx">Route</span><span class="p">{</span><span class="nx">Method</span><span class="p">:</span><span class="w"> </span><span class="nx">r</span><span class="p">.</span><span class="nx">Method</span><span class="p">,</span><span class="w"> </span><span class="nx">URL</span><span class="p">:</span><span class="w"> </span><span class="nx">r</span><span class="p">.</span><span class="nx">URL</span><span class="p">,</span><span class="w"> </span><span class="nx">Handler</span><span class="p">:</span><span class="w"> </span><span class="nx">CreateUser</span><span class="p">,</span><span class="w"> </span><span class="nx">Doc</span><span class="p">:</span><span class="w"> </span><span class="nx">r</span><span class="p">.</span><span class="nx">Doc</span><span class="p">})</span>
+<span class="p">}</span>
+</code></pre>
+
+<p>支持的标签包括 <code>@method</code>、<code>@url</code>、<code>@title</code>、<code>@desc</code>、<code>@author</code>、<code>@app</code>、<code>@version</code>、<code>@group</code>、<code>@sort</code>、<code>@param</code>、<code>@header</code>、<code>@body</code>、<code>@success</code> / <code>@response</code>、<code>@markdown</code>。<code>@param</code> 的参数格式是 <code>name type required desc key=value...</code>，<code>in</code> 可写 <code>header</code>、<code>query</code>、<code>body</code>、<code>path</code>。</p>
+<h2 id="sec-10">Mock 与在线调试</h2>
+<ul>
+<li>接口详情页自动生成 Mock 示例；<code>Param.Mock</code> / <code>Response.Mock</code> 可以指定固定字符串。</li>
+<li>未指定 Mock 时，mock 包按类型生成：<code>string</code>、<code>int</code>、<code>float</code>、<code>bool</code>、<code>object</code> 等。</li>
+<li>在线调试由浏览器直连目标服务；跨域来源必须在 <code>DebugOrigins</code> 中配置，适配器会下发 CORS 头。</li>
+<li>文档接口自动带 <code>ETag</code> 与 <code>Cache-Control: private, max-age=300</code>，重复访问可走 304。</li>
+</ul>
+<h2 id="sec-11">鉴权</h2>
+<p><code>Config.Auth</code> 开启后：</p>
+<ul>
+<li>文档 UI 会显示登录面板；<code>POST /apidoc/api/login</code> 校验全局密码并写入 HttpOnly Cookie。</li>
+<li>应用配置了独立 <code>Password</code> 时，使用 <code>POST /apidoc/api/app-login</code> 换取应用级 token，应用密码优先于全局密码。</li>
+<li><code>Secret</code> 参与签名；不要使用公开默认值，多实例部署要保证一致。</li>
+<li><code>Secure: true</code> 会在 HTTPS 下为 Cookie 加 Secure 标记。</li>
+<li><code>DebugOrigins</code> 只放行明确列出的来源；不要使用任意来源。</li>
+</ul>
+<h2 id="sec-12">多应用与多版本</h2>
+<p><code>Doc.App</code> / <code>Doc.Version</code> 决定接口归属；<code>Config.Apps</code> 提供应用标题与访问密码。UI 的应用树按配置展示，同一份文档可切换应用和版本。版本号不是路由规则的一部分，实际路由仍由 handler 注册决定。</p>
+<h2 id="sec-13">导出</h2>
+<div class="table-scroll"><table>
+<thead>
+<tr>
+<th>格式</th>
+<th>地址</th>
+<th>说明</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>JSON</td>
+<td><code>GET /apidoc/api/export</code></td>
+<td>完整项目树。</td>
+</tr>
+<tr>
+<td>TypeScript</td>
+<td><code>GET /apidoc/api/export?format=typescript</code></td>
+<td>接口类型定义。</td>
+</tr>
+<tr>
+<td>未知格式</td>
+<td>任意其他 <code>format</code></td>
+<td>返回 400。</td>
+</tr>
+</tbody>
+</table></div>
+<p>导出与文档接口一样受鉴权保护。前端联调时可以直接下载 TypeScript，或把 JSON 交给测试工具。</p>
+<h2 id="sec-14">典型场景</h2>
+<h3 id="sec-15">REST CRUD</h3>
+<p>为 list/detail/create/update/delete 分别注册 <code>Route</code>，用 <code>Doc.Controller</code> 归组，用 <code>Param.In</code> 区分 path/query/body。duplicate <code>(app, version, method, url)</code> 会以后注册为准，适合在初始化阶段覆盖默认文档。</p>
+<h3 id="sec-16">分页</h3>
+<p>在多个接口重复的 <code>page</code> / <code>pageSize</code> 可以放进 <code>GlobalParams</code>，或在 handler 结构体里用 reflect 自动展开；显式 <code>Doc.Params</code> 更适合需要默认值与描述的接口。</p>
+<h3 id="sec-17">登录与 Token</h3>
+<p>把 <code>Authorization</code> 放进 <code>GlobalParams</code>，所有接口自动带上；文档调试面板可以填写全局 Header。生产环境使用应用密码或全局密码保护文档本身。</p>
+<h3 id="sec-18">文件上传</h3>
+<p><code>Param</code> 的 <code>Type</code> 设为 <code>file</code>（文档模型允许字符串类型描述），并在 handler 中按框架方式处理 multipart。文档 UI 的调试面板支持文件选择。</p>
+<h3 id="sec-19">多版本</h3>
+<p>用 <code>Doc.Version</code> 标记版本，<code>Config.Apps</code> 配置应用；不需要为每个版本复制一套文档服务。</p>
+<h3 id="sec-20">注释驱动</h3>
+<p>已有大量 handler 时，用 <code>parse.ParseDir</code> 从注释生成文档，再把 <code>parse.Result</code> 转成 <code>Route</code>，避免在路由文件里重复写字段。</p>
+<h2 id="sec-21">规则与排错</h2>
+<div class="table-scroll"><table>
+<thead>
+<tr>
+<th>问题</th>
+<th>检查</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>/apidoc</code> 404</td>
+<td>是否调用了 <code>Mount</code>；<code>Prefix</code> 是否与访问路径一致。</td>
+</tr>
+<tr>
+<td>路由注册失败</td>
+<td><code>Method</code>/<code>URL</code> 是否为空；适配器是否支持该路由写法；框架是否已启动。</td>
+</tr>
+<tr>
+<td>接口没有显示</td>
+<td><code>Register</code> 是否返回错误；<code>Doc.App</code> / <code>Version</code> 是否与 <code>Config.Apps</code> 匹配。</td>
+</tr>
+<tr>
+<td>自动参数不对</td>
+<td>handler 结构体是否有 <code>json</code> tag；是否把框架 Context 放进了参数列表。</td>
+</tr>
+<tr>
+<td>注释解析不到</td>
+<td>是否带 <code>@apidoc</code> 标记；文件是否在 <code>ParseDir</code> 目录；标签格式是否正确。</td>
+</tr>
+<tr>
+<td>调试跨域失败</td>
+<td><code>DebugOrigins</code> 是否包含页面来源；服务端是否挂了适配器 CORS。</td>
+</tr>
+<tr>
+<td>鉴权失败</td>
+<td>Cookie 是否被浏览器接受；密码、<code>Secret</code>、过期时间是否正确。</td>
+</tr>
+<tr>
+<td>页面不更新</td>
+<td>文档接口有 ETag 缓存；强制刷新或等待缓存过期。</td>
+</tr>
+</tbody>
+</table></div>
+<h2 id="sec-22">可视概览</h2>
+<figure class="doc-figure"><img loading="lazy" decoding="async" src="../assets/img/go/zh/features.svg" alt="apidoc-go features"><figcaption>apidoc-go 功能图：文档、调试、Mock、导出与适配器。</figcaption></figure>
+
+<figure class="doc-figure"><img loading="lazy" decoding="async" src="../assets/img/go/zh/lifecycle.svg" alt="apidoc-go lifecycle"><figcaption>apidoc-go 生命周期：注册、存储、渲染与调试。</figcaption></figure>
+
+<h2 id="sec-23">参考</h2>
+<ul>
+<li><a href="https://github.com/erikwang2013/apidoc-go" target="_blank" rel="noopener">apidoc-go README</a></li>
+<li><a href="https://github.com/erikwang2013/apidoc-go/releases" target="_blank" rel="noopener">apidoc-go Releases</a></li>
+<li>架构与生命周期图见本页顶部与 README 的 <code>docs/svg/</code>。</li>
+</ul>
+    <div class="docs-end">
+  <div><p><strong>安装</strong></p><div class="command-box"><code id="doc-install-go">go get github.com/erikwang2013/apidoc-go</code><button class="copy-btn copy-btn--light" type="button" data-copy="doc-install-go">复制</button></div></div>
+  <a class="btn btn-secondary" href="index.html">返回文档中心</a>
+</div>
+<div class="docs-next"><h2>其他语言指南</h2><div class="docs-next-grid"><a class="docs-next-link" href="php.html"><span class="lang-badge">PHP</span><strong>PHP 使用指南</strong><svg class="icon icon-xs" aria-hidden="true"><use href="#i-arrow"></use></svg></a><a class="docs-next-link" href="rust.html"><span class="lang-badge">Rust</span><strong>Rust 使用指南</strong><svg class="icon icon-xs" aria-hidden="true"><use href="#i-arrow"></use></svg></a><a class="docs-next-link" href="ui.html"><span class="lang-badge">UI</span><strong>apidoc-ui 使用指南</strong><svg class="icon icon-xs" aria-hidden="true"><use href="#i-arrow"></use></svg></a></div></div>
+<div class="docs-end docs-help">
+  <div><p><strong>需要帮助？</strong></p><p>到 GitHub Issues 提问，或先看仓库 README。</p></div>
+  <a class="btn btn-secondary" href="https://github.com/erikwang2013/apidoc-go/issues" target="_blank" rel="noopener">提交 Issue <svg class="icon " aria-hidden="true"><use href="#i-external"></use></svg></a>
+</div>
+  </article>
+</div>
+  </main>
+  <footer class="site-footer">
+  <div class="wrap footer-grid">
+    <div class="footer-brand">
+      <img src="../assets/img/pet/coquettish.svg" width="64" height="64" alt="" aria-hidden="true">
+      <div><strong>Apidoc</strong><p>PHP、Go、Rust 通用 API 文档体系。</p></div>
+    </div>
+    <nav class="footer-col" aria-label="使用指南">
+      <h2>使用指南</h2>
+      <a href="php.html">PHP 使用指南</a><a href="go.html">Go 使用指南</a><a href="rust.html">Rust 使用指南</a><a href="ui.html">apidoc-ui 使用指南</a>
+      <a href="index.html">使用文档</a>
+    </nav>
+    <nav class="footer-col" aria-label="项目">
+      <h2>项目</h2>
+      <a href="https://github.com/erikwang2013/apidoc-php" target="_blank" rel="noopener">PHP <svg class="icon icon-xs" aria-hidden="true"><use href="#i-external"></use></svg></a><a href="https://github.com/erikwang2013/apidoc-go" target="_blank" rel="noopener">Go <svg class="icon icon-xs" aria-hidden="true"><use href="#i-external"></use></svg></a><a href="https://github.com/erikwang2013/apidoc-rust" target="_blank" rel="noopener">Rust <svg class="icon icon-xs" aria-hidden="true"><use href="#i-external"></use></svg></a><a href="https://github.com/erikwang2013/apidoc-ui" target="_blank" rel="noopener">UI <svg class="icon icon-xs" aria-hidden="true"><use href="#i-external"></use></svg></a>
+    </nav>
+    <div class="footer-col">
+      <h2>关于</h2>
+      <a href="https://erik.xyz" target="_blank" rel="noopener">艾瑞可 erik</a>
+      <a href="https://beian.miit.gov.cn" target="_blank" rel="noopener">粤ICP备2020136226号-8</a>
+      <a href="mailto:erik@erik.xyz">erik@erik.xyz</a>
+      <a href="https://github.com/HGthecode/apidoc-php" target="_blank" rel="noopener">参考项目 HGthecode/apidoc-php</a>
+      <a href="https://packagist.org/packages/hg/apidoc" target="_blank" rel="noopener">hg/apidoc</a>
+      <a href="../en/docs/go.html" hreflang="en" lang="en">English</a>
+    </div>
+  </div>
+  <div class="wrap footer-bottom">
+    <p>© 2026 erik. Apidoc. MIT License.</p>
+    <p>视觉资产版权归作者所有，商业使用需取得授权。 <a href="https://github.com/erikwang2013/apidoc-php/blob/main/ASSETS-LICENSE.md" target="_blank" rel="noopener">ASSETS-LICENSE.md</a></p>
+  </div>
+  <div class="wrap footer-info" id="busuanzi"><script async src="//busuanzi.ibruce.info/busuanzi/2.3/busuanzi.pure.mini.js"></script><span id="busuanzi_container_site_pv">本站总访问量 <b id="busuanzi_value_site_pv">0</b> 次 👀</span><span class="dot">·</span><span id="busuanzi_container_site_uv">访客数 <b id="busuanzi_value_site_uv">0</b> 人次 🧑‍🚀</span></div>
+</footer>
+  <button class="to-top" id="to-top" type="button" aria-label="回到顶部" title="回到顶部" data-label="回到顶部" data-cute="../assets/img/pet/cute.svg">
+    <svg class="to-top-ring" viewBox="0 0 64 64" aria-hidden="true"><circle cx="32" cy="32" r="30"></circle></svg>
+    <img class="to-top-pet" src="../assets/img/apidoc-pet.svg" width="48" height="48" alt="">
+  </button>
+  <script src="../assets/js/main.js" defer></script>
+</body>
+</html>

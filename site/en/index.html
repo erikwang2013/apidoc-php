@@ -1,0 +1,417 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Apidoc · API documentation for PHP, Go and Rust</title>
+  <meta name="description" content="Apidoc is an API documentation system for PHP, Go and Rust: annotations, live debugging, Mock, apps/versions, auth, exports and a shared docs UI.">
+  <meta name="theme-color" content="#f7f6fc">
+  <link rel="icon" href="../assets/img/apidoc-pet.svg" type="image/svg+xml">
+  <link rel="preload" href="../assets/img/apidoc-pet.svg" as="image">
+  <link rel="stylesheet" href="../assets/css/style.css">
+  <link rel="alternate" hreflang="zh-CN" href="../index.html">
+  <link rel="alternate" hreflang="en" href="index.html">
+  <noscript>
+    <style>
+      .nav-toggle { display: none !important; }
+      .site-nav { position: static !important; display: flex !important; flex-wrap: wrap; opacity: 1 !important; visibility: visible !important; transform: none !important; padding: 0 !important; border: 0 !important; background: transparent !important; box-shadow: none !important; margin-left: auto; }
+      @media (max-width: 960px) {
+        .header-inner { flex-wrap: wrap; padding-block: 10px; }
+        .site-nav { width: 100%; margin: 6px 0 0; }
+      }
+    </style>
+  </noscript>
+  <meta property="og:type" content="website">
+  <meta property="og:title" content="Apidoc · API documentation for PHP, Go and Rust">
+  <meta property="og:description" content="Apidoc is an API documentation system for PHP, Go and Rust: annotations, live debugging, Mock, apps/versions, auth, exports and a shared docs UI.">
+  <meta property="og:image" content="../assets/img/php/social-preview-en.png">
+  <meta property="og:image:width" content="1280">
+  <meta property="og:image:height" content="640">
+  <meta property="og:site_name" content="Apidoc">
+  <meta property="og:locale" content="en_US">
+  <meta property="og:locale:alternate" content="zh_CN">
+  <meta name="twitter:card" content="summary_large_image">
+  <meta name="twitter:title" content="Apidoc · API documentation for PHP, Go and Rust">
+  <meta name="twitter:description" content="Apidoc is an API documentation system for PHP, Go and Rust: annotations, live debugging, Mock, apps/versions, auth, exports and a shared docs UI.">
+  <meta name="twitter:image" content="../assets/img/php/social-preview-en.png">
+  <script type="application/ld+json">{"@context": "https://schema.org", "@type": "SoftwareApplication", "name": "Apidoc", "description": "Declare docs next to your handlers and get a browsable, debuggable, exportable API portal. PHP, Go and Rust share one document model and one static UI.", "applicationCategory": "DeveloperApplication", "operatingSystem": "Any", "programmingLanguage": ["PHP", "Go", "Rust"], "license": "https://opensource.org/licenses/MIT", "author": {"@type": "Person", "name": "erik", "url": "https://erik.xyz"}}</script>
+</head>
+<body data-copy-label="Copy" data-copied-label="Copied" data-menu-open="Open menu" data-menu-close="Close menu">
+  <a class="skip-link" href="#main">Skip to main content</a>
+  <svg class="icon-sprite" aria-hidden="true" focusable="false" xmlns="http://www.w3.org/2000/svg">
+  <symbol id="i-arrow" viewBox="0 0 20 20"><path d="M3 10h13M11 5l5 5-5 5"/></symbol>
+  <symbol id="i-external" viewBox="0 0 20 20"><path d="M8 4h8v8M16 4L4 16"/></symbol>
+  <symbol id="i-code" viewBox="0 0 24 24"><path d="M8 6l-5 6 5 6M16 6l5 6-5 6"/></symbol>
+  <symbol id="i-terminal" viewBox="0 0 24 24"><path d="M3 5h18v14H3zM6 9l3 3-3 3M12 15h5"/></symbol>
+  <symbol id="i-spark" viewBox="0 0 24 24"><path d="M12 3v4M12 17v4M3 12h4M17 12h4M6 6l2.5 2.5M15.5 15.5L18 18M18 6l-2.5 2.5M8.5 15.5L6 18"/></symbol>
+  <symbol id="i-layers" viewBox="0 0 24 24"><path d="M12 3l9 5-9 5-9-5 9-5ZM3 12l9 5 9-5M3 16l9 5 9-5"/></symbol>
+  <symbol id="i-file-code" viewBox="0 0 24 24"><path d="M6 3h8l4 4v14H6zM14 3v5h4M10 12l-2 2 2 2M14 12l2 2-2 2"/></symbol>
+  <symbol id="i-file-text" viewBox="0 0 24 24"><path d="M6 3h8l4 4v14H6zM14 3v5h4M9 12h6M9 16h6"/></symbol>
+  <symbol id="i-list" viewBox="0 0 24 24"><path d="M4 6h16M4 12h10M4 18h7"/></symbol>
+  <symbol id="i-wand" viewBox="0 0 24 24"><path d="M15 4l5 5M13 6l5 5M4 20L14 10M6 4l1.5 3L11 8.5 7.5 10 6 13l-1.5-3L1 8.5 4.5 7 6 4Z"/></symbol>
+  <symbol id="i-shield" viewBox="0 0 24 24"><path d="M12 3l8 3v6c0 5-3.5 8-8 9-4.5-1-8-4-8-9V6l8-3ZM9 12l2 2 4-4"/></symbol>
+  <symbol id="i-share" viewBox="0 0 24 24"><path d="M4 12v7h16v-7M12 3v13M8 7l4-4 4 4"/></symbol>
+  <symbol id="i-download" viewBox="0 0 24 24"><path d="M12 3v12M7 10l5 5 5-5M4 20h16"/></symbol>
+  <symbol id="i-check" viewBox="0 0 20 20"><path d="M4 10l4 4 8-8"/></symbol>
+  <symbol id="i-globe" viewBox="0 0 24 24"><path d="M12 3a9 9 0 1 0 0 18 9 9 0 0 0 0-18ZM3 12h18M12 3c2.5 2.5 4 5.5 4 9s-1.5 6.5-4 9c-2.5-2.5-4-5.5-4-9s1.5-6.5 4-9Z"/></symbol>
+  <symbol id="i-book" viewBox="0 0 24 24"><path d="M4 5a3 3 0 0 1 3-3h13v18H7a3 3 0 0 0-3 3V5ZM4 20a3 3 0 0 1 3-3h13"/></symbol>
+  <symbol id="i-layout" viewBox="0 0 24 24"><path d="M3 4h18v16H3zM3 9h18M9 9v11"/></symbol>
+  <symbol id="i-rocket" viewBox="0 0 24 24"><path d="M14 4c3-2 6-1 6-1s1 3-1 6l-6 6-4-4 5-7ZM8 15l-3 3M10 17l-2 3M7 14l-3 2"/></symbol>
+</svg>
+  <header class="site-header" id="top">
+  <div class="wrap header-inner">
+    <a class="brand" href="index.html" aria-label="Apidoc">
+      <img src="../assets/img/apidoc-pet.svg" width="38" height="38" alt="">
+      <span class="brand-name">Apidoc <span class="brand-tag">API</span></span>
+    </a>
+    <div class="lang-switch" aria-label="Language">
+      <span class="is-active" aria-current="true">EN</span>
+      <a href="../index.html" hreflang="zh-CN" lang="zh-CN">中文</a>
+    </div>
+    <button class="nav-toggle" type="button" aria-expanded="false" aria-controls="site-nav">
+      <span class="nav-toggle-bars" aria-hidden="true"></span>
+      <span class="sr-only">Open menu</span>
+    </button>
+    <nav class="site-nav" id="site-nav" aria-label="Main navigation">
+      <a href="index.html#languages">Languages</a><a href="index.html#features">Features</a><a href="docs/index.html">Guides</a><a href="index.html#install">Install</a><a href="index.html#versions">Versions</a><a href="index.html#download">Downloads</a>
+      <a class="nav-mobile-only" href="https://github.com/erikwang2013" target="_blank" rel="noopener">GitHub <svg class="icon icon-xs" aria-hidden="true"><use href="#i-external"></use></svg></a>
+    </nav>
+    <a class="header-cta" href="https://github.com/erikwang2013" target="_blank" rel="noopener">
+      GitHub <svg class="icon icon-xs" aria-hidden="true"><use href="#i-external"></use></svg>
+    </a>
+  </div>
+</header>
+  <main id="main">
+  <section class="hero" aria-labelledby="hero-title">
+  <div class="hero-bg" aria-hidden="true"><canvas id="hero-canvas"></canvas></div>
+  <div class="wrap hero-grid">
+    <div class="hero-copy">
+      <p class="hero-kicker"><svg class="icon icon-xs" aria-hidden="true"><use href="#i-spark"></use></svg> Apidoc / PHP · Go · Rust</p>
+      <h1 id="hero-title">One API docs layer.<br><span class="mark">Three languages</span>.</h1>
+      <p class="hero-sub">Declare docs next to your handlers and get a browsable, debuggable, exportable API portal. PHP, Go and Rust share one document model and one static UI.</p>
+      <div class="hero-actions">
+        <a class="btn btn-primary" href="#languages">Choose a language <svg class="icon " aria-hidden="true"><use href="#i-arrow"></use></svg></a>
+        <a class="btn btn-secondary" href="docs/index.html">Read the guides</a>
+      </div>
+    </div>
+    <div class="hero-visual" aria-hidden="true">
+      <div class="orbit orbit-1"></div><div class="orbit orbit-2"></div>
+      <img class="hero-pet" src="../assets/img/apidoc-pet.svg" width="300" height="300" alt="">
+      <div class="float-chip chip-php">PHP · attributes</div>
+      <div class="float-chip chip-go">Go · structs</div>
+      <div class="float-chip chip-rust">Rust · macros</div>
+      <div class="float-chip chip-ui">Shared UI</div>
+    </div>
+  </div>
+</section>
+
+<section class="stats-band" aria-label="Apidoc">
+  <div class="wrap"><div class="stats-grid reveal">
+    <div class="stat"><strong>3</strong><span>backend languages</span></div>
+    <div class="stat"><strong>16</strong><span>framework adapters</span></div>
+    <div class="stat"><strong>1</strong><span>shared docs UI</span></div>
+    <div class="stat"><strong>12</strong><span>pet moods</span></div>
+  </div></div>
+</section>
+
+<section class="section section-about" id="about" aria-labelledby="about-title">
+  <div class="wrap about-grid">
+    <div class="about-copy reveal">
+      <h2 id="about-title">One project family, one documentation experience.</h2>
+      <p>Apidoc turns API docs from hand-written Markdown into declarations next to your code. PHP uses PHP 8 attributes, Go uses typed structs, and Rust uses proc macros. All three share one document model, live debugging and the same static front-end.</p>
+      <p>The PHP edition started from <a href='https://github.com/HGthecode/apidoc-php' target='_blank' rel='noopener'>HGthecode/apidoc-php</a> (<a href='https://packagist.org/packages/hg/apidoc' target='_blank' rel='noopener'>hg/apidoc</a>). Go, Rust and apidoc-ui are maintained by erikwang2013. Each language keeps its native setup while the documentation experience stays consistent.</p>
+      <p class="about-source">From declaration to delivery, all three languages follow the same documentation pipeline.</p>
+      <div class="about-tags"><span>PHP &gt;= 8.0</span><span>Go &gt;= 1.24</span><span>Rust &gt;= 1.82</span><span>MIT</span></div>
+    </div>
+    <figure class="about-figure reveal">
+      <img src="../assets/img/php/social-preview-en.svg" width="1280" height="640" loading="lazy" decoding="async" alt="Apidoc social preview with the pet and annotation code">
+      <figcaption>Project family social preview. The pet and annotation code.</figcaption>
+    </figure>
+  </div>
+</section>
+
+<section class="section section-languages" id="languages" aria-labelledby="languages-title">
+  <div class="wrap">
+    <div class="section-head reveal"><h2 id="languages-title">Pick your language first.</h2><p>One documentation workflow, different declaration mechanisms, framework adapters and build times. Every language has its own guide.</p></div>
+    <div class="track-grid"><article class="track-card track-php reveal">
+          <div class="track-top"><span class="lang-badge">PHP</span><span class="version-pill">v1.0.6</span></div>
+          <img class="track-pet" src="../assets/img/pet/smile.svg" width="64" height="64" alt="" aria-hidden="true">
+          <h3>PHP</h3>
+          <p class="track-tagline">Attribute-driven API docs for PHP 8</p>
+          <p>Write PHP 8 attributes in Laravel, ThinkPHP, Hyperf, Webman, Yii2 or Yii3 and get a browsable, debuggable, exportable API portal.</p>
+          <ul class="track-facts"><li>PHP 8 attributes</li><li>6 framework adapters</li><li>definitions / ref / children</li><li>Debug, Mock, JSON/TS</li></ul>
+          <div class="command-box"><code id="cmd-php">composer require erikwang2013/apidoc-php</code><button class="copy-btn copy-btn--light" type="button" data-copy="cmd-php">Copy</button></div>
+          <div class="track-links"><a href="docs/php.html">Read the guide <svg class="icon icon-xs" aria-hidden="true"><use href="#i-arrow"></use></svg></a><a href="https://github.com/erikwang2013/apidoc-php" target="_blank" rel="noopener">GitHub <svg class="icon icon-xs" aria-hidden="true"><use href="#i-external"></use></svg></a></div>
+        </article><article class="track-card track-go reveal">
+          <div class="track-top"><span class="lang-badge">Go</span><span class="version-pill">v1.0.7</span></div>
+          <img class="track-pet" src="../assets/img/pet/tongue.svg" width="64" height="64" alt="" aria-hidden="true">
+          <h3>Go</h3>
+          <p class="track-tagline">Typed docs registered with routes</p>
+          <p>Declare docs as typed structs next to route registration. A built-in web UI provides browsing and live debugging for net/http, Gin, Echo, Chi, Fiber, beego, Kratos and go-zero.</p>
+          <ul class="track-facts"><li>Typed Doc structs</li><li>8 framework adapters</li><li>reflect + go/ast parsing</li><li>ETag, JSON/TS export</li></ul>
+          <div class="command-box"><code id="cmd-go">go get github.com/erikwang2013/apidoc-go</code><button class="copy-btn copy-btn--light" type="button" data-copy="cmd-go">Copy</button></div>
+          <div class="track-links"><a href="docs/go.html">Read the guide <svg class="icon icon-xs" aria-hidden="true"><use href="#i-arrow"></use></svg></a><a href="https://github.com/erikwang2013/apidoc-go" target="_blank" rel="noopener">GitHub <svg class="icon icon-xs" aria-hidden="true"><use href="#i-external"></use></svg></a></div>
+        </article><article class="track-card track-rust reveal">
+          <div class="track-top"><span class="lang-badge">Rust</span><span class="version-pill">v2.0.0</span></div>
+          <img class="track-pet" src="../assets/img/pet/knocking.svg" width="64" height="64" alt="" aria-hidden="true">
+          <h3>Rust</h3>
+          <p class="track-tagline">Proc-macro docs generated at compile time</p>
+          <p>Declare docs with proc macros on handlers, register them statically at compile time and aggregate at zero runtime cost. Works with axum and actix-web, with auth, Mock, exports, sharing and codegen built in.</p>
+          <ul class="track-facts"><li>20+ attribute macros</li><li>axum / actix-web</li><li>linkme compile-time registry</li><li>HMAC auth, three exports</li></ul>
+          <div class="command-box"><code id="cmd-rust">apidoc-rust = &quot;2.0&quot;</code><button class="copy-btn copy-btn--light" type="button" data-copy="cmd-rust">Copy</button></div>
+          <div class="track-links"><a href="docs/rust.html">Read the guide <svg class="icon icon-xs" aria-hidden="true"><use href="#i-arrow"></use></svg></a><a href="https://github.com/erikwang2013/apidoc-rust" target="_blank" rel="noopener">GitHub <svg class="icon icon-xs" aria-hidden="true"><use href="#i-external"></use></svg></a></div>
+        </article></div>
+    <article class="ui-band reveal">
+      <div class="ui-band-copy">
+        <div class="track-top"><span class="lang-badge">UI</span><span class="version-pill">Vue 3.5</span></div>
+        <h3>apidoc-ui Guide</h3>
+        <p>A Vue 3 + TypeScript documentation front-end with apps/versions, live debugging, sharing, Swagger export, cache management and i18n. The build output is fully static.</p>
+        <p class="ui-note">One static front-end for all three backends · Vue 3.5 · Vite 6 · Pinia · Monaco</p>
+        <div class="command-box"><code id="cmd-ui">npm ci &amp;&amp; npm run build</code><button class="copy-btn copy-btn--light" type="button" data-copy="cmd-ui">Copy</button></div>
+        <div class="track-links"><a href="docs/ui.html">Read the guide <svg class="icon icon-xs" aria-hidden="true"><use href="#i-arrow"></use></svg></a><a href="https://github.com/erikwang2013/apidoc-ui" target="_blank" rel="noopener">GitHub <svg class="icon icon-xs" aria-hidden="true"><use href="#i-external"></use></svg></a></div>
+      </div>
+      <img class="ui-shot" src="../assets/img/ui/social-preview.svg" width="1280" height="640" loading="lazy" decoding="async" alt="">
+    </article>
+  </div>
+</section>
+
+<section class="section section-compare" id="compare" aria-labelledby="compare-title">
+  <div class="wrap">
+    <div class="section-head reveal"><h2 id="compare-title">One endpoint, three ways.</h2><p>Keep your stack. Declare routes and docs in the language you already use; Apidoc handles generation, debugging and delivery.</p></div>
+    <div class="compare-grid"><article class="compare-card reveal">
+          <div class="compare-head"><span class="lang-badge">PHP</span><a href="docs/php.html">Read the guide <svg class="icon icon-xs" aria-hidden="true"><use href="#i-arrow"></use></svg></a></div>
+          <div class="code-window "><div class="code-bar"><span class="code-dots" aria-hidden="true"><i></i><i></i><i></i></span><span>User.php</span><button class="copy-btn" type="button" data-copy="cmp-php">Copy</button></div><pre><code id="cmp-php"><span class="k">use</span> <span class="nx">erikwang2013\apidoc\annotation</span> <span class="k">as</span> <span class="nx">Apidoc</span><span class="p">;</span>
+
+<span class="p">#[</span><span class="nd">Apidoc\Title</span><span class="p">(</span><span class="s2">&quot;Get user&quot;</span><span class="p">)]</span>
+<span class="p">#[</span><span class="nd">Apidoc\Method</span><span class="p">(</span><span class="s2">&quot;GET&quot;</span><span class="p">)]</span>
+<span class="p">#[</span><span class="nd">Apidoc\Url</span><span class="p">(</span><span class="s2">&quot;/users/{id}&quot;</span><span class="p">)]</span>
+<span class="p">#[</span><span class="nd">Apidoc\RouteParam</span><span class="p">(</span>
+    <span class="nx">name</span><span class="o">:</span> <span class="s2">&quot;id&quot;</span><span class="p">,</span> <span class="nx">type</span><span class="o">:</span> <span class="s2">&quot;int&quot;</span>
+<span class="p">)]</span>
+<span class="p">#[</span><span class="nd">Apidoc\Returned</span><span class="p">(</span>
+    <span class="nx">name</span><span class="o">:</span> <span class="s2">&quot;name&quot;</span><span class="p">,</span> <span class="nx">type</span><span class="o">:</span> <span class="s2">&quot;string&quot;</span>
+<span class="p">)]</span>
+<span class="k">public</span> <span class="k">function</span> <span class="nf">show</span><span class="p">(</span><span class="nx">int</span> <span class="nv">$id</span><span class="p">)</span> <span class="p">{</span> <span class="p">}</span>
+</code></pre></div>
+        </article><article class="compare-card reveal">
+          <div class="compare-head"><span class="lang-badge">Go</span><a href="docs/go.html">Read the guide <svg class="icon icon-xs" aria-hidden="true"><use href="#i-arrow"></use></svg></a></div>
+          <div class="code-window "><div class="code-bar"><span class="code-dots" aria-hidden="true"><i></i><i></i><i></i></span><span>main.go</span><button class="copy-btn" type="button" data-copy="cmp-go">Copy</button></div><pre><code id="cmp-go"><span class="nx">s</span><span class="p">.</span><span class="nx">Register</span><span class="p">(</span><span class="nx">apidoc</span><span class="p">.</span><span class="nx">Route</span><span class="p">{</span>
+<span class="w">    </span><span class="nx">Method</span><span class="p">:</span><span class="w"> </span><span class="s">&quot;GET&quot;</span><span class="p">,</span>
+<span class="w">    </span><span class="nx">URL</span><span class="p">:</span><span class="w">    </span><span class="s">&quot;/users/:id&quot;</span><span class="p">,</span>
+<span class="w">    </span><span class="nx">Handler</span><span class="p">:</span><span class="w"> </span><span class="nx">getUser</span><span class="p">,</span>
+<span class="w">    </span><span class="nx">Doc</span><span class="p">:</span><span class="w"> </span><span class="nx">apidoc</span><span class="p">.</span><span class="nx">Doc</span><span class="p">{</span>
+<span class="w">        </span><span class="nx">Title</span><span class="p">:</span><span class="w"> </span><span class="s">&quot;Get user&quot;</span><span class="p">,</span>
+<span class="w">        </span><span class="nx">Params</span><span class="p">:</span><span class="w"> </span><span class="p">[]</span><span class="nx">apidoc</span><span class="p">.</span><span class="nx">Param</span><span class="p">{</span>
+<span class="w">            </span><span class="p">{</span><span class="nx">Name</span><span class="p">:</span><span class="w"> </span><span class="s">&quot;id&quot;</span><span class="p">,</span><span class="w"> </span><span class="nx">In</span><span class="p">:</span><span class="w"> </span><span class="s">&quot;path&quot;</span><span class="p">,</span>
+<span class="w">             </span><span class="nx">Type</span><span class="p">:</span><span class="w"> </span><span class="s">&quot;int&quot;</span><span class="p">,</span><span class="w"> </span><span class="nx">Required</span><span class="p">:</span><span class="w"> </span><span class="kc">true</span><span class="p">},</span>
+<span class="w">        </span><span class="p">},</span>
+<span class="w">        </span><span class="nx">Responses</span><span class="p">:</span><span class="w"> </span><span class="p">[]</span><span class="nx">apidoc</span><span class="p">.</span><span class="nx">Response</span><span class="p">{</span>
+<span class="w">            </span><span class="p">{</span><span class="nx">Name</span><span class="p">:</span><span class="w"> </span><span class="s">&quot;name&quot;</span><span class="p">,</span><span class="w"> </span><span class="nx">Type</span><span class="p">:</span><span class="w"> </span><span class="s">&quot;string&quot;</span><span class="p">},</span>
+<span class="w">        </span><span class="p">},</span>
+<span class="w">    </span><span class="p">},</span>
+<span class="p">})</span>
+</code></pre></div>
+        </article><article class="compare-card reveal">
+          <div class="compare-head"><span class="lang-badge">Rust</span><a href="docs/rust.html">Read the guide <svg class="icon icon-xs" aria-hidden="true"><use href="#i-arrow"></use></svg></a></div>
+          <div class="code-window "><div class="code-bar"><span class="code-dots" aria-hidden="true"><i></i><i></i><i></i></span><span>user.rs</span><button class="copy-btn" type="button" data-copy="cmp-rust">Copy</button></div><pre><code id="cmp-rust"><span class="cp">#[apidoc::title(</span><span class="s">&quot;Get user&quot;</span><span class="cp">)]</span>
+<span class="cp">#[apidoc::method(</span><span class="s">&quot;GET&quot;</span><span class="cp">)]</span>
+<span class="cp">#[apidoc::url(</span><span class="s">&quot;/users/{id}&quot;</span><span class="cp">)]</span>
+<span class="cp">#[apidoc::route_param(</span>
+<span class="cp">    name = </span><span class="s">&quot;id&quot;</span><span class="cp">, ty = </span><span class="s">&quot;int&quot;</span><span class="cp">, required</span>
+<span class="cp">)]</span>
+<span class="cp">#[apidoc::returned(</span>
+<span class="cp">    name = </span><span class="s">&quot;name&quot;</span><span class="cp">, ty = </span><span class="s">&quot;string&quot;</span>
+<span class="cp">)]</span>
+<span class="k">async</span><span class="w"> </span><span class="k">fn</span> <span class="nf">get_user</span><span class="p">()</span><span class="w"> </span><span class="p">{}</span>
+</code></pre></div>
+        </article></div>
+  </div>
+</section>
+
+<section class="section section-features" id="features" aria-labelledby="features-title">
+  <div class="wrap">
+    <div class="section-head reveal"><h2 id="features-title">One documentation experience, native in each.</h2><p>Live debug, auth, exports and the shared UI follow one workflow; see each guide for exact capabilities.</p></div>
+    <div class="bento"><article class="bento-card card-wide reveal">
+      <span class="bento-icon" aria-hidden="true"><svg class="icon " aria-hidden="true"><use href="#i-terminal"></use></svg></span>
+      <h3>Live debugging</h3><p>Call real endpoints from the docs page with global params, Mock prefill and request/response events. Every language guide includes a debug panel.</p><div class="response-stack"><div class="response-line"><span class="status-pill">200 OK</span><span class="response-time">sample response</span></div><div class="mini-json">{ "code": 0, "data": { "id": 1024 } }</div></div><img class="card-pet" src="../assets/img/pet/smile.svg" width="64" height="64" alt="">
+    </article><article class="bento-card card-debug reveal">
+      <span class="bento-icon" aria-hidden="true"><svg class="icon " aria-hidden="true"><use href="#i-spark"></use></svg></span>
+      <h3>Mock data</h3><p>Field-level Mock examples. PHP supports rule expressions, Go generates values by type, and Rust ships 15 fake rules.</p><div class="mock-list"><div><code>nickname</code><span>"erik"</span></div><div><code>email</code><span>"fake:email"</span></div><div><code>id</code><span>1024</span></div></div>
+    </article><article class="bento-card card-mock reveal">
+      <span class="bento-icon" aria-hidden="true"><svg class="icon " aria-hidden="true"><use href="#i-layers"></use></svg></span>
+      <h3>Apps and versions</h3><p>Manage multiple apps and versions in one portal, switch by the app tree, and scope access passwords per app.</p><div class="version-list"><span><b>api</b> v1</span><span><b>admin</b> v2</span><span><b>open</b> v3</span></div>
+    </article><article class="bento-card card-versions reveal">
+      <span class="bento-icon" aria-hidden="true"><svg class="icon " aria-hidden="true"><use href="#i-shield"></use></svg></span>
+      <h3>Auth and caching</h3><p>Global and per-app passwords, document caching, ETag/304 and constant-time comparison for speed with a security boundary.</p><div class="security-row"><code>password</code><span>******</span></div>
+    </article><article class="bento-card card-ts reveal">
+      <span class="bento-icon" aria-hidden="true"><svg class="icon " aria-hidden="true"><use href="#i-spark"></use></svg></span>
+      <h3>Unified exports</h3><p>JSON, TypeScript, Markdown and Swagger/OpenAPI are available per language. Hand request and response shapes to front-end and QA.</p><div class="gen-list"><span>JSON</span><span>TypeScript</span><span>Markdown</span><span>Swagger</span></div>
+    </article><article class="bento-card card-md reveal">
+      <span class="bento-icon" aria-hidden="true"><svg class="icon " aria-hidden="true"><use href="#i-wand"></use></svg></span>
+      <h3>Code generation</h3><p>PHP and Rust provide template-driven code generation; Go focuses on exports and comment parsing.</p><div class="gen-list"><span>API file</span><span>Handler</span><span>SQL</span></div>
+    </article><article class="bento-card card-gen reveal">
+      <span class="bento-icon" aria-hidden="true"><svg class="icon " aria-hidden="true"><use href="#i-spark"></use></svg></span>
+      <h3>Shared docs UI</h3><p>apidoc-ui serves PHP, Go and Rust backends. Vue 3 + TypeScript with a fully static build.</p><div class="ui-mini"><img src="../assets/img/ui/apidoc-icon.svg" width="28" height="28" alt=""><span>apidoc-ui · Vue 3</span></div>
+    </article><article class="bento-card card-security reveal">
+      <span class="bento-icon" aria-hidden="true"><svg class="icon " aria-hidden="true"><use href="#i-shield"></use></svg></span>
+      <h3>Security boundary</h3><p>HMAC tokens, CORS allowlists and path/identifier validation. Treat the docs server like a production API.</p><div class="security-row"><code>HMAC-SHA256</code><span>CORS</span></div>
+    </article><article class="bento-card card-share reveal">
+      <span class="bento-icon bento-icon--light" aria-hidden="true"><svg class="icon " aria-hidden="true"><use href="#i-spark"></use></svg></span>
+      <h3>From declaration to delivery</h3><p>Declare, browse, debug, export and deploy on one path, shared by all three languages.</p><div class="pipeline"><span class="pipeline-step">Declare</span><span class="pipeline-arrow" aria-hidden="true">→</span><span class="pipeline-step">Browse</span><span class="pipeline-arrow" aria-hidden="true">→</span><span class="pipeline-step">Debug</span><span class="pipeline-arrow" aria-hidden="true">→</span><span class="pipeline-step">Export</span><span class="pipeline-arrow" aria-hidden="true">→</span><span class="pipeline-step">Deploy</span></div><img class="share-pet" src="../assets/img/pet/knocking.svg" width="150" height="150" alt="">
+    </article></div>
+    <div class="iteration reveal"><div class="iteration-item"><strong>Declare</strong><p>annotations next to code</p></div><div class="iteration-item"><strong>Browse</strong><p>docs generated automatically</p></div><div class="iteration-item"><strong>Debug</strong><p>live requests and Mock</p></div><div class="iteration-item"><strong>Export</strong><p>JSON / TS / Swagger</p></div></div>
+  </div>
+</section>
+
+<section class="section section-docs-home" id="docs" aria-labelledby="docs-title">
+  <div class="wrap">
+    <div class="section-head reveal"><h2 id="docs-title">The usage guides are the core of this site.</h2><p>Each guide covers installation, rules, complete examples, common scenarios and troubleshooting. Pick your stack, then go deep.</p></div>
+    <div class="docs-home-grid"><article class="docs-home-card reveal">
+      <div class="docs-home-top"><span class="lang-badge">PHP</span><span class="version-pill">v1.0.6</span></div>
+      <h3>PHP Guide</h3>
+      <p>Write PHP 8 attributes in Laravel, ThinkPHP, Hyperf, Webman, Yii2 or Yii3 and get a browsable, debuggable, exportable API portal.</p>
+      <ul><li>Install and framework setup</li><li>Annotations, params and responses</li><li>definitions / ref / children reuse</li><li>Auth, exports, scenarios and troubleshooting</li></ul>
+      <a class="text-link" href="docs/php.html">Read the guide <svg class="icon icon-xs" aria-hidden="true"><use href="#i-arrow"></use></svg></a>
+    </article><article class="docs-home-card reveal">
+      <div class="docs-home-top"><span class="lang-badge">Go</span><span class="version-pill">v1.0.7</span></div>
+      <h3>Go Guide</h3>
+      <p>Declare docs as typed structs next to route registration. A built-in web UI provides browsing and live debugging for net/http, Gin, Echo, Chi, Fiber, beego, Kratos and go-zero.</p>
+      <ul><li>Install, Config and Router</li><li>Route / Doc / Param / Response</li><li>8 framework adapters</li><li>Auth, caching, exports, scenarios and troubleshooting</li></ul>
+      <a class="text-link" href="docs/go.html">Read the guide <svg class="icon icon-xs" aria-hidden="true"><use href="#i-arrow"></use></svg></a>
+    </article><article class="docs-home-card reveal">
+      <div class="docs-home-top"><span class="lang-badge">Rust</span><span class="version-pill">v2.0.0</span></div>
+      <h3>Rust Guide</h3>
+      <p>Declare docs with proc macros on handlers, register them statically at compile time and aggregate at zero runtime cost. Works with axum and actix-web, with auth, Mock, exports, sharing and codegen built in.</p>
+      <ul><li>Dependencies, macros and compile-time rules</li><li>axum / actix-web setup</li><li>Auth, Mock, apps and versions</li><li>Exports, codegen, scenarios and troubleshooting</li></ul>
+      <a class="text-link" href="docs/rust.html">Read the guide <svg class="icon icon-xs" aria-hidden="true"><use href="#i-arrow"></use></svg></a>
+    </article><article class="docs-home-card reveal">
+      <div class="docs-home-top"><span class="lang-badge">UI</span><span class="version-pill">Vue 3.5</span></div>
+      <h3>apidoc-ui Guide</h3>
+      <p>A Vue 3 + TypeScript documentation front-end with apps/versions, live debugging, sharing, Swagger export, cache management and i18n. The build output is fully static.</p>
+      <ul><li>Build and deploy</li><li>config.js runtime config</li><li>Multi-host / appKey / auth</li><li>Debug events, Mock extensions and troubleshooting</li></ul>
+      <a class="text-link" href="docs/ui.html">Read the guide <svg class="icon icon-xs" aria-hidden="true"><use href="#i-arrow"></use></svg></a>
+    </article></div>
+    <div class="docs-home-cta reveal"><a class="btn btn-primary" href="docs/index.html">Open the guides <svg class="icon " aria-hidden="true"><use href="#i-arrow"></use></svg></a></div>
+  </div>
+</section>
+
+<section class="section section-adapters" id="adapters" aria-labelledby="adapters-title">
+  <div class="wrap">
+    <div class="section-head reveal"><h2 id="adapters-title">16 framework adapters across mainstream servers.</h2><p>6 for PHP, 8 for Go and 2 for Rust. One document model, thin native adapters.</p></div>
+    <div class="adapter-groups"><article class="adapter-group reveal"><div class="adapter-head"><h3>PHP</h3><span>6</span></div><div class="adapter-chips"><span>Laravel</span><span>ThinkPHP</span><span>Hyperf</span><span>Webman</span><span>Yii2</span><span>Yii3</span></div></article><article class="adapter-group reveal"><div class="adapter-head"><h3>Go</h3><span>8</span></div><div class="adapter-chips"><span>net/http</span><span>Gin</span><span>Echo</span><span>Chi</span><span>Fiber</span><span>beego</span><span>Kratos</span><span>go-zero</span></div></article><article class="adapter-group reveal"><div class="adapter-head"><h3>Rust</h3><span>2</span></div><div class="adapter-chips"><span>axum</span><span>actix-web</span></div></article></div>
+  </div>
+</section>
+
+<section class="section section-install" id="install" aria-labelledby="install-title">
+  <div class="wrap">
+    <div class="section-head reveal"><h2 id="install-title">Pick a language and start.</h2><p>The minimum install command for each stack. Framework setup, config and complete examples live in the guides.</p></div>
+    <div class="install-cards"><article class="install-card reveal">
+          <div class="track-top"><span class="lang-badge">PHP</span><span class="version-pill">v1.0.6</span></div>
+          <h3>PHP Guide</h3>
+          <div class="command-box"><code id="install-php">composer require erikwang2013/apidoc-php</code><button class="copy-btn copy-btn--light" type="button" data-copy="install-php">Copy</button></div>
+          <a class="text-link" href="docs/php.html">Read the guide <svg class="icon icon-xs" aria-hidden="true"><use href="#i-arrow"></use></svg></a>
+        </article><article class="install-card reveal">
+          <div class="track-top"><span class="lang-badge">Go</span><span class="version-pill">v1.0.7</span></div>
+          <h3>Go Guide</h3>
+          <div class="command-box"><code id="install-go">go get github.com/erikwang2013/apidoc-go</code><button class="copy-btn copy-btn--light" type="button" data-copy="install-go">Copy</button></div>
+          <a class="text-link" href="docs/go.html">Read the guide <svg class="icon icon-xs" aria-hidden="true"><use href="#i-arrow"></use></svg></a>
+        </article><article class="install-card reveal">
+          <div class="track-top"><span class="lang-badge">Rust</span><span class="version-pill">v2.0.0</span></div>
+          <h3>Rust Guide</h3>
+          <div class="command-box"><code id="install-rust">apidoc-rust = &quot;2.0&quot;</code><button class="copy-btn copy-btn--light" type="button" data-copy="install-rust">Copy</button></div>
+          <a class="text-link" href="docs/rust.html">Read the guide <svg class="icon icon-xs" aria-hidden="true"><use href="#i-arrow"></use></svg></a>
+        </article><article class="install-card reveal">
+          <div class="track-top"><span class="lang-badge">UI</span><span class="version-pill">Vue 3.5</span></div>
+          <h3>apidoc-ui Guide</h3>
+          <div class="command-box"><code id="install-ui">npm ci &amp;&amp; npm run build</code><button class="copy-btn copy-btn--light" type="button" data-copy="install-ui">Copy</button></div>
+          <a class="text-link" href="docs/ui.html">Read the guide <svg class="icon icon-xs" aria-hidden="true"><use href="#i-arrow"></use></svg></a>
+        </article></div>
+    <p class="install-note">Every guide starts from a minimal runnable example, then covers annotation rules, scenarios and troubleshooting.</p>
+  </div>
+</section>
+
+<section class="section section-versions" id="versions" aria-labelledby="versions-title">
+  <div class="wrap">
+    <div class="section-head reveal"><h2 id="versions-title">Current versions</h2><p>Full changelogs and release assets live on each repository's Releases page.</p></div>
+    <div class="version-grid"><article class="version-card reveal">
+          <div class="track-top"><span class="lang-badge">PHP</span><strong>v1.0.6</strong></div>
+          <h3>Security and stability</h3>
+          <ul><li>Removed eval from templates/generators, added identifier allowlists and path checks</li><li>Fixed share lists, multi-level app trees and multi-annotation TypeError</li><li>Atomic cache writes, constant-time auth and smoke tests</li></ul>
+          <a class="text-link" href="https://github.com/erikwang2013/apidoc-php/releases" target="_blank" rel="noopener">View Releases <svg class="icon icon-xs" aria-hidden="true"><use href="#i-external"></use></svg></a>
+        </article><article class="version-card reveal">
+          <div class="track-top"><span class="lang-badge">Go</span><strong>v1.0.7</strong></div>
+          <h3>Adapter docs and UI assets</h3>
+          <ul><li>Documented beego, Kratos and go-zero adapters</li><li>Bundled UI favicon and sidebar mascot</li><li>HTTP caching, reflect params and UI tree</li></ul>
+          <a class="text-link" href="https://github.com/erikwang2013/apidoc-go/releases" target="_blank" rel="noopener">View Releases <svg class="icon icon-xs" aria-hidden="true"><use href="#i-external"></use></svg></a>
+        </article><article class="version-card reveal">
+          <div class="track-top"><span class="lang-badge">Rust</span><strong>v2.0.0</strong></div>
+          <h3>Native Rust auth</h3>
+          <ul><li>Auth rewritten in native Rust with POST + HMAC-SHA256</li><li>Removed the PHP-era implementation</li><li>Keeps all five v2 features: tables, cache, sharing, codegen, debug events</li></ul>
+          <a class="text-link" href="https://github.com/erikwang2013/apidoc-rust/releases" target="_blank" rel="noopener">View Releases <svg class="icon icon-xs" aria-hidden="true"><use href="#i-external"></use></svg></a>
+        </article></div>
+  </div>
+</section>
+
+<section class="section section-pets" id="pets" aria-labelledby="pets-title">
+  <div class="wrap">
+    <div class="section-head reveal"><h2 id="pets-title">The project pet, twelve moods.</h2><p>It is a walking documentation page. Every expression is a standalone SVG with its own motion, honoring prefers-reduced-motion.</p></div>
+    <div class="pet-grid"><figure class="pet-card reveal"><img src="../assets/img/pet/smile.svg" width="260" height="260" loading="lazy" decoding="async" alt="Apidoc pet: Smile"><figcaption><strong>Smile</strong><code>:emoji-smile:</code></figcaption></figure><figure class="pet-card reveal"><img src="../assets/img/pet/joy.svg" width="260" height="260" loading="lazy" decoding="async" alt="Apidoc pet: Joy"><figcaption><strong>Joy</strong><code>:emoji-joy:</code></figcaption></figure><figure class="pet-card reveal"><img src="../assets/img/pet/cry.svg" width="260" height="260" loading="lazy" decoding="async" alt="Apidoc pet: Cry"><figcaption><strong>Cry</strong><code>:emoji-cry:</code></figcaption></figure><figure class="pet-card reveal"><img src="../assets/img/pet/depressed.svg" width="260" height="260" loading="lazy" decoding="async" alt="Apidoc pet: Depressed"><figcaption><strong>Depressed</strong><code>:emoji-depressed:</code></figcaption></figure><figure class="pet-card reveal"><img src="../assets/img/pet/terrified.svg" width="260" height="260" loading="lazy" decoding="async" alt="Apidoc pet: Terrified"><figcaption><strong>Terrified</strong><code>:emoji-terrified:</code></figcaption></figure><figure class="pet-card reveal"><img src="../assets/img/pet/angry.svg" width="260" height="260" loading="lazy" decoding="async" alt="Apidoc pet: Angry"><figcaption><strong>Angry</strong><code>:emoji-angry:</code></figcaption></figure><figure class="pet-card reveal"><img src="../assets/img/pet/coquettish.svg" width="260" height="260" loading="lazy" decoding="async" alt="Apidoc pet: Coquettish"><figcaption><strong>Coquettish</strong><code>:emoji-coquettish:</code></figcaption></figure><figure class="pet-card reveal"><img src="../assets/img/pet/cute.svg" width="260" height="260" loading="lazy" decoding="async" alt="Apidoc pet: Cute"><figcaption><strong>Cute</strong><code>:emoji-cute:</code></figcaption></figure><figure class="pet-card reveal"><img src="../assets/img/pet/pleasing.svg" width="260" height="260" loading="lazy" decoding="async" alt="Apidoc pet: Pleasing"><figcaption><strong>Pleasing</strong><code>:emoji-pleasing:</code></figcaption></figure><figure class="pet-card reveal"><img src="../assets/img/pet/knocking.svg" width="260" height="260" loading="lazy" decoding="async" alt="Apidoc pet: Knocking"><figcaption><strong>Knocking</strong><code>:emoji-knocking:</code></figcaption></figure><figure class="pet-card reveal"><img src="../assets/img/pet/facepalm.svg" width="260" height="260" loading="lazy" decoding="async" alt="Apidoc pet: Facepalm"><figcaption><strong>Facepalm</strong><code>:emoji-facepalm:</code></figcaption></figure><figure class="pet-card reveal"><img src="../assets/img/pet/tongue.svg" width="260" height="260" loading="lazy" decoding="async" alt="Apidoc pet: Tongue"><figcaption><strong>Tongue</strong><code>:emoji-tongue:</code></figcaption></figure></div>
+    <p class="pet-license">The project pet and expressions are visual assets owned by the author. Commercial use requires permission. See ASSETS-LICENSE.md. <a href="https://github.com/erikwang2013/apidoc-php/blob/main/ASSETS-LICENSE.md" target="_blank" rel="noopener">ASSETS-LICENSE.md</a>.</p>
+  </div>
+</section>
+
+<section class="section section-download" id="download" aria-labelledby="download-title">
+  <div class="wrap">
+    <div class="download-panel reveal">
+      <div class="download-copy">
+        <h2 id="download-title">Bring Apidoc to<br class="br-mobile"> your stack.</h2>
+        <p>Get it from Packagist, Go modules, crates.io or GitHub. All three backends share one documentation UI.</p>
+        <div class="download-actions">
+          <a class="btn btn-light" href="docs/index.html">Open the guides <svg class="icon " aria-hidden="true"><use href="#i-arrow"></use></svg></a>
+          <a class="btn btn-outline-light" href="https://github.com/erikwang2013" target="_blank" rel="noopener">GitHub <svg class="icon " aria-hidden="true"><use href="#i-external"></use></svg></a>
+        </div>
+      </div>
+      <img class="download-pet" src="../assets/img/pet/knocking.svg" width="66" height="66" alt="" aria-hidden="true">
+      <div class="download-links"><a href="https://packagist.org/packages/erikwang2013/apidoc-php" target="_blank" rel="noopener">Packagist<span>PHP package</span></a><a href="https://github.com/erikwang2013/apidoc-php" target="_blank" rel="noopener">apidoc-php<span>GitHub</span></a><a href="https://github.com/erikwang2013/apidoc-go" target="_blank" rel="noopener">apidoc-go<span>v1.0.7</span></a><a href="https://github.com/erikwang2013/apidoc-rust" target="_blank" rel="noopener">apidoc-rust<span>v2.0.0</span></a><a href="https://github.com/erikwang2013/apidoc-ui" target="_blank" rel="noopener">apidoc-ui<span>Vue 3.5</span></a></div>
+    </div>
+  </div>
+</section>
+  </main>
+  <footer class="site-footer">
+  <div class="wrap footer-grid">
+    <div class="footer-brand">
+      <img src="../assets/img/pet/coquettish.svg" width="64" height="64" alt="" aria-hidden="true">
+      <div><strong>Apidoc</strong><p>API documentation for PHP, Go and Rust.</p></div>
+    </div>
+    <nav class="footer-col" aria-label="Guides">
+      <h2>Guides</h2>
+      <a href="docs/php.html">PHP Guide</a><a href="docs/go.html">Go Guide</a><a href="docs/rust.html">Rust Guide</a><a href="docs/ui.html">apidoc-ui Guide</a>
+      <a href="docs/index.html">Usage guides</a>
+    </nav>
+    <nav class="footer-col" aria-label="Projects">
+      <h2>Projects</h2>
+      <a href="https://github.com/erikwang2013/apidoc-php" target="_blank" rel="noopener">PHP <svg class="icon icon-xs" aria-hidden="true"><use href="#i-external"></use></svg></a><a href="https://github.com/erikwang2013/apidoc-go" target="_blank" rel="noopener">Go <svg class="icon icon-xs" aria-hidden="true"><use href="#i-external"></use></svg></a><a href="https://github.com/erikwang2013/apidoc-rust" target="_blank" rel="noopener">Rust <svg class="icon icon-xs" aria-hidden="true"><use href="#i-external"></use></svg></a><a href="https://github.com/erikwang2013/apidoc-ui" target="_blank" rel="noopener">UI <svg class="icon icon-xs" aria-hidden="true"><use href="#i-external"></use></svg></a>
+    </nav>
+    <div class="footer-col">
+      <h2>About</h2>
+      <a href="https://erik.xyz" target="_blank" rel="noopener">艾瑞可 erik</a>
+      <a href="https://beian.miit.gov.cn" target="_blank" rel="noopener">粤ICP备2020136226号-8</a>
+      <a href="mailto:erik@erik.xyz">erik@erik.xyz</a>
+      <a href="https://github.com/HGthecode/apidoc-php" target="_blank" rel="noopener">Upstream HGthecode/apidoc-php</a>
+      <a href="https://packagist.org/packages/hg/apidoc" target="_blank" rel="noopener">hg/apidoc</a>
+      <a href="../index.html" hreflang="zh" lang="zh">中文</a>
+    </div>
+  </div>
+  <div class="wrap footer-bottom">
+    <p>© 2026 erik. Apidoc. MIT License.</p>
+    <p>Visual assets are owned by the author. Commercial use requires permission. <a href="https://github.com/erikwang2013/apidoc-php/blob/main/ASSETS-LICENSE.md" target="_blank" rel="noopener">ASSETS-LICENSE.md</a></p>
+  </div>
+  <div class="wrap footer-info" id="busuanzi"><script async src="//busuanzi.ibruce.info/busuanzi/2.3/busuanzi.pure.mini.js"></script><span id="busuanzi_container_site_pv">Total visits <b id="busuanzi_value_site_pv">0</b> 👀</span><span class="dot">·</span><span id="busuanzi_container_site_uv">Visitors <b id="busuanzi_value_site_uv">0</b> 🧑‍🚀</span></div>
+</footer>
+  <button class="to-top" id="to-top" type="button" aria-label="Back to top" title="Back to top" data-label="Back to top" data-cute="../assets/img/pet/cute.svg">
+    <svg class="to-top-ring" viewBox="0 0 64 64" aria-hidden="true"><circle cx="32" cy="32" r="30"></circle></svg>
+    <img class="to-top-pet" src="../assets/img/apidoc-pet.svg" width="48" height="48" alt="">
+  </button>
+  <script src="../assets/js/main.js" defer></script>
+</body>
+</html>
