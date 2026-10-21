@@ -142,16 +142,69 @@
     });
   }
 
+  var donateDialog = document.getElementById('donate-dialog');
+  if (donateDialog && typeof donateDialog.showModal === 'function') {
+    var donateImage = document.getElementById('donate-dialog-img');
+    var donateTitle = document.getElementById('donate-dialog-title');
+    var donateHint = document.getElementById('donate-dialog-hint');
+    var donateTrigger = null;
+    var donateOpenedAt = 0;
+
+    document.querySelectorAll('[data-donate]').forEach(function (trigger) {
+      trigger.addEventListener('click', function () {
+        if (donateImage) {
+          donateImage.src = trigger.getAttribute('data-donate-src') || donateImage.src;
+          donateImage.alt = trigger.getAttribute('data-donate-alt') || donateImage.alt;
+        }
+        if (donateTitle) donateTitle.textContent = trigger.getAttribute('data-donate-label') || '';
+        if (donateHint) donateHint.textContent = trigger.getAttribute('data-donate-hint') || '';
+        donateTrigger = trigger;
+        if (!donateDialog.open) {
+          donateDialog.showModal();
+          donateOpenedAt = Date.now();
+        }
+      });
+    });
+
+    donateDialog.addEventListener('click', function (event) {
+      if (event.target === donateDialog && Date.now() - donateOpenedAt > 300) {
+        donateDialog.close();
+      }
+    });
+
+    donateDialog.addEventListener('close', function () {
+      if (donateTrigger) donateTrigger.focus();
+    });
+  }
+
   var heroCanvas = document.getElementById('hero-canvas');
-  if (heroCanvas && !reduceMotion) {
-    var loadHero = function () {
-      import('./hero-three.js').catch(function () {});
-    };
+
+  function whenIdle(callback, timeout) {
     if ('requestIdleCallback' in window) {
-      window.requestIdleCallback(loadHero, { timeout: 2500 });
+      window.requestIdleCallback(callback, { timeout: timeout || 2000 });
     } else {
-      window.setTimeout(loadHero, 600);
+      window.setTimeout(callback, 600);
     }
+  }
+
+  function loadDeferred() {
+    if (heroCanvas && !reduceMotion) {
+      whenIdle(function () {
+        import('./hero-three.js').catch(function () {});
+      });
+    }
+    whenIdle(function () {
+      var script = document.createElement('script');
+      script.async = true;
+      script.src = '//busuanzi.ibruce.info/busuanzi/2.3/busuanzi.pure.mini.js';
+      document.body.appendChild(script);
+    }, 4000);
+  }
+
+  if (document.readyState === 'complete') {
+    loadDeferred();
+  } else {
+    window.addEventListener('load', loadDeferred, { once: true });
   }
 
   window.addEventListener('scroll', onScroll, { passive: true });

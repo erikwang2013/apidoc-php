@@ -3,14 +3,18 @@
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
-  <title>使用文档 · Apidoc</title>
-  <meta name="description" content="四种实现，一套文档工作流。选择语言，从安装、规则到场景与排错。">
+  <title>Apidoc 使用文档 · PHP / Go / Rust API 文档指南</title>
+  <meta name="description" content="四种实现，一套文档工作流。选择 PHP、Go、Rust 或 apidoc-ui，从安装、注解规则到典型场景与排错，快速搭建 API 文档。">
   <meta name="theme-color" content="#f7f6fc">
   <link rel="icon" href="../assets/img/apidoc-pet.svg" type="image/svg+xml">
   <link rel="preload" href="../assets/img/apidoc-pet.svg" as="image">
   <link rel="stylesheet" href="../assets/css/style.css">
-  <link rel="alternate" hreflang="zh-CN" href="index.html">
-  <link rel="alternate" hreflang="en" href="../en/docs/index.html">
+  <link rel="canonical" href="https://apidoc.erik.xyz/docs/">
+  <meta name="robots" content="index,follow,max-image-preview:large,max-snippet:-1,max-video-preview:-1">
+  <meta name="author" content="erik">
+  <link rel="alternate" hreflang="zh-CN" href="https://apidoc.erik.xyz/docs/">
+  <link rel="alternate" hreflang="en" href="https://apidoc.erik.xyz/en/docs/">
+  <link rel="alternate" hreflang="x-default" href="https://apidoc.erik.xyz/docs/">
   <noscript>
     <style>
       .nav-toggle { display: none !important; }
@@ -21,20 +25,24 @@
       }
     </style>
   </noscript>
-  <meta property="og:type" content="article">
-  <meta property="og:title" content="使用文档 · Apidoc">
-  <meta property="og:description" content="四种实现，一套文档工作流。选择语言，从安装、规则到场景与排错。">
-  <meta property="og:image" content="../assets/img/social-preview.png">
+  <meta property="og:type" content="website">
+  <meta property="og:title" content="Apidoc 使用文档 · PHP / Go / Rust API 文档指南">
+  <meta property="og:description" content="四种实现，一套文档工作流。选择 PHP、Go、Rust 或 apidoc-ui，从安装、注解规则到典型场景与排错，快速搭建 API 文档。">
+  <meta property="og:url" content="https://apidoc.erik.xyz/docs/">
+  <meta property="og:image" content="https://apidoc.erik.xyz/assets/img/social-preview.png">
+  <meta property="og:image:type" content="image/png">
   <meta property="og:image:width" content="1280">
   <meta property="og:image:height" content="640">
+  <meta property="og:image:alt" content="Apidoc：PHP、Go、Rust 通用 API 文档体系">
   <meta property="og:site_name" content="Apidoc">
   <meta property="og:locale" content="zh_CN">
   <meta property="og:locale:alternate" content="en_US">
   <meta name="twitter:card" content="summary_large_image">
-  <meta name="twitter:title" content="使用文档 · Apidoc">
-  <meta name="twitter:description" content="四种实现，一套文档工作流。选择语言，从安装、规则到场景与排错。">
-  <meta name="twitter:image" content="../assets/img/social-preview.png">
-  
+  <meta name="twitter:title" content="Apidoc 使用文档 · PHP / Go / Rust API 文档指南">
+  <meta name="twitter:description" content="四种实现，一套文档工作流。选择 PHP、Go、Rust 或 apidoc-ui，从安装、注解规则到典型场景与排错，快速搭建 API 文档。">
+  <meta name="twitter:image" content="https://apidoc.erik.xyz/assets/img/social-preview.png">
+  <meta name="twitter:image:alt" content="Apidoc：PHP、Go、Rust 通用 API 文档体系">
+  <script type="application/ld+json">{"@context":"https://schema.org","@graph":[{"@type":"Person","@id":"https://apidoc.erik.xyz/#person","name":"erik","url":"https://erik.xyz","sameAs":["https://github.com/erikwang2013"]},{"@type":"Organization","@id":"https://apidoc.erik.xyz/#organization","name":"Apidoc","url":"https://apidoc.erik.xyz/","description":"Open-source API documentation for PHP, Go and Rust.","logo":{"@type":"ImageObject","url":"https://apidoc.erik.xyz/assets/img/apidoc-pet.svg"},"sameAs":["https://github.com/erikwang2013"],"founder":{"@id":"https://apidoc.erik.xyz/#person"}},{"@type":"WebSite","@id":"https://apidoc.erik.xyz/#website","url":"https://apidoc.erik.xyz/","name":"Apidoc","description":"API documentation for PHP, Go and Rust.","inLanguage":["zh-CN","en"],"publisher":{"@id":"https://apidoc.erik.xyz/#organization"}},{"@type":"CollectionPage","@id":"https://apidoc.erik.xyz/docs/","url":"https://apidoc.erik.xyz/docs/","name":"API 文档使用指南","description":"四种实现，一套文档工作流。选择语言，从安装、规则到场景与排错。","inLanguage":"zh-CN","isPartOf":{"@id":"https://apidoc.erik.xyz/#website"},"breadcrumb":{"@id":"https://apidoc.erik.xyz/docs/#breadcrumb"},"mainEntity":{"@type":"ItemList","itemListElement":[{"@type":"ListItem","position":1,"name":"PHP 使用指南","url":"https://apidoc.erik.xyz/docs/php.html"},{"@type":"ListItem","position":2,"name":"Go 使用指南","url":"https://apidoc.erik.xyz/docs/go.html"},{"@type":"ListItem","position":3,"name":"Rust 使用指南","url":"https://apidoc.erik.xyz/docs/rust.html"},{"@type":"ListItem","position":4,"name":"apidoc-ui 使用指南","url":"https://apidoc.erik.xyz/docs/ui.html"}]}},{"@type":"FAQPage","@id":"https://apidoc.erik.xyz/docs/#faq","url":"https://apidoc.erik.xyz/docs/#faq","inLanguage":"zh-CN","isPartOf":{"@id":"https://apidoc.erik.xyz/#website"},"mainEntity":[{"@type":"Question","name":"Apidoc 是什么？","acceptedAnswer":{"@type":"Answer","text":"Apidoc 是一套 PHP、Go、Rust 通用的 API 文档体系：在代码旁声明文档，自动生成可浏览、可调试、可导出的接口文档，并共用同一个静态文档 UI。"}},{"@type":"Question","name":"支持哪些框架？","acceptedAnswer":{"@type":"Answer","text":"PHP 支持 Laravel、ThinkPHP、Hyperf、Webman、Yii2、Yii3；Go 支持 net/http、Gin、Echo、Chi、Fiber、beego、Kratos、go-zero；Rust 支持 axum 与 actix-web。"}},{"@type":"Question","name":"需要数据库或额外后端吗？","acceptedAnswer":{"@type":"Answer","text":"Apidoc 本身不要求额外数据库；文档由各语言实现随应用生成，apidoc-ui 构建产物是纯静态文件，可直接部署。"}},{"@type":"Question","name":"如何开始？","acceptedAnswer":{"@type":"Answer","text":"选择 PHP、Go、Rust 或 apidoc-ui 指南，从安装与最小示例开始；每篇指南都包含框架接入、注解规则、典型场景与排错。"}}]},{"@type":"BreadcrumbList","@id":"https://apidoc.erik.xyz/docs/#breadcrumb","itemListElement":[{"@type":"ListItem","position":1,"name":"首页","item":"https://apidoc.erik.xyz/"},{"@type":"ListItem","position":2,"name":"使用文档","item":"https://apidoc.erik.xyz/docs/"}]}]}</script>
 </head>
 <body data-copy-label="复制" data-copied-label="已复制" data-menu-open="打开菜单" data-menu-close="关闭菜单">
   <a class="skip-link" href="#main">跳到主要内容</a>
@@ -85,7 +93,7 @@
   <section class="docs-hero">
   <div class="wrap">
     <p class="docs-breadcrumb"><a href="../index.html">首页</a><span>/</span>使用文档</p>
-    <h1>使用文档</h1>
+    <h1>API 文档使用指南</h1>
     <p>四种实现，一套文档工作流。选择语言，从安装、规则到场景与排错。</p>
     <p class="docs-meta">PHP · Go · Rust · UI</p>
   </div>
@@ -124,6 +132,10 @@
     <div class="section-head"><h2 id="compare-table-title">核心概念对照</h2><p>同一件事在不同语言里的实现方式。</p></div>
     <div class="table-scroll"><table class="compare-table"><thead><tr><th scope="col">概念</th><th scope="col">PHP</th><th scope="col">Go</th><th scope="col">Rust</th></tr></thead><tbody><tr><td>声明方式</td><td>PHP 8 attributes</td><td>类型化 Doc 结构体</td><td>过程宏属性</td></tr><tr><td>文档生成时机</td><td>运行时解析控制器</td><td>路由注册时写入</td><td>编译期静态注册</td></tr><tr><td>框架适配</td><td>6 个</td><td>8 个</td><td>axum / actix-web</td></tr><tr><td>在线调试 / Mock</td><td>支持 / 规则表达式</td><td>支持 / 按类型生成</td><td>支持 / 15 条 fake 规则</td></tr><tr><td>鉴权</td><td>全局与应用密码</td><td>Cookie session + 应用 token</td><td>HMAC-SHA256 token</td></tr><tr><td>导出</td><td>JSON / TS / Swagger / 分享</td><td>JSON / TS</td><td>Markdown / TS / Swagger / 分享</td></tr></tbody></table></div>
   </section>
+  <section class="section faq-section" aria-labelledby="faq-title">
+    <div class="section-head"><h2 id="faq-title">常见问题</h2><p>关于 Apidoc 的常见疑问。</p></div>
+    <div class="faq-list"><details class="faq-item"><summary>Apidoc 是什么？<span class="faq-icon" aria-hidden="true"></span></summary><p>Apidoc 是一套 PHP、Go、Rust 通用的 API 文档体系：在代码旁声明文档，自动生成可浏览、可调试、可导出的接口文档，并共用同一个静态文档 UI。</p></details><details class="faq-item"><summary>支持哪些框架？<span class="faq-icon" aria-hidden="true"></span></summary><p>PHP 支持 Laravel、ThinkPHP、Hyperf、Webman、Yii2、Yii3；Go 支持 net/http、Gin、Echo、Chi、Fiber、beego、Kratos、go-zero；Rust 支持 axum 与 actix-web。</p></details><details class="faq-item"><summary>需要数据库或额外后端吗？<span class="faq-icon" aria-hidden="true"></span></summary><p>Apidoc 本身不要求额外数据库；文档由各语言实现随应用生成，apidoc-ui 构建产物是纯静态文件，可直接部署。</p></details><details class="faq-item"><summary>如何开始？<span class="faq-icon" aria-hidden="true"></span></summary><p>选择 PHP、Go、Rust 或 apidoc-ui 指南，从安装与最小示例开始；每篇指南都包含框架接入、注解规则、典型场景与排错。</p></details></div>
+  </section>
   <div class="docs-hub-cta"><a class="btn btn-primary" href="../index.html#languages">选择语言 <svg class="icon " aria-hidden="true"><use href="#i-arrow"></use></svg></a><a class="btn btn-secondary" href="../index.html">首页</a></div>
 </div>
   </main>
@@ -152,11 +164,39 @@
       <a href="../en/docs/index.html" hreflang="en" lang="en">English</a>
     </div>
   </div>
+  <section class="donate" aria-labelledby="donate-title">
+  <div class="wrap donate-inner">
+    <div class="donate-copy">
+      <p class="donate-kicker">赞赏支持</p>
+      <h2 id="donate-title">喜欢这个项目？请我喝杯咖啡</h2>
+      <p>你的支持会用于文档维护与后续开发。</p>
+    </div>
+    <div class="donate-codes">
+      <button class="donate-code donate-wechat" type="button" data-donate="wechat" data-donate-src="../assets/img/weixinpay.png" data-donate-label="微信赞赏" data-donate-hint="请使用微信扫一扫" data-donate-alt="微信赞赏二维码" aria-haspopup="dialog" aria-controls="donate-dialog">
+        <img src="../assets/img/weixinpay.png" width="386" height="489" loading="lazy" decoding="async" alt="">
+        <span>微信赞赏</span>
+      </button>
+      <button class="donate-code donate-alipay" type="button" data-donate="alipay" data-donate-src="../assets/img/alipay.png" data-donate-label="支付宝赞赏" data-donate-hint="请使用支付宝扫一扫" data-donate-alt="支付宝赞赏二维码" aria-haspopup="dialog" aria-controls="donate-dialog">
+        <img src="../assets/img/alipay.png" width="412" height="516" loading="lazy" decoding="async" alt="">
+        <span>支付宝赞赏</span>
+      </button>
+    </div>
+  </div>
+</section>
+<dialog class="donate-dialog" id="donate-dialog" aria-labelledby="donate-dialog-title">
+  <form method="dialog" class="donate-dialog-card">
+    <button class="donate-dialog-close" type="submit" aria-label="关闭" title="关闭">&times;</button>
+    <p class="donate-dialog-kicker">扫码赞赏</p>
+    <h2 id="donate-dialog-title">微信赞赏</h2>
+    <img class="donate-dialog-img" id="donate-dialog-img" src="../assets/img/weixinpay.png" alt="微信赞赏二维码" width="386" height="489" loading="lazy" decoding="async">
+    <p class="donate-dialog-hint" id="donate-dialog-hint">请使用微信扫一扫</p>
+  </form>
+</dialog>
   <div class="wrap footer-bottom">
     <p>© 2026 erik. Apidoc. MIT License.</p>
     <p>视觉资产版权归作者所有，商业使用需取得授权。 <a href="https://github.com/erikwang2013/apidoc-php/blob/main/ASSETS-LICENSE.md" target="_blank" rel="noopener">ASSETS-LICENSE.md</a></p>
   </div>
-  <div class="wrap footer-info" id="busuanzi"><script async src="//busuanzi.ibruce.info/busuanzi/2.3/busuanzi.pure.mini.js"></script><span id="busuanzi_container_site_pv">本站总访问量 <b id="busuanzi_value_site_pv">0</b> 次 👀</span><span class="dot">·</span><span id="busuanzi_container_site_uv">访客数 <b id="busuanzi_value_site_uv">0</b> 人次 🧑‍🚀</span></div>
+  <div class="wrap footer-info" id="busuanzi"><span id="busuanzi_container_site_pv">本站总访问量 <b id="busuanzi_value_site_pv">0</b> 次 👀</span><span class="dot">·</span><span id="busuanzi_container_site_uv">访客数 <b id="busuanzi_value_site_uv">0</b> 人次 🧑‍🚀</span></div>
 </footer>
   <button class="to-top" id="to-top" type="button" aria-label="回到顶部" title="回到顶部" data-label="回到顶部" data-cute="../assets/img/pet/cute.svg">
     <svg class="to-top-ring" viewBox="0 0 64 64" aria-hidden="true"><circle cx="32" cy="32" r="30"></circle></svg>

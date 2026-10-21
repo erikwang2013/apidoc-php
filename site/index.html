@@ -9,8 +9,12 @@
   <link rel="icon" href="assets/img/apidoc-pet.svg" type="image/svg+xml">
   <link rel="preload" href="assets/img/apidoc-pet.svg" as="image">
   <link rel="stylesheet" href="assets/css/style.css">
-  <link rel="alternate" hreflang="zh-CN" href="index.html">
-  <link rel="alternate" hreflang="en" href="en/index.html">
+  <link rel="canonical" href="https://apidoc.erik.xyz/">
+  <meta name="robots" content="index,follow,max-image-preview:large,max-snippet:-1,max-video-preview:-1">
+  <meta name="author" content="erik">
+  <link rel="alternate" hreflang="zh-CN" href="https://apidoc.erik.xyz/">
+  <link rel="alternate" hreflang="en" href="https://apidoc.erik.xyz/en/">
+  <link rel="alternate" hreflang="x-default" href="https://apidoc.erik.xyz/">
   <noscript>
     <style>
       .nav-toggle { display: none !important; }
@@ -24,17 +28,21 @@
   <meta property="og:type" content="website">
   <meta property="og:title" content="Apidoc · PHP、Go、Rust 通用 API 文档体系">
   <meta property="og:description" content="Apidoc 是 PHP、Go、Rust 通用的 API 文档体系：注解生成、在线调试、Mock、多应用版本、鉴权、导出与共享文档 UI。">
-  <meta property="og:image" content="assets/img/social-preview.png">
+  <meta property="og:url" content="https://apidoc.erik.xyz/">
+  <meta property="og:image" content="https://apidoc.erik.xyz/assets/img/social-preview.png">
+  <meta property="og:image:type" content="image/png">
   <meta property="og:image:width" content="1280">
   <meta property="og:image:height" content="640">
+  <meta property="og:image:alt" content="Apidoc：PHP、Go、Rust 通用 API 文档体系">
   <meta property="og:site_name" content="Apidoc">
   <meta property="og:locale" content="zh_CN">
   <meta property="og:locale:alternate" content="en_US">
   <meta name="twitter:card" content="summary_large_image">
   <meta name="twitter:title" content="Apidoc · PHP、Go、Rust 通用 API 文档体系">
   <meta name="twitter:description" content="Apidoc 是 PHP、Go、Rust 通用的 API 文档体系：注解生成、在线调试、Mock、多应用版本、鉴权、导出与共享文档 UI。">
-  <meta name="twitter:image" content="assets/img/social-preview.png">
-  <script type="application/ld+json">{"@context": "https://schema.org", "@type": "SoftwareApplication", "name": "Apidoc", "description": "在处理器旁声明文档，自动得到可浏览、可调试、可导出的 API 门户。PHP、Go、Rust 共用同一套文档模型与静态 UI。", "applicationCategory": "DeveloperApplication", "operatingSystem": "Any", "programmingLanguage": ["PHP", "Go", "Rust"], "license": "https://opensource.org/licenses/MIT", "author": {"@type": "Person", "name": "erik", "url": "https://erik.xyz"}}</script>
+  <meta name="twitter:image" content="https://apidoc.erik.xyz/assets/img/social-preview.png">
+  <meta name="twitter:image:alt" content="Apidoc：PHP、Go、Rust 通用 API 文档体系">
+  <script type="application/ld+json">{"@context":"https://schema.org","@graph":[{"@type":"Person","@id":"https://apidoc.erik.xyz/#person","name":"erik","url":"https://erik.xyz","sameAs":["https://github.com/erikwang2013"]},{"@type":"Organization","@id":"https://apidoc.erik.xyz/#organization","name":"Apidoc","url":"https://apidoc.erik.xyz/","description":"Open-source API documentation for PHP, Go and Rust.","logo":{"@type":"ImageObject","url":"https://apidoc.erik.xyz/assets/img/apidoc-pet.svg"},"sameAs":["https://github.com/erikwang2013"],"founder":{"@id":"https://apidoc.erik.xyz/#person"}},{"@type":"WebSite","@id":"https://apidoc.erik.xyz/#website","url":"https://apidoc.erik.xyz/","name":"Apidoc","description":"API documentation for PHP, Go and Rust.","inLanguage":["zh-CN","en"],"publisher":{"@id":"https://apidoc.erik.xyz/#organization"}},{"@type":"SoftwareApplication","@id":"https://apidoc.erik.xyz/#software","name":"Apidoc","description":"在处理器旁声明文档，自动得到可浏览、可调试、可导出的 API 门户。PHP、Go、Rust 共用同一套文档模型与静态 UI。","applicationCategory":"DeveloperApplication","operatingSystem":"Any","programmingLanguage":["PHP","Go","Rust"],"license":"https://opensource.org/licenses/MIT","author":{"@id":"https://apidoc.erik.xyz/#person"},"publisher":{"@id":"https://apidoc.erik.xyz/#organization"},"url":"https://apidoc.erik.xyz/","inLanguage":"zh-CN","image":"https://apidoc.erik.xyz/assets/img/social-preview.png","screenshot":"https://apidoc.erik.xyz/assets/img/social-preview.png","sameAs":["https://github.com/erikwang2013"],"offers":{"@type":"Offer","price":"0","priceCurrency":"USD"}}]}</script>
 </head>
 <body data-copy-label="复制" data-copied-label="已复制" data-menu-open="打开菜单" data-menu-close="关闭菜单">
   <a class="skip-link" href="#main">跳到主要内容</a>
@@ -87,7 +95,7 @@
   <div class="wrap hero-grid">
     <div class="hero-copy">
       <p class="hero-kicker"><svg class="icon icon-xs" aria-hidden="true"><use href="#i-spark"></use></svg> Apidoc / PHP · Go · Rust</p>
-      <h1 id="hero-title">一套文档体系，<br><span class="mark">三种开发语言</span>。</h1>
+      <h1 id="hero-title">一套 API 文档体系，<br><span class="mark">三种开发语言</span>。</h1>
       <p class="hero-sub">在处理器旁声明文档，自动得到可浏览、可调试、可导出的 API 门户。PHP、Go、Rust 共用同一套文档模型与静态 UI。</p>
       <div class="hero-actions">
         <a class="btn btn-primary" href="#languages">选择语言 <svg class="icon " aria-hidden="true"><use href="#i-arrow"></use></svg></a>
@@ -402,11 +410,39 @@
       <a href="en/index.html" hreflang="en" lang="en">English</a>
     </div>
   </div>
+  <section class="donate" aria-labelledby="donate-title">
+  <div class="wrap donate-inner">
+    <div class="donate-copy">
+      <p class="donate-kicker">赞赏支持</p>
+      <h2 id="donate-title">喜欢这个项目？请我喝杯咖啡</h2>
+      <p>你的支持会用于文档维护与后续开发。</p>
+    </div>
+    <div class="donate-codes">
+      <button class="donate-code donate-wechat" type="button" data-donate="wechat" data-donate-src="assets/img/weixinpay.png" data-donate-label="微信赞赏" data-donate-hint="请使用微信扫一扫" data-donate-alt="微信赞赏二维码" aria-haspopup="dialog" aria-controls="donate-dialog">
+        <img src="assets/img/weixinpay.png" width="386" height="489" loading="lazy" decoding="async" alt="">
+        <span>微信赞赏</span>
+      </button>
+      <button class="donate-code donate-alipay" type="button" data-donate="alipay" data-donate-src="assets/img/alipay.png" data-donate-label="支付宝赞赏" data-donate-hint="请使用支付宝扫一扫" data-donate-alt="支付宝赞赏二维码" aria-haspopup="dialog" aria-controls="donate-dialog">
+        <img src="assets/img/alipay.png" width="412" height="516" loading="lazy" decoding="async" alt="">
+        <span>支付宝赞赏</span>
+      </button>
+    </div>
+  </div>
+</section>
+<dialog class="donate-dialog" id="donate-dialog" aria-labelledby="donate-dialog-title">
+  <form method="dialog" class="donate-dialog-card">
+    <button class="donate-dialog-close" type="submit" aria-label="关闭" title="关闭">&times;</button>
+    <p class="donate-dialog-kicker">扫码赞赏</p>
+    <h2 id="donate-dialog-title">微信赞赏</h2>
+    <img class="donate-dialog-img" id="donate-dialog-img" src="assets/img/weixinpay.png" alt="微信赞赏二维码" width="386" height="489" loading="lazy" decoding="async">
+    <p class="donate-dialog-hint" id="donate-dialog-hint">请使用微信扫一扫</p>
+  </form>
+</dialog>
   <div class="wrap footer-bottom">
     <p>© 2026 erik. Apidoc. MIT License.</p>
     <p>视觉资产版权归作者所有，商业使用需取得授权。 <a href="https://github.com/erikwang2013/apidoc-php/blob/main/ASSETS-LICENSE.md" target="_blank" rel="noopener">ASSETS-LICENSE.md</a></p>
   </div>
-  <div class="wrap footer-info" id="busuanzi"><script async src="//busuanzi.ibruce.info/busuanzi/2.3/busuanzi.pure.mini.js"></script><span id="busuanzi_container_site_pv">本站总访问量 <b id="busuanzi_value_site_pv">0</b> 次 👀</span><span class="dot">·</span><span id="busuanzi_container_site_uv">访客数 <b id="busuanzi_value_site_uv">0</b> 人次 🧑‍🚀</span></div>
+  <div class="wrap footer-info" id="busuanzi"><span id="busuanzi_container_site_pv">本站总访问量 <b id="busuanzi_value_site_pv">0</b> 次 👀</span><span class="dot">·</span><span id="busuanzi_container_site_uv">访客数 <b id="busuanzi_value_site_uv">0</b> 人次 🧑‍🚀</span></div>
 </footer>
   <button class="to-top" id="to-top" type="button" aria-label="回到顶部" title="回到顶部" data-label="回到顶部" data-cute="assets/img/pet/cute.svg">
     <svg class="to-top-ring" viewBox="0 0 64 64" aria-hidden="true"><circle cx="32" cy="32" r="30"></circle></svg>

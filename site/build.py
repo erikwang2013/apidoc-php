@@ -13,12 +13,14 @@ Outputs:
 """
 from __future__ import annotations
 
+import datetime
 import html
 import json
 import posixpath
 import re
 from pathlib import Path
 from string import Template
+from xml.sax.saxutils import escape as xml_escape
 
 import markdown
 from pygments import highlight
@@ -40,6 +42,24 @@ PAGE_PREFIX = {"zh": "", "en": "en/"}
 DOCS_PREFIX = {"zh": "docs/", "en": "en/docs/"}
 IMAGE_LANG = {"zh": "zh", "en": "en"}
 
+# Change SITE_URL if the production host changes. Canonical links, hreflang,
+# Open Graph URLs and sitemap.xml are all derived from this value.
+SITE_URL = "https://apidoc.erik.xyz"
+HOME_REL = {"zh": "index.html", "en": "en/index.html"}
+DOCS_HUB_REL = {"zh": "docs/index.html", "en": "en/docs/index.html"}
+DONATE_IMAGES = {
+    "wechat": "assets/img/weixinpay.png",
+    "alipay": "assets/img/alipay.png",
+}
+SITE_IMAGE_ALT = {
+    "zh": "Apidoc：PHP、Go、Rust 通用 API 文档体系",
+    "en": "Apidoc: API documentation for PHP, Go and Rust",
+}
+HOME_IMAGE = {
+    "zh": "assets/img/social-preview.svg",
+    "en": "assets/img/php/social-preview-en.svg",
+}
+
 DOCS = {
     "php": {
         "label": "PHP",
@@ -52,13 +72,26 @@ DOCS = {
         "install_lang": "bash",
         "pet": "smile.svg",
         "accent": "php",
-        "image": "assets/img/social-preview.svg",
+        "image": {"zh": "assets/img/social-preview.svg", "en": "assets/img/php/social-preview-en.svg"},
         "image_alt": {"zh": "Apidoc 项目 Social Preview，宠物与注解代码", "en": "Apidoc social preview with the pet and annotation code"},
         "title": {"zh": "PHP 使用指南", "en": "PHP Guide"},
+        "h1": {"zh": "PHP API 文档使用指南", "en": "PHP API Documentation Guide"},
         "tagline": {"zh": "PHP 8 attributes 驱动的 API 文档", "en": "Attribute-driven API docs for PHP 8"},
         "summary": {
             "zh": "在 Laravel、ThinkPHP、Hyperf、Webman、Yii2、Yii3 中写 PHP 8 attributes，自动生成可浏览、可调试、可导出的接口文档。",
             "en": "Write PHP 8 attributes in Laravel, ThinkPHP, Hyperf, Webman, Yii2 or Yii3 and get a browsable, debuggable, exportable API portal.",
+        },
+        "seo_title": {
+            "zh": "PHP API 文档生成指南 · Laravel / ThinkPHP / Hyperf · Apidoc",
+            "en": "PHP API Documentation Guide · Laravel, ThinkPHP, Hyperf · Apidoc",
+        },
+        "meta_description": {
+            "zh": "在 Laravel、ThinkPHP、Hyperf、Webman、Yii2、Yii3 中用 PHP 8 attributes 声明接口文档，自动生成可浏览、可调试、可导出的 API 文档。",
+            "en": "Generate browsable, debuggable and exportable API docs from PHP 8 attributes in Laravel, ThinkPHP, Hyperf, Webman, Yii2 and Yii3.",
+        },
+        "seo_keywords": {
+            "zh": "PHP API 文档, PHP 8 attributes, Laravel, ThinkPHP, Hyperf, Webman, Yii2, Yii3",
+            "en": "PHP API documentation, PHP 8 attributes, Laravel, ThinkPHP, Hyperf, Webman, Yii2, Yii3",
         },
         "sections": {
             "zh": ["安装与框架接入", "注解、参数与响应规则", "definitions / ref / children 复用", "鉴权、导出、场景与排错"],
@@ -81,13 +114,26 @@ DOCS = {
         "install_lang": "bash",
         "pet": "tongue.svg",
         "accent": "go",
-        "image": "assets/img/go/architecture.svg",
+        "image": {"zh": "assets/img/go/zh/architecture.svg", "en": "assets/img/go/en/architecture.svg"},
         "image_alt": {"zh": "apidoc-go 架构图", "en": "apidoc-go architecture"},
         "title": {"zh": "Go 使用指南", "en": "Go Guide"},
+        "h1": {"zh": "Go API 文档使用指南", "en": "Go API Documentation Guide"},
         "tagline": {"zh": "类型化结构体随路由注册", "en": "Typed docs registered with routes"},
         "summary": {
             "zh": "接口文档以类型化结构体随路由注册，内嵌 Web UI 提供浏览与在线调试；兼容 net/http、Gin、Echo、Chi、Fiber、beego、Kratos、go-zero。",
             "en": "Declare docs as typed structs next to route registration. A built-in web UI provides browsing and live debugging for net/http, Gin, Echo, Chi, Fiber, beego, Kratos and go-zero.",
+        },
+        "seo_title": {
+            "zh": "Go API 文档生成指南 · Gin / Echo / Fiber / net/http · Apidoc",
+            "en": "Go API Documentation Guide · Gin, Echo, Fiber · Apidoc",
+        },
+        "meta_description": {
+            "zh": "用类型化结构体随路由注册声明 Go API 文档，内置 Web UI 浏览与在线调试；兼容 net/http、Gin、Echo、Chi、Fiber、beego、Kratos、go-zero。",
+            "en": "Declare Go API docs as typed structs at route registration, then browse and debug them in a built-in web UI. Supports net/http, Gin, Echo, Fiber and more.",
+        },
+        "seo_keywords": {
+            "zh": "Go API 文档, net/http, Gin, Echo, Chi, Fiber, beego, Kratos, go-zero",
+            "en": "Go API documentation, net/http, Gin, Echo, Chi, Fiber, beego, Kratos, go-zero",
         },
         "sections": {
             "zh": ["安装、Config 与 Router", "Route / Doc / Param / Response", "8 个框架适配器", "鉴权、缓存、导出、场景与排错"],
@@ -110,13 +156,26 @@ DOCS = {
         "install_lang": "toml",
         "pet": "knocking.svg",
         "accent": "rust",
-        "image": "assets/img/rust/social-preview.svg",
+        "image": {"zh": "assets/img/rust/social-preview.svg", "en": "assets/img/rust/social-preview.svg"},
         "image_alt": {"zh": "apidoc-rust 架构图", "en": "apidoc-rust architecture"},
         "title": {"zh": "Rust 使用指南", "en": "Rust Guide"},
+        "h1": {"zh": "Rust API 文档使用指南", "en": "Rust API Documentation Guide"},
         "tagline": {"zh": "过程宏在编译期生成文档", "en": "Proc-macro docs generated at compile time"},
         "summary": {
             "zh": "用过程宏在 handler 上声明文档，编译期静态注册，运行期零成本聚合；兼容 axum 与 actix-web，内置鉴权、Mock、导出、分享与代码生成。",
             "en": "Declare docs with proc macros on handlers, register them statically at compile time and aggregate at zero runtime cost. Works with axum and actix-web, with auth, Mock, exports, sharing and codegen built in.",
+        },
+        "seo_title": {
+            "zh": "Rust API 文档生成指南 · axum / actix-web · Apidoc",
+            "en": "Rust API Documentation Guide · axum, actix-web · Apidoc",
+        },
+        "meta_description": {
+            "zh": "用过程宏在 handler 上声明 Rust API 文档，编译期静态注册，运行期零成本聚合；兼容 axum 与 actix-web，内置鉴权、Mock、导出、分享与代码生成。",
+            "en": "Declare Rust API docs with proc macros on handlers, register them at compile time and aggregate at zero runtime cost. Works with axum and actix-web.",
+        },
+        "seo_keywords": {
+            "zh": "Rust API 文档, axum, actix-web, 过程宏, proc macro",
+            "en": "Rust API documentation, axum, actix-web, proc macros",
         },
         "sections": {
             "zh": ["依赖、宏与编译期规则", "axum / actix-web 接入", "鉴权、Mock、多应用版本", "导出、代码生成、场景与排错"],
@@ -139,13 +198,26 @@ DOCS = {
         "install_lang": "bash",
         "pet": "cute.svg",
         "accent": "ui",
-        "image": "assets/img/ui/social-preview.svg",
+        "image": {"zh": "assets/img/ui/social-preview.svg", "en": "assets/img/ui/social-preview.svg"},
         "image_alt": {"zh": "apidoc-ui 文档界面", "en": "apidoc-ui documentation front-end"},
         "title": {"zh": "apidoc-ui 使用指南", "en": "apidoc-ui Guide"},
+        "h1": {"zh": "apidoc-ui API 文档前端使用指南", "en": "apidoc-ui API Documentation Front-end Guide"},
         "tagline": {"zh": "三套后端共用的静态文档前端", "en": "One static front-end for all three backends"},
         "summary": {
             "zh": "Vue 3 + TypeScript 的文档加载与展示页面，支持应用/版本、在线调试、接口分享、Swagger 导出、缓存管理与多语言。构建产物为纯静态文件。",
             "en": "A Vue 3 + TypeScript documentation front-end with apps/versions, live debugging, sharing, Swagger export, cache management and i18n. The build output is fully static.",
+        },
+        "seo_title": {
+            "zh": "apidoc-ui 使用指南 · Vue 3 API 文档前端 · Apidoc",
+            "en": "apidoc-ui Guide · Vue 3 API Documentation Front-end · Apidoc",
+        },
+        "meta_description": {
+            "zh": "Vue 3 + TypeScript 的 API 文档加载与展示页面，支持多应用/版本、在线调试、接口分享、Swagger 导出、缓存管理与多语言，构建产物为纯静态文件。",
+            "en": "A Vue 3 + TypeScript front-end for loading and displaying API docs, with apps/versions, live debugging, sharing, Swagger export, cache management and i18n.",
+        },
+        "seo_keywords": {
+            "zh": "apidoc-ui, Vue 3, TypeScript, API 文档前端, Swagger 导出",
+            "en": "apidoc-ui, Vue 3, TypeScript, API documentation UI, Swagger export",
         },
         "sections": {
             "zh": ["构建与部署", "config.js 运行时配置", "多 Host / appKey / 鉴权", "调试事件、Mock 扩展与排错"],
@@ -157,6 +229,45 @@ DOCS = {
         },
         "frameworks": "Vue 3.5 · Vite 6 · Pinia · Monaco",
     },
+}
+
+FAQ = {
+    "zh": [
+        (
+            "Apidoc 是什么？",
+            "Apidoc 是一套 PHP、Go、Rust 通用的 API 文档体系：在代码旁声明文档，自动生成可浏览、可调试、可导出的接口文档，并共用同一个静态文档 UI。",
+        ),
+        (
+            "支持哪些框架？",
+            "PHP 支持 Laravel、ThinkPHP、Hyperf、Webman、Yii2、Yii3；Go 支持 net/http、Gin、Echo、Chi、Fiber、beego、Kratos、go-zero；Rust 支持 axum 与 actix-web。",
+        ),
+        (
+            "需要数据库或额外后端吗？",
+            "Apidoc 本身不要求额外数据库；文档由各语言实现随应用生成，apidoc-ui 构建产物是纯静态文件，可直接部署。",
+        ),
+        (
+            "如何开始？",
+            "选择 PHP、Go、Rust 或 apidoc-ui 指南，从安装与最小示例开始；每篇指南都包含框架接入、注解规则、典型场景与排错。",
+        ),
+    ],
+    "en": [
+        (
+            "What is Apidoc?",
+            "Apidoc is a shared API documentation system for PHP, Go and Rust. Declare docs next to your code and get browsable, debuggable and exportable API docs with one static documentation UI.",
+        ),
+        (
+            "Which frameworks are supported?",
+            "PHP: Laravel, ThinkPHP, Hyperf, Webman, Yii2 and Yii3. Go: net/http, Gin, Echo, Chi, Fiber, beego, Kratos and go-zero. Rust: axum and actix-web.",
+        ),
+        (
+            "Does it need a database or extra backend?",
+            "Apidoc does not require an extra database. Docs are generated alongside your application, and the apidoc-ui build output is fully static and can be deployed as-is.",
+        ),
+        (
+            "How do I get started?",
+            "Pick the PHP, Go, Rust or apidoc-ui guide and start from the install and minimal example. Each guide covers framework setup, annotation rules, common scenarios and troubleshooting.",
+        ),
+    ],
 }
 
 ADAPTER_GROUPS = [
@@ -216,7 +327,7 @@ UI = {
         "nav_languages": "语言实现", "nav_features": "核心能力", "nav_docs": "使用文档", "nav_install": "安装", "nav_versions": "版本", "nav_download": "下载",
         "github": "GitHub", "home": "首页", "docs": "使用文档", "read_guide": "阅读使用指南", "open_docs": "打开文档中心",
         "hero_kicker": "Apidoc / PHP · Go · Rust",
-        "hero_title": '一套文档体系，<br><span class="mark">三种开发语言</span>。',
+        "hero_title": '一套 API 文档体系，<br><span class="mark">三种开发语言</span>。',
         "hero_sub": "在处理器旁声明文档，自动得到可浏览、可调试、可导出的 API 门户。PHP、Go、Rust 共用同一套文档模型与静态 UI。",
         "choose_language": "选择语言", "read_guides": "阅读使用文档",
         "stats_languages": "后端语言", "stats_adapters": "框架适配器", "stats_ui": "共享文档 UI", "stats_pets": "宠物表情",
@@ -254,7 +365,10 @@ UI = {
         "footer_guides": "使用指南", "footer_projects": "项目", "footer_about": "关于",
         "footer_assets": "视觉资产版权归作者所有，商业使用需取得授权。",
         "footer_license": "MIT License", "footer_made": "由 erik 维护", "reference_label": "参考项目",
-        "docs_hub_title": "使用文档", "docs_hub_sub": "四种实现，一套文档工作流。选择语言，从安装、规则到场景与排错。",
+        "docs_hub_title": "API 文档使用指南", "docs_hub_sub": "四种实现，一套文档工作流。选择语言，从安装、规则到场景与排错。",
+        "docs_hub_seo_title": "Apidoc 使用文档 · PHP / Go / Rust API 文档指南",
+        "docs_hub_meta_description": "四种实现，一套文档工作流。选择 PHP、Go、Rust 或 apidoc-ui，从安装、注解规则到典型场景与排错，快速搭建 API 文档。",
+        "faq_title": "常见问题", "faq_sub": "关于 Apidoc 的常见疑问。",
         "docs_hub_meta": "PHP · Go · Rust · UI",
         "workflow_title": "从声明到交付，五步。", "workflow_sub": "无论使用哪种语言，文档都沿着同一条路径进入生产。",
         "workflow_steps": ["声明", "浏览", "调试", "导出", "部署"],
@@ -273,6 +387,17 @@ UI = {
         "docs_toc": "本页目录",
         "docs_next_title": "其他语言指南",
         "footer_language": "语言",
+        "donate_kicker": "赞赏支持",
+        "donate_title": "喜欢这个项目？请我喝杯咖啡",
+        "donate_sub": "你的支持会用于文档维护与后续开发。",
+        "donate_wechat": "微信赞赏",
+        "donate_alipay": "支付宝赞赏",
+        "donate_wechat_alt": "微信赞赏二维码",
+        "donate_alipay_alt": "支付宝赞赏二维码",
+        "donate_wechat_hint": "请使用微信扫一扫",
+        "donate_alipay_hint": "请使用支付宝扫一扫",
+        "donate_dialog_kicker": "扫码赞赏",
+        "donate_close": "关闭",
     },
     "en": {
         "copy": COPY["en"], "copied": COPIED["en"], "menu_open": MENU_OPEN["en"], "menu_close": MENU_CLOSE["en"], "back_top": BACK_TOP["en"],
@@ -317,7 +442,10 @@ UI = {
         "footer_guides": "Guides", "footer_projects": "Projects", "footer_about": "About",
         "footer_assets": "Visual assets are owned by the author. Commercial use requires permission.",
         "footer_license": "MIT License", "footer_made": "Maintained by erik", "reference_label": "Upstream",
-        "docs_hub_title": "Usage guides", "docs_hub_sub": "Four implementations, one documentation workflow. Choose a language and go from install to rules, scenarios and troubleshooting.",
+        "docs_hub_title": "API Documentation Guides", "docs_hub_sub": "Four implementations, one documentation workflow. Choose a language and go from install to rules, scenarios and troubleshooting.",
+        "docs_hub_seo_title": "Apidoc Guides · PHP, Go and Rust API Documentation",
+        "docs_hub_meta_description": "Four implementations, one documentation workflow. Choose PHP, Go, Rust or apidoc-ui, from install and annotation rules to scenarios and troubleshooting.",
+        "faq_title": "Frequently asked questions", "faq_sub": "Common questions about Apidoc.",
         "docs_hub_meta": "PHP · Go · Rust · UI",
         "workflow_title": "From declaration to delivery, in five steps.", "workflow_sub": "Whichever language you use, docs follow the same path into production.",
         "workflow_steps": ["Declare", "Browse", "Debug", "Export", "Deploy"],
@@ -336,6 +464,17 @@ UI = {
         "docs_toc": "On this page",
         "docs_next_title": "Other language guides",
         "footer_language": "Language",
+        "donate_kicker": "Support the project",
+        "donate_title": "Enjoying Apidoc? Buy me a coffee.",
+        "donate_sub": "Your support funds documentation upkeep and future development.",
+        "donate_wechat": "WeChat",
+        "donate_alipay": "Alipay",
+        "donate_wechat_alt": "WeChat donation QR code",
+        "donate_alipay_alt": "Alipay donation QR code",
+        "donate_wechat_hint": "Scan with WeChat",
+        "donate_alipay_hint": "Scan with Alipay",
+        "donate_dialog_kicker": "Scan to support",
+        "donate_close": "Close",
     },
 }
 
@@ -436,6 +575,125 @@ def lang_urls(current: str) -> tuple[str, str]:
 
 def asset(current: str, path: str) -> str:
     return link(current, "assets/" + path)
+
+
+def canonical_url(rel_path: str) -> str:
+    """Absolute canonical URL for a generated file (directory index -> trailing slash)."""
+    path = "/" + rel_path
+    if path.endswith("/index.html"):
+        path = path[: -len("index.html")]
+    return SITE_URL + path
+
+
+def donate_image(current: str, kind: str) -> str:
+    rel_path = DONATE_IMAGES[kind]
+    if not (ROOT / rel_path).is_file():
+        raise FileNotFoundError(f"Missing donation image: {rel_path}")
+    return asset(current, rel_path[len("assets/") :])
+
+
+def jsonld_script(data: dict) -> str:
+    payload = json.dumps(data, ensure_ascii=False, separators=(",", ":"))
+    return f'<script type="application/ld+json">{payload}</script>'
+
+
+def person_node() -> dict:
+    return {
+        "@type": "Person",
+        "@id": SITE_URL + "/#person",
+        "name": "erik",
+        "url": "https://erik.xyz",
+        "sameAs": ["https://github.com/erikwang2013"],
+    }
+
+
+def organization_node() -> dict:
+    return {
+        "@type": "Organization",
+        "@id": SITE_URL + "/#organization",
+        "name": "Apidoc",
+        "url": SITE_URL + "/",
+        "description": "Open-source API documentation for PHP, Go and Rust.",
+        "logo": {
+            "@type": "ImageObject",
+            "url": SITE_URL + "/assets/img/apidoc-pet.svg",
+        },
+        "sameAs": ["https://github.com/erikwang2013"],
+        "founder": {"@id": SITE_URL + "/#person"},
+    }
+
+
+def website_node() -> dict:
+    return {
+        "@type": "WebSite",
+        "@id": SITE_URL + "/#website",
+        "url": SITE_URL + "/",
+        "name": "Apidoc",
+        "description": "API documentation for PHP, Go and Rust.",
+        "inLanguage": ["zh-CN", "en"],
+        "publisher": {"@id": SITE_URL + "/#organization"},
+    }
+
+
+def breadcrumb_node(
+    current: str, trail: list[tuple[str, str]]
+) -> dict:
+    return {
+        "@type": "BreadcrumbList",
+        "@id": canonical_url(current) + "#breadcrumb",
+        "itemListElement": [
+            {
+                "@type": "ListItem",
+                "position": index + 1,
+                "name": name,
+                "item": url,
+            }
+            for index, (name, url) in enumerate(trail)
+        ],
+    }
+
+
+def page_lastmod(rel_path: str) -> str:
+    source = ROOT / "build.py"
+    if rel_path.endswith(".html") and "/" in rel_path and not rel_path.endswith(
+        "index.html"
+    ):
+        lang = "en" if rel_path.startswith("en/") else "zh"
+        slug = rel_path.rsplit("/", 1)[-1].removesuffix(".html")
+        source = ROOT / "content" / lang / f"{slug}.md"
+    if source.is_file():
+        return datetime.date.fromtimestamp(source.stat().st_mtime).isoformat()
+    return datetime.date.today().isoformat()
+
+
+def lang_alternates(rel_path: str) -> list[tuple[str, str]]:
+    base, english = lang_urls(rel_path)
+    zh_url = canonical_url(base)
+    en_url = canonical_url(english)
+    return [("zh-CN", zh_url), ("en", en_url), ("x-default", zh_url)]
+
+
+def site_pages() -> list[str]:
+    pages: list[str] = []
+    for lang in LANGS:
+        pages.append(HOME_REL[lang])
+        pages.append(DOCS_HUB_REL[lang])
+        pages.extend(f"{DOCS_PREFIX[lang]}{slug}.html" for slug in SLUGS)
+    return pages
+
+
+def page_image(rel_path: str) -> tuple[str, str] | None:
+    if rel_path in HOME_REL.values():
+        lang = "en" if rel_path.startswith("en/") else "zh"
+        return HOME_IMAGE[lang], SITE_IMAGE_ALT[lang]
+    if rel_path in DOCS_HUB_REL.values():
+        return None
+    lang = "en" if rel_path.startswith("en/") else "zh"
+    slug = rel_path.rsplit("/", 1)[-1].removesuffix(".html")
+    doc = DOCS.get(slug)
+    if doc:
+        return doc["image"][lang], doc["image_alt"][lang]
+    return None
 
 
 def lexer_for(language: str):
@@ -549,6 +807,34 @@ def render_footer(lang: str, current: str) -> str:
     else:
         pv = 'Total visits <b id="busuanzi_value_site_pv">0</b> 👀'
         uv = 'Visitors <b id="busuanzi_value_site_uv">0</b> 🧑‍🚀'
+    donate = f'''<section class="donate" aria-labelledby="donate-title">
+  <div class="wrap donate-inner">
+    <div class="donate-copy">
+      <p class="donate-kicker">{UI[lang]['donate_kicker']}</p>
+      <h2 id="donate-title">{UI[lang]['donate_title']}</h2>
+      <p>{UI[lang]['donate_sub']}</p>
+    </div>
+    <div class="donate-codes">
+      <button class="donate-code donate-wechat" type="button" data-donate="wechat" data-donate-src="{donate_image(current, 'wechat')}" data-donate-label="{UI[lang]['donate_wechat']}" data-donate-hint="{UI[lang]['donate_wechat_hint']}" data-donate-alt="{UI[lang]['donate_wechat_alt']}" aria-haspopup="dialog" aria-controls="donate-dialog">
+        <img src="{donate_image(current, 'wechat')}" width="386" height="489" loading="lazy" decoding="async" alt="">
+        <span>{UI[lang]['donate_wechat']}</span>
+      </button>
+      <button class="donate-code donate-alipay" type="button" data-donate="alipay" data-donate-src="{donate_image(current, 'alipay')}" data-donate-label="{UI[lang]['donate_alipay']}" data-donate-hint="{UI[lang]['donate_alipay_hint']}" data-donate-alt="{UI[lang]['donate_alipay_alt']}" aria-haspopup="dialog" aria-controls="donate-dialog">
+        <img src="{donate_image(current, 'alipay')}" width="412" height="516" loading="lazy" decoding="async" alt="">
+        <span>{UI[lang]['donate_alipay']}</span>
+      </button>
+    </div>
+  </div>
+</section>
+<dialog class="donate-dialog" id="donate-dialog" aria-labelledby="donate-dialog-title">
+  <form method="dialog" class="donate-dialog-card">
+    <button class="donate-dialog-close" type="submit" aria-label="{UI[lang]['donate_close']}" title="{UI[lang]['donate_close']}">&times;</button>
+    <p class="donate-dialog-kicker">{UI[lang]['donate_dialog_kicker']}</p>
+    <h2 id="donate-dialog-title">{UI[lang]['donate_wechat']}</h2>
+    <img class="donate-dialog-img" id="donate-dialog-img" src="{donate_image(current, 'wechat')}" alt="{UI[lang]['donate_wechat_alt']}" width="386" height="489" loading="lazy" decoding="async">
+    <p class="donate-dialog-hint" id="donate-dialog-hint">{UI[lang]['donate_wechat_hint']}</p>
+  </form>
+</dialog>'''
     return f'''<footer class="site-footer">
   <div class="wrap footer-grid">
     <div class="footer-brand">
@@ -574,11 +860,12 @@ def render_footer(lang: str, current: str) -> str:
       <a href="{alt}" hreflang="{OTHER[lang]}" lang="{OTHER[lang]}">{alt_label}</a>
     </div>
   </div>
+  {donate}
   <div class="wrap footer-bottom">
     <p>© 2026 erik. Apidoc. {UI[lang]['footer_license']}.</p>
     <p>{UI[lang]['footer_assets']} <a href="https://github.com/erikwang2013/apidoc-php/blob/main/ASSETS-LICENSE.md" target="_blank" rel="noopener">ASSETS-LICENSE.md</a></p>
   </div>
-  <div class="wrap footer-info" id="busuanzi"><script async src="//busuanzi.ibruce.info/busuanzi/2.3/busuanzi.pure.mini.js"></script><span id="busuanzi_container_site_pv">{pv}</span><span class="dot">·</span><span id="busuanzi_container_site_uv">{uv}</span></div>
+  <div class="wrap footer-info" id="busuanzi"><span id="busuanzi_container_site_pv">{pv}</span><span class="dot">·</span><span id="busuanzi_container_site_uv">{uv}</span></div>
 </footer>'''
 
 
@@ -593,8 +880,12 @@ SHELL = Template('''<!doctype html>
   <link rel="icon" href="${root}assets/img/apidoc-pet.svg" type="image/svg+xml">
   <link rel="preload" href="${root}assets/img/apidoc-pet.svg" as="image">
   <link rel="stylesheet" href="${root}assets/css/style.css">
+  <link rel="canonical" href="$canonical">
+  <meta name="robots" content="index,follow,max-image-preview:large,max-snippet:-1,max-video-preview:-1">
+  <meta name="author" content="erik">
   <link rel="alternate" hreflang="zh-CN" href="$alt_zh">
   <link rel="alternate" hreflang="en" href="$alt_en">
+  <link rel="alternate" hreflang="x-default" href="$x_default">
   <noscript>
     <style>
       .nav-toggle { display: none !important; }
@@ -608,9 +899,12 @@ SHELL = Template('''<!doctype html>
   <meta property="og:type" content="$og_type">
   <meta property="og:title" content="$title">
   <meta property="og:description" content="$description">
+  <meta property="og:url" content="$canonical">
   <meta property="og:image" content="$og_image">
+  <meta property="og:image:type" content="image/png">
   <meta property="og:image:width" content="1280">
   <meta property="og:image:height" content="640">
+  <meta property="og:image:alt" content="$og_image_alt">
   <meta property="og:site_name" content="Apidoc">
   <meta property="og:locale" content="$og_locale">
   <meta property="og:locale:alternate" content="$og_locale_alt">
@@ -618,6 +912,7 @@ SHELL = Template('''<!doctype html>
   <meta name="twitter:title" content="$title">
   <meta name="twitter:description" content="$description">
   <meta name="twitter:image" content="$og_image">
+  <meta name="twitter:image:alt" content="$og_image_alt">
   $extra_head
 </head>
 <body data-copy-label="$copy" data-copied-label="$copied" data-menu-open="$menu_open" data-menu-close="$menu_close">
@@ -639,17 +934,21 @@ SHELL = Template('''<!doctype html>
 
 def page_shell(lang: str, current: str, body: str, title: str, description: str, extra_head: str = "", og_type: str = "website") -> str:
     root = root_prefix(current)
+    alt_zh, alt_en = lang_urls(current)
     return SHELL.substitute(
         html_lang=HTML_LANG[lang],
         title=html.escape(title, quote=False),
         description=html.escape(description, quote=True),
         root=root,
-        alt_zh=link(current, lang_urls(current)[0]),
-        alt_en=link(current, lang_urls(current)[1]),
+        canonical=canonical_url(current),
+        alt_zh=canonical_url(alt_zh),
+        alt_en=canonical_url(alt_en),
+        x_default=canonical_url(alt_zh),
         og_type=og_type,
         og_locale="zh_CN" if lang == "zh" else "en_US",
         og_locale_alt="en_US" if lang == "zh" else "zh_CN",
-        og_image=root + ("assets/img/php/social-preview-en.png" if lang == "en" else "assets/img/social-preview.png"),
+        og_image=SITE_URL + "/" + ("assets/img/php/social-preview-en.png" if lang == "en" else "assets/img/social-preview.png"),
+        og_image_alt=html.escape(SITE_IMAGE_ALT[lang], quote=True),
         extra_head=extra_head,
         copy=UI[lang]["copy"],
         copied=UI[lang]["copied"],
@@ -973,16 +1272,129 @@ async fn get_user() {}''', "rust", "user.rs", "cmp-rust"),
 def home_jsonld(lang: str, current: str) -> str:
     data = {
         "@context": "https://schema.org",
-        "@type": "SoftwareApplication",
-        "name": "Apidoc",
-        "description": UI[lang]["hero_sub"],
-        "applicationCategory": "DeveloperApplication",
-        "operatingSystem": "Any",
-        "programmingLanguage": ["PHP", "Go", "Rust"],
-        "license": "https://opensource.org/licenses/MIT",
-        "author": {"@type": "Person", "name": "erik", "url": "https://erik.xyz"},
+        "@graph": [
+            person_node(),
+            organization_node(),
+            website_node(),
+            {
+                "@type": "SoftwareApplication",
+                "@id": SITE_URL + "/#software",
+                "name": "Apidoc",
+                "description": UI[lang]["hero_sub"],
+                "applicationCategory": "DeveloperApplication",
+                "operatingSystem": "Any",
+                "programmingLanguage": ["PHP", "Go", "Rust"],
+                "license": "https://opensource.org/licenses/MIT",
+                "author": {"@id": SITE_URL + "/#person"},
+                "publisher": {"@id": SITE_URL + "/#organization"},
+                "url": canonical_url(current),
+                "inLanguage": HTML_LANG[lang],
+                "image": SITE_URL + "/assets/img/social-preview.png",
+                "screenshot": SITE_URL + "/assets/img/social-preview.png",
+                "sameAs": ["https://github.com/erikwang2013"],
+                "offers": {"@type": "Offer", "price": "0", "priceCurrency": "USD"},
+            },
+        ],
     }
-    return '<script type="application/ld+json">' + json.dumps(data, ensure_ascii=False) + "</script>"
+    return jsonld_script(data)
+
+
+def docs_hub_jsonld(lang: str, current: str) -> str:
+    t = UI[lang]
+    canonical = canonical_url(current)
+    data = {
+        "@context": "https://schema.org",
+        "@graph": [
+            person_node(),
+            organization_node(),
+            website_node(),
+            {
+                "@type": "CollectionPage",
+                "@id": canonical,
+                "url": canonical,
+                "name": t["docs_hub_title"],
+                "description": t["docs_hub_sub"],
+                "inLanguage": HTML_LANG[lang],
+                "isPartOf": {"@id": SITE_URL + "/#website"},
+                "breadcrumb": {"@id": canonical + "#breadcrumb"},
+                "mainEntity": {
+                    "@type": "ItemList",
+                    "itemListElement": [
+                        {
+                            "@type": "ListItem",
+                            "position": index + 1,
+                            "name": DOCS[slug]["title"][lang],
+                            "url": canonical_url(f"{DOCS_PREFIX[lang]}{slug}.html"),
+                        }
+                        for index, slug in enumerate(SLUGS)
+                    ],
+                },
+            },
+            {
+                "@type": "FAQPage",
+                "@id": canonical + "#faq",
+                "url": canonical + "#faq",
+                "inLanguage": HTML_LANG[lang],
+                "isPartOf": {"@id": SITE_URL + "/#website"},
+                "mainEntity": [
+                    {
+                        "@type": "Question",
+                        "name": question,
+                        "acceptedAnswer": {"@type": "Answer", "text": answer},
+                    }
+                    for question, answer in FAQ[lang]
+                ],
+            },
+            breadcrumb_node(
+                current,
+                [
+                    (t["home"], canonical_url(HOME_REL[lang])),
+                    (t["docs"], canonical),
+                ],
+            ),
+        ],
+    }
+    return jsonld_script(data)
+
+
+def doc_jsonld(lang: str, current: str, slug: str) -> str:
+    d = DOCS[slug]
+    t = UI[lang]
+    canonical = canonical_url(current)
+    data = {
+        "@context": "https://schema.org",
+        "@graph": [
+            person_node(),
+            organization_node(),
+            website_node(),
+            {
+                "@type": "TechArticle",
+                "@id": canonical + "#article",
+                "headline": d["h1"][lang],
+                "description": d["summary"][lang],
+                "url": canonical,
+                "mainEntityOfPage": {"@id": canonical},
+                "inLanguage": HTML_LANG[lang],
+                "author": {"@id": SITE_URL + "/#person"},
+                "publisher": {"@id": SITE_URL + "/#organization"},
+                "isPartOf": {"@id": canonical_url(DOCS_HUB_REL[lang])},
+                "about": d["label"],
+                "articleSection": d["label"],
+                "dateModified": page_lastmod(current),
+                "image": SITE_URL + "/assets/img/social-preview.png",
+                "keywords": d["seo_keywords"][lang],
+            },
+            breadcrumb_node(
+                current,
+                [
+                    (t["home"], canonical_url(HOME_REL[lang])),
+                    (t["docs"], canonical_url(DOCS_HUB_REL[lang])),
+                    (d["label"], canonical),
+                ],
+            ),
+        ],
+    }
+    return jsonld_script(data)
 
 
 def build_home(lang: str) -> None:
@@ -1013,6 +1425,14 @@ def render_docs_hub(lang: str) -> None:
         "<tr>" + "".join(f"<td>{cell}</td>" for cell in row) + "</tr>" for row in t["compare_rows"]
     )
     table = f'''<div class="table-scroll"><table class="compare-table"><thead><tr>{''.join(f'<th scope="col">{h}</th>' for h in t['compare_headers'])}</tr></thead><tbody>{rows}</tbody></table></div>'''
+    faq_items = "".join(
+        f'<details class="faq-item"><summary>{html.escape(question)}<span class="faq-icon" aria-hidden="true"></span></summary><p>{html.escape(answer)}</p></details>'
+        for question, answer in FAQ[lang]
+    )
+    faq = f'''<section class="section faq-section" aria-labelledby="faq-title">
+    <div class="section-head"><h2 id="faq-title">{t['faq_title']}</h2><p>{t['faq_sub']}</p></div>
+    <div class="faq-list">{faq_items}</div>
+  </section>'''
     body = f'''<section class="docs-hero">
   <div class="wrap">
     <p class="docs-breadcrumb"><a href="{home_url(current, lang)}">{t['home']}</a><span>/</span>{t['docs']}</p>
@@ -1031,11 +1451,12 @@ def render_docs_hub(lang: str) -> None:
     <div class="section-head"><h2 id="compare-table-title">{t['compare_table_title']}</h2><p>{t['compare_table_sub']}</p></div>
     {table}
   </section>
+  {faq}
   <div class="docs-hub-cta"><a class="btn btn-primary" href="{home_url(current, lang)}#languages">{t['choose_language']} {icon('i-arrow')}</a><a class="btn btn-secondary" href="{home_url(current, lang)}">{t['home']}</a></div>
 </div>'''
-    title = "使用文档 · Apidoc" if lang == "zh" else "Usage Guides · Apidoc"
-    description = t["docs_hub_sub"]
-    write(current, page_shell(lang, current, body, title, description, og_type="article"))
+    title = t["docs_hub_seo_title"]
+    description = t["docs_hub_meta_description"]
+    write(current, page_shell(lang, current, body, title, description, extra_head=docs_hub_jsonld(lang, current), og_type="website"))
 
 
 # ---------------------------------------------------------------------------
@@ -1056,6 +1477,39 @@ def add_heading_ids(body: str) -> tuple[str, list[tuple[int, str, str]]]:
 
     body = re.sub(r"<h([23])>(.*?)</h\1>", repl, body, flags=re.S)
     return body, headings
+
+
+def image_dimensions(current: str, src: str) -> tuple[int, int] | None:
+    """Intrinsic dimensions for local SVG/PNG images, if they can be read."""
+    if src.startswith(("http://", "https://", "//", "data:")):
+        return None
+    path = (ROOT / posixpath.dirname(current) / src).resolve()
+    try:
+        path.relative_to(ROOT.resolve())
+    except ValueError:
+        return None
+    if not path.is_file():
+        return None
+    suffix = path.suffix.lower()
+    if suffix == ".svg":
+        head = path.read_text(encoding="utf-8", errors="ignore")[:2000]
+        width = re.search(r'\bwidth="([\d.]+)"', head)
+        height = re.search(r'\bheight="([\d.]+)"', head)
+        if width and height:
+            return int(float(width.group(1))), int(float(height.group(1)))
+        view_box = re.search(r'\bviewBox="([^"]+)"', head)
+        if view_box:
+            parts = re.split(r"[\s,]+", view_box.group(1).strip())
+            if len(parts) == 4:
+                return int(float(parts[2])), int(float(parts[3]))
+    elif suffix == ".png":
+        data = path.read_bytes()[:24]
+        if data.startswith(b"\x89PNG\r\n\x1a\n") and len(data) >= 24:
+            return (
+                int.from_bytes(data[16:20], "big"),
+                int.from_bytes(data[20:24], "big"),
+            )
+    return None
 
 
 def render_markdown(markdown_text: str, lang: str, current: str) -> tuple[str, str]:
@@ -1089,7 +1543,27 @@ def render_markdown(markdown_text: str, lang: str, current: str) -> tuple[str, s
         body = body.replace(f'<div data-code-slot="{i}"></div>', block)
     body = body.replace("<table>", '<div class="table-scroll"><table>').replace("</table>", "</table></div>")
     body = re.sub(r'<a href="(https?://[^"]+)"', r'<a href="\1" target="_blank" rel="noopener"', body)
-    body = re.sub(r'<img ([^>]*?)>', lambda m: '<img loading="lazy" decoding="async" ' + m.group(1) + '>', body)
+    image_index = 0
+
+    def render_image(match: re.Match[str]) -> str:
+        nonlocal image_index
+        attrs = match.group(1)
+        if "width=" not in attrs or "height=" not in attrs:
+            src_match = re.search(r'\bsrc="([^"]+)"', attrs)
+            if src_match:
+                dimensions = image_dimensions(current, src_match.group(1))
+                if dimensions:
+                    attrs += f' width="{dimensions[0]}" height="{dimensions[1]}"'
+        if "loading=" not in attrs:
+            attrs = ('loading="eager" ' if image_index == 0 else 'loading="lazy" ') + attrs
+        if image_index == 0 and "fetchpriority=" not in attrs:
+            attrs = 'fetchpriority="high" ' + attrs
+        if "decoding=" not in attrs:
+            attrs += ' decoding="async"'
+        image_index += 1
+        return "<img " + attrs + ">"
+
+    body = re.sub(r'<img ([^>]*?)>', render_image, body)
     body, headings = add_heading_ids(body)
     toc = ['<ul class="docs-toc">']
     for level, hid, text in headings:
@@ -1114,7 +1588,7 @@ def render_doc(lang: str, slug: str) -> None:
   <div class="wrap">
     <p class="docs-breadcrumb"><a href="{home_url(current, lang)}">{t['home']}</a><span>/</span><a href="{docs_hub_url(current, lang)}">{t['docs']}</a><span>/</span>{d['label']}</p>
     <div class="docs-badges"><span class="lang-badge">{d['label']}</span><span class="version-pill">{d['version']}</span></div>
-    <h1>{d['title'][lang]}</h1>
+    <h1>{d['h1'][lang]}</h1>
     <p>{d['summary'][lang]}</p>
     <div class="docs-actions"><a class="text-link" href="{d['repo']}" target="_blank" rel="noopener">{t['github']} {icon('i-external', 'icon-xs')}</a><a class="text-link" href="{d['source_url']}" target="_blank" rel="noopener">{t['docs_source']} {icon('i-external', 'icon-xs')}</a></div>
     <p class="docs-meta">{t['docs_version']} {d['version']} / {d['source_label'][lang]}</p>
@@ -1141,8 +1615,13 @@ def render_doc(lang: str, slug: str) -> None:
     {end}
   </article>
 </div>'''
-    title = f"{d['title'][lang]} · Apidoc"
-    write(current, page_shell(lang, current, hero + layout, title, d['summary'][lang], og_type="article"))
+    title = d["seo_title"][lang]
+    description = d["meta_description"][lang]
+    article_meta = (
+        f'<meta property="article:modified_time" content="{page_lastmod(current)}">'
+        f'<meta property="article:section" content="{html.escape(d["label"], quote=True)}">'
+    )
+    write(current, page_shell(lang, current, hero + layout, title, description, extra_head=doc_jsonld(lang, current, slug) + article_meta, og_type="article"))
 
 
 # ---------------------------------------------------------------------------
@@ -1161,9 +1640,92 @@ def build_redirect() -> None:
         "docs.html",
         '<!doctype html><html lang="zh-CN"><head><meta charset="utf-8">'
         '<meta http-equiv="refresh" content="0;url=docs/index.html">'
-        '<link rel="canonical" href="docs/index.html"><title>Apidoc Docs</title></head>'
+        '<meta name="robots" content="noindex,follow">'
+        f'<link rel="canonical" href="{SITE_URL}/docs/">'
+        '<title>Apidoc Docs</title></head>'
         '<body><p><a href="docs/index.html">Apidoc 使用文档</a></p></body></html>',
     )
+
+
+def build_404() -> None:
+    write(
+        "404.html",
+        '''<!doctype html>
+<html lang="zh-CN">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>页面未找到 · Apidoc</title>
+  <meta name="robots" content="noindex,follow">
+  <meta name="theme-color" content="#f7f6fc">
+  <link rel="icon" href="assets/img/apidoc-pet.svg" type="image/svg+xml">
+  <link rel="stylesheet" href="assets/css/style.css">
+</head>
+<body>
+  <main class="wrap not-found">
+    <img src="assets/img/pet/terrified.svg" width="120" height="120" alt="" aria-hidden="true">
+    <p class="not-found-code">404</p>
+    <h1>页面未找到 / Page not found</h1>
+    <p>这个地址不存在，可能是链接过期或拼写错误。<br>This page does not exist. The link may be outdated or mistyped.</p>
+    <div class="not-found-actions">
+      <a class="btn btn-primary" href="index.html">返回首页 / Home</a>
+      <a class="btn btn-secondary" href="docs/index.html">使用文档 / Guides</a>
+    </div>
+  </main>
+</body>
+</html>
+''',
+    )
+
+
+def build_robots() -> None:
+    write(
+        "robots.txt",
+        f"User-agent: *\nAllow: /\n\nSitemap: {SITE_URL}/sitemap.xml\n",
+    )
+
+
+def build_sitemap() -> None:
+    home_paths = set(HOME_REL.values())
+    hub_paths = set(DOCS_HUB_REL.values())
+    lines = [
+        '<?xml version="1.0" encoding="UTF-8"?>',
+        '<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9" '
+        'xmlns:xhtml="http://www.w3.org/1999/xhtml" '
+        'xmlns:image="http://www.google.com/schemas/sitemap-image/1.1">',
+    ]
+    for rel_path in site_pages():
+        if rel_path in home_paths:
+            changefreq, priority = "weekly", "1.0"
+        elif rel_path in hub_paths:
+            changefreq, priority = "monthly", "0.8"
+        else:
+            changefreq, priority = "monthly", "0.7"
+        lines.append("  <url>")
+        lines.append(f"    <loc>{xml_escape(canonical_url(rel_path))}</loc>")
+        lines.append(f"    <lastmod>{page_lastmod(rel_path)}</lastmod>")
+        lines.append(f"    <changefreq>{changefreq}</changefreq>")
+        lines.append(f"    <priority>{priority}</priority>")
+        for hreflang, href in lang_alternates(rel_path):
+            lines.append(
+                '    <xhtml:link rel="alternate" '
+                f'hreflang="{hreflang}" href="{xml_escape(href)}"/>'
+            )
+        image = page_image(rel_path)
+        if image:
+            image_path, image_title = image
+            lines.append("    <image:image>")
+            lines.append(
+                "      <image:loc>"
+                f"{xml_escape(SITE_URL + '/' + image_path)}</image:loc>"
+            )
+            lines.append(
+                f"      <image:title>{xml_escape(image_title)}</image:title>"
+            )
+            lines.append("    </image:image>")
+        lines.append("  </url>")
+    lines.append("</urlset>")
+    write("sitemap.xml", "\n".join(lines) + "\n")
 
 
 def main() -> None:
@@ -1173,6 +1735,9 @@ def main() -> None:
         for slug in SLUGS:
             render_doc(lang, slug)
     build_redirect()
+    build_404()
+    build_robots()
+    build_sitemap()
 
 
 if __name__ == "__main__":

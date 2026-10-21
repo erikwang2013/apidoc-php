@@ -3,14 +3,18 @@
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
-  <title>PHP 使用指南 · Apidoc</title>
-  <meta name="description" content="在 Laravel、ThinkPHP、Hyperf、Webman、Yii2、Yii3 中写 PHP 8 attributes，自动生成可浏览、可调试、可导出的接口文档。">
+  <title>PHP API 文档生成指南 · Laravel / ThinkPHP / Hyperf · Apidoc</title>
+  <meta name="description" content="在 Laravel、ThinkPHP、Hyperf、Webman、Yii2、Yii3 中用 PHP 8 attributes 声明接口文档，自动生成可浏览、可调试、可导出的 API 文档。">
   <meta name="theme-color" content="#f7f6fc">
   <link rel="icon" href="../assets/img/apidoc-pet.svg" type="image/svg+xml">
   <link rel="preload" href="../assets/img/apidoc-pet.svg" as="image">
   <link rel="stylesheet" href="../assets/css/style.css">
-  <link rel="alternate" hreflang="zh-CN" href="php.html">
-  <link rel="alternate" hreflang="en" href="../en/docs/php.html">
+  <link rel="canonical" href="https://apidoc.erik.xyz/docs/php.html">
+  <meta name="robots" content="index,follow,max-image-preview:large,max-snippet:-1,max-video-preview:-1">
+  <meta name="author" content="erik">
+  <link rel="alternate" hreflang="zh-CN" href="https://apidoc.erik.xyz/docs/php.html">
+  <link rel="alternate" hreflang="en" href="https://apidoc.erik.xyz/en/docs/php.html">
+  <link rel="alternate" hreflang="x-default" href="https://apidoc.erik.xyz/docs/php.html">
   <noscript>
     <style>
       .nav-toggle { display: none !important; }
@@ -22,19 +26,23 @@
     </style>
   </noscript>
   <meta property="og:type" content="article">
-  <meta property="og:title" content="PHP 使用指南 · Apidoc">
-  <meta property="og:description" content="在 Laravel、ThinkPHP、Hyperf、Webman、Yii2、Yii3 中写 PHP 8 attributes，自动生成可浏览、可调试、可导出的接口文档。">
-  <meta property="og:image" content="../assets/img/social-preview.png">
+  <meta property="og:title" content="PHP API 文档生成指南 · Laravel / ThinkPHP / Hyperf · Apidoc">
+  <meta property="og:description" content="在 Laravel、ThinkPHP、Hyperf、Webman、Yii2、Yii3 中用 PHP 8 attributes 声明接口文档，自动生成可浏览、可调试、可导出的 API 文档。">
+  <meta property="og:url" content="https://apidoc.erik.xyz/docs/php.html">
+  <meta property="og:image" content="https://apidoc.erik.xyz/assets/img/social-preview.png">
+  <meta property="og:image:type" content="image/png">
   <meta property="og:image:width" content="1280">
   <meta property="og:image:height" content="640">
+  <meta property="og:image:alt" content="Apidoc：PHP、Go、Rust 通用 API 文档体系">
   <meta property="og:site_name" content="Apidoc">
   <meta property="og:locale" content="zh_CN">
   <meta property="og:locale:alternate" content="en_US">
   <meta name="twitter:card" content="summary_large_image">
-  <meta name="twitter:title" content="PHP 使用指南 · Apidoc">
-  <meta name="twitter:description" content="在 Laravel、ThinkPHP、Hyperf、Webman、Yii2、Yii3 中写 PHP 8 attributes，自动生成可浏览、可调试、可导出的接口文档。">
-  <meta name="twitter:image" content="../assets/img/social-preview.png">
-  
+  <meta name="twitter:title" content="PHP API 文档生成指南 · Laravel / ThinkPHP / Hyperf · Apidoc">
+  <meta name="twitter:description" content="在 Laravel、ThinkPHP、Hyperf、Webman、Yii2、Yii3 中用 PHP 8 attributes 声明接口文档，自动生成可浏览、可调试、可导出的 API 文档。">
+  <meta name="twitter:image" content="https://apidoc.erik.xyz/assets/img/social-preview.png">
+  <meta name="twitter:image:alt" content="Apidoc：PHP、Go、Rust 通用 API 文档体系">
+  <script type="application/ld+json">{"@context":"https://schema.org","@graph":[{"@type":"Person","@id":"https://apidoc.erik.xyz/#person","name":"erik","url":"https://erik.xyz","sameAs":["https://github.com/erikwang2013"]},{"@type":"Organization","@id":"https://apidoc.erik.xyz/#organization","name":"Apidoc","url":"https://apidoc.erik.xyz/","description":"Open-source API documentation for PHP, Go and Rust.","logo":{"@type":"ImageObject","url":"https://apidoc.erik.xyz/assets/img/apidoc-pet.svg"},"sameAs":["https://github.com/erikwang2013"],"founder":{"@id":"https://apidoc.erik.xyz/#person"}},{"@type":"WebSite","@id":"https://apidoc.erik.xyz/#website","url":"https://apidoc.erik.xyz/","name":"Apidoc","description":"API documentation for PHP, Go and Rust.","inLanguage":["zh-CN","en"],"publisher":{"@id":"https://apidoc.erik.xyz/#organization"}},{"@type":"TechArticle","@id":"https://apidoc.erik.xyz/docs/php.html#article","headline":"PHP API 文档使用指南","description":"在 Laravel、ThinkPHP、Hyperf、Webman、Yii2、Yii3 中写 PHP 8 attributes，自动生成可浏览、可调试、可导出的接口文档。","url":"https://apidoc.erik.xyz/docs/php.html","mainEntityOfPage":{"@id":"https://apidoc.erik.xyz/docs/php.html"},"inLanguage":"zh-CN","author":{"@id":"https://apidoc.erik.xyz/#person"},"publisher":{"@id":"https://apidoc.erik.xyz/#organization"},"isPartOf":{"@id":"https://apidoc.erik.xyz/docs/"},"about":"PHP","articleSection":"PHP","dateModified":"2026-10-21","image":"https://apidoc.erik.xyz/assets/img/social-preview.png","keywords":"PHP API 文档, PHP 8 attributes, Laravel, ThinkPHP, Hyperf, Webman, Yii2, Yii3"},{"@type":"BreadcrumbList","@id":"https://apidoc.erik.xyz/docs/php.html#breadcrumb","itemListElement":[{"@type":"ListItem","position":1,"name":"首页","item":"https://apidoc.erik.xyz/"},{"@type":"ListItem","position":2,"name":"使用文档","item":"https://apidoc.erik.xyz/docs/"},{"@type":"ListItem","position":3,"name":"PHP","item":"https://apidoc.erik.xyz/docs/php.html"}]}]}</script><meta property="article:modified_time" content="2026-10-21"><meta property="article:section" content="PHP">
 </head>
 <body data-copy-label="复制" data-copied-label="已复制" data-menu-open="打开菜单" data-menu-close="关闭菜单">
   <a class="skip-link" href="#main">跳到主要内容</a>
@@ -86,7 +94,7 @@
   <div class="wrap">
     <p class="docs-breadcrumb"><a href="../index.html">首页</a><span>/</span><a href="index.html">使用文档</a><span>/</span>PHP</p>
     <div class="docs-badges"><span class="lang-badge">PHP</span><span class="version-pill">v1.0.6</span></div>
-    <h1>PHP 使用指南</h1>
+    <h1>PHP API 文档使用指南</h1>
     <p>在 Laravel、ThinkPHP、Hyperf、Webman、Yii2、Yii3 中写 PHP 8 attributes，自动生成可浏览、可调试、可导出的接口文档。</p>
     <div class="docs-actions"><a class="text-link" href="https://github.com/erikwang2013/apidoc-php" target="_blank" rel="noopener">GitHub <svg class="icon icon-xs" aria-hidden="true"><use href="#i-external"></use></svg></a><a class="text-link" href="https://github.com/erikwang2013/apidoc-php/blob/main/docs/ATTRIBUTES.md" target="_blank" rel="noopener">查看源文档 <svg class="icon icon-xs" aria-hidden="true"><use href="#i-external"></use></svg></a></div>
     <p class="docs-meta">版本 v1.0.6 / 完整注解参考：docs/ATTRIBUTES.md</p>
@@ -100,7 +108,7 @@
   <article class="docs-article">
     <details class="docs-toc-mobile"><summary>本页目录</summary><ul class="docs-toc"><li><a href="#sec-1">适用场景</a></li><li><a href="#sec-2">环境与安装</a></li><li><a href="#sec-3">最小接入</a></li><li><a href="#sec-4">框架接入</a></li><li><a href="#sec-5">解析规则</a></li><li><a href="#sec-6">控制器与接口注解</a></li><li><a href="#sec-7">请求参数</a></li><li><a href="#sec-8">响应与嵌套</a></li><li><a href="#sec-9">复用：definitions / ref / 模型 / 实体类</a></li><li><a href="#sec-10">多应用、多版本与分组</a></li><li><a href="#sec-11">Mock 与在线调试</a></li><li><a href="#sec-12">鉴权、缓存与安全</a></li><li><a href="#sec-13">导出、分享与代码生成</a></li><li><a href="#sec-14">典型场景</a></li><li class="is-sub"><a href="#sec-15">列表与分页</a></li><li class="is-sub"><a href="#sec-16">登录与 Token</a></li><li class="is-sub"><a href="#sec-17">文件上传</a></li><li class="is-sub"><a href="#sec-18">多版本接口</a></li><li class="is-sub"><a href="#sec-19">前端联调</a></li><li><a href="#sec-20">规则与排错</a></li><li><a href="#sec-21">参考</a></li></ul></details>
     <p>PHP 版把接口文档写在控制器和接口方法的 PHP 8 attributes 里。安装后访问 <code>/apidoc</code>，即可得到可浏览、可在线调试、可导出的 API 文档。它适合已有 PHP 控制器结构、希望文档与代码一起维护的项目。</p>
-<figure class="doc-figure"><img loading="lazy" decoding="async" src="../assets/img/social-preview.svg" alt="Apidoc PHP social preview"><figcaption>Apidoc PHP：宠物与注解代码，同一套文档模型服务于三种后端。</figcaption></figure>
+<figure class="doc-figure"><img fetchpriority="high" loading="eager" src="../assets/img/social-preview.svg" alt="Apidoc PHP social preview" width="1280" height="640" decoding="async"><figcaption>Apidoc PHP：宠物与注解代码，同一套文档模型服务于三种后端。</figcaption></figure>
 
 <h2 id="sec-1">适用场景</h2>
 <ul>
@@ -600,11 +608,39 @@
       <a href="../en/docs/php.html" hreflang="en" lang="en">English</a>
     </div>
   </div>
+  <section class="donate" aria-labelledby="donate-title">
+  <div class="wrap donate-inner">
+    <div class="donate-copy">
+      <p class="donate-kicker">赞赏支持</p>
+      <h2 id="donate-title">喜欢这个项目？请我喝杯咖啡</h2>
+      <p>你的支持会用于文档维护与后续开发。</p>
+    </div>
+    <div class="donate-codes">
+      <button class="donate-code donate-wechat" type="button" data-donate="wechat" data-donate-src="../assets/img/weixinpay.png" data-donate-label="微信赞赏" data-donate-hint="请使用微信扫一扫" data-donate-alt="微信赞赏二维码" aria-haspopup="dialog" aria-controls="donate-dialog">
+        <img src="../assets/img/weixinpay.png" width="386" height="489" loading="lazy" decoding="async" alt="">
+        <span>微信赞赏</span>
+      </button>
+      <button class="donate-code donate-alipay" type="button" data-donate="alipay" data-donate-src="../assets/img/alipay.png" data-donate-label="支付宝赞赏" data-donate-hint="请使用支付宝扫一扫" data-donate-alt="支付宝赞赏二维码" aria-haspopup="dialog" aria-controls="donate-dialog">
+        <img src="../assets/img/alipay.png" width="412" height="516" loading="lazy" decoding="async" alt="">
+        <span>支付宝赞赏</span>
+      </button>
+    </div>
+  </div>
+</section>
+<dialog class="donate-dialog" id="donate-dialog" aria-labelledby="donate-dialog-title">
+  <form method="dialog" class="donate-dialog-card">
+    <button class="donate-dialog-close" type="submit" aria-label="关闭" title="关闭">&times;</button>
+    <p class="donate-dialog-kicker">扫码赞赏</p>
+    <h2 id="donate-dialog-title">微信赞赏</h2>
+    <img class="donate-dialog-img" id="donate-dialog-img" src="../assets/img/weixinpay.png" alt="微信赞赏二维码" width="386" height="489" loading="lazy" decoding="async">
+    <p class="donate-dialog-hint" id="donate-dialog-hint">请使用微信扫一扫</p>
+  </form>
+</dialog>
   <div class="wrap footer-bottom">
     <p>© 2026 erik. Apidoc. MIT License.</p>
     <p>视觉资产版权归作者所有，商业使用需取得授权。 <a href="https://github.com/erikwang2013/apidoc-php/blob/main/ASSETS-LICENSE.md" target="_blank" rel="noopener">ASSETS-LICENSE.md</a></p>
   </div>
-  <div class="wrap footer-info" id="busuanzi"><script async src="//busuanzi.ibruce.info/busuanzi/2.3/busuanzi.pure.mini.js"></script><span id="busuanzi_container_site_pv">本站总访问量 <b id="busuanzi_value_site_pv">0</b> 次 👀</span><span class="dot">·</span><span id="busuanzi_container_site_uv">访客数 <b id="busuanzi_value_site_uv">0</b> 人次 🧑‍🚀</span></div>
+  <div class="wrap footer-info" id="busuanzi"><span id="busuanzi_container_site_pv">本站总访问量 <b id="busuanzi_value_site_pv">0</b> 次 👀</span><span class="dot">·</span><span id="busuanzi_container_site_uv">访客数 <b id="busuanzi_value_site_uv">0</b> 人次 🧑‍🚀</span></div>
 </footer>
   <button class="to-top" id="to-top" type="button" aria-label="回到顶部" title="回到顶部" data-label="回到顶部" data-cute="../assets/img/pet/cute.svg">
     <svg class="to-top-ring" viewBox="0 0 64 64" aria-hidden="true"><circle cx="32" cy="32" r="30"></circle></svg>
