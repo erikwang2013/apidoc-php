@@ -493,7 +493,8 @@ figure {
   grid-template-columns: minmax(0, 1.08fr) minmax(0, 0.92fr);
   gap: clamp(28px, 4vw, 52px);
   align-items: center;
-  min-height: min(720px, calc(100svh - var(--header-h) - 76px));
+  /* 254px = header border + hero padding + stats band, so hero + stats fill one screen */
+  min-height: min(720px, calc(100svh - var(--header-h) - 254px));
 }
 
 .hero-copy {
@@ -556,7 +557,7 @@ figure {
   position: relative;
   display: grid;
   place-items: center;
-  width: min(100%, 540px);
+  width: min(100%, 540px, calc(100svh - 322px));
   aspect-ratio: 1;
   justify-self: end;
 }

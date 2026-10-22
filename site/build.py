@@ -748,6 +748,7 @@ def render_header(lang: str, current: str, active: str) -> str:
     home = home_url(current, lang)
     docs = docs_hub_url(current, lang)
     nav = [
+        ("home", home, UI[lang]["home"]),
         ("languages", f"{home}#languages", UI[lang]["nav_languages"]),
         ("features", f"{home}#features", UI[lang]["nav_features"]),
         ("docs", docs, UI[lang]["nav_docs"]),
