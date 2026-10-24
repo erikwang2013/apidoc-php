@@ -46,10 +46,13 @@ while (true) {
     stream_set_timeout($conn, 5);
     while (($prefix = readExact($conn, 2)) !== null) {
         $length = unpack('n', $prefix)[1];
-        if ($length < 1 || $length > 65535 || readExact($conn, $length) === null) {
+        if ($length < 1 || $length > 65535 || ($request = readExact($conn, $length)) === null) {
             break;
         }
-        writeAll($conn, pack('n', strlen($responseBody)) . $responseBody);
+        // 回显 bitmap 之后的请求字段,用于断言驱动字段袋透传
+        $echo = strlen($request) > 20 ? substr($request, 20) : '';
+        $body = $responseBody . $echo;
+        writeAll($conn, pack('n', strlen($body)) . $body);
     }
     fclose($conn);
 }

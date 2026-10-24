@@ -7,7 +7,7 @@ declare(strict_types=1);
  */
 
 use erikwang2013\apidoc\Controller;
-use erikwang2013\apidoc\annotation\{Channel, Debug, Protocol};
+use erikwang2013\apidoc\annotation\{Channel, Debug, Protocol, Title};
 use erikwang2013\apidoc\parses\ParseProtocol;
 use erikwang2013\apidoc\protocol\debug\DebugProxy;
 use erikwang2013\apidoc\protocol\debug\DebugRegistry;
@@ -71,9 +71,10 @@ class ModbusDebugFixture
 }
 
 #[Protocol('iso8583')]
-class Iso8583DebugFixture
+class Iso8583ProxyFixture
 {
-    #[Channel('/debug/iso8583', action: 'send')]
+    #[Channel('iso')]
+    #[Title('ISO')]
     #[Debug(driver: 'iso8583', target: 'tcp://127.0.0.1:19008')]
     public function send() {}
 }
@@ -324,8 +325,18 @@ check('iso response hex', strpos((string)($isoRes['body'] ?? ''), bin2hex('0810'
 check('iso response ascii preview', strpos((string)($isoRes['meta']['ascii'] ?? ''), 'APPROVED') !== false);
 check('iso rejects bad mti', ($iso->send(['mti' => '08'], ['target' => 'tcp://127.0.0.1:19008'])['ok'] ?? true) === false);
 check('iso rejects bad bitmap', ($iso->send(['bitmap' => 'zz'], ['target' => 'tcp://127.0.0.1:19008'])['ok'] ?? true) === false);
-$isoProxyRes = $proxy->send('api', Iso8583DebugFixture::class . '@send', ['fields' => ['mti' => '0800', 'bitmap' => str_repeat('00', 16)]]);
+$isoProxyRes = $proxy->send('api', Iso8583ProxyFixture::class . '@send', ['fields' => ['mti' => '0800', 'bitmap' => str_repeat('00', 16)]]);
 check('iso8583 via proxy ok', ($isoProxyRes['ok'] ?? false) === true && strpos((string)($isoProxyRes['body'] ?? ''), bin2hex('APPROVED')) !== false);
+$isoFieldBlob = '30303030';
+$isoFieldsRes = $proxy->send('api', Iso8583ProxyFixture::class . '@send', ['fields' => [
+    'lengthPrefix' => '2binary',
+    'mti' => '0800',
+    'bitmap' => str_repeat('00', 16),
+    'fields' => $isoFieldBlob,
+]]);
+check('iso8583 fields bag via proxy ok', ($isoFieldsRes['ok'] ?? false) === true
+    && strpos((string)($isoFieldsRes['body'] ?? ''), bin2hex('0810')) !== false
+    && strpos((string)($isoFieldsRes['body'] ?? ''), $isoFieldBlob) !== false);
 
 // ---------- 控制器端点 ----------
 $controllerConfig = $config;
