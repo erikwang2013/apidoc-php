@@ -292,6 +292,7 @@ git commit -m "feat(debug): add driver registry and target validation"
 - Modify: `src/parses/ParseApiDetail.php:84-90` and `:412-454`
 - Modify: `src/parses/ParseApiMenus.php:217-270`
 - Modify: `tests/protocol.php`
+- Modify: `tests/fixtures/protocol/AnnotationFixtures.php` (add `PlainHttpFixture`)
 
 **Interfaces:**
 - Consumes: `ParseProtocol::metadata()`.
