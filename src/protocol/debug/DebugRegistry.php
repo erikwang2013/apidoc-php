@@ -3,7 +3,10 @@ declare(strict_types = 1);
 
 namespace erikwang2013\apidoc\protocol\debug;
 
+use erikwang2013\apidoc\protocol\debug\Driver\CoapDriver;
 use erikwang2013\apidoc\protocol\debug\Driver\HttpRelayDriver;
+use erikwang2013\apidoc\protocol\debug\Driver\Iso8583Driver;
+use erikwang2013\apidoc\protocol\debug\Driver\ModbusTcpDriver;
 use erikwang2013\apidoc\protocol\debug\Driver\MqttDriver;
 use erikwang2013\apidoc\protocol\debug\Driver\RawDriver;
 use erikwang2013\apidoc\protocol\debug\Driver\StompDriver;
@@ -22,6 +25,9 @@ class DebugRegistry
         'http-relay' => HttpRelayDriver::class,
         'mqtt' => MqttDriver::class,
         'stomp' => StompDriver::class,
+        'coap' => CoapDriver::class,
+        'modbus-tcp' => ModbusTcpDriver::class,
+        'iso8583' => Iso8583Driver::class,
     ];
 
     /**

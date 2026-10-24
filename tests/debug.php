@@ -10,6 +10,10 @@ use erikwang2013\apidoc\Controller;
 use erikwang2013\apidoc\annotation\{Channel, Debug, Protocol};
 use erikwang2013\apidoc\parses\ParseProtocol;
 use erikwang2013\apidoc\protocol\debug\DebugProxy;
+use erikwang2013\apidoc\protocol\debug\DebugRegistry;
+use erikwang2013\apidoc\protocol\debug\Driver\CoapDriver;
+use erikwang2013\apidoc\protocol\debug\Driver\Iso8583Driver;
+use erikwang2013\apidoc\protocol\debug\Driver\ModbusTcpDriver;
 use erikwang2013\apidoc\protocol\debug\Driver\MqttDriver;
 use erikwang2013\apidoc\protocol\debug\Driver\StompDriver;
 use erikwang2013\apidoc\protocol\debug\Support\HttpClient;
@@ -48,6 +52,30 @@ class MqttSubscribeFixture
     #[Channel('/debug/topic', action: 'subscribe')]
     #[Debug(driver: 'mqtt', target: 'tcp://127.0.0.1:19003')]
     public function subscribe() {}
+}
+
+#[Protocol('coap')]
+class CoapDebugFixture
+{
+    #[Channel('/debug/coap', action: 'send')]
+    #[Debug(driver: 'coap', target: 'udp://127.0.0.1:19006')]
+    public function echo() {}
+}
+
+#[Protocol('modbus-tcp')]
+class ModbusDebugFixture
+{
+    #[Channel('/debug/modbus', action: 'send')]
+    #[Debug(driver: 'modbus-tcp', target: 'tcp://127.0.0.1:19007')]
+    public function read() {}
+}
+
+#[Protocol('iso8583')]
+class Iso8583DebugFixture
+{
+    #[Channel('/debug/iso8583', action: 'send')]
+    #[Debug(driver: 'iso8583', target: 'tcp://127.0.0.1:19008')]
+    public function send() {}
 }
 
 $pass = 0;
@@ -113,8 +141,12 @@ startFixture([PHP_BINARY, $root . '/tests/fixtures/debug/udp_echo_server.php', '
 startFixture([PHP_BINARY, '-S', '127.0.0.1:19005', '-t', $root . '/tests/fixtures/debug/http'], $logDir . '/apidoc-debug-http.log');
 startFixture([PHP_BINARY, $root . '/tests/fixtures/debug/mqtt_broker.php', '127.0.0.1', '19003'], $logDir . '/apidoc-debug-mqtt.log');
 startFixture([PHP_BINARY, $root . '/tests/fixtures/debug/stomp_server.php', '127.0.0.1', '19004'], $logDir . '/apidoc-debug-stomp.log');
+startFixture([PHP_BINARY, $root . '/tests/fixtures/debug/coap_server.php', '127.0.0.1', '19006'], $logDir . '/apidoc-debug-coap.log');
+startFixture([PHP_BINARY, $root . '/tests/fixtures/debug/modbus_server.php', '127.0.0.1', '19007'], $logDir . '/apidoc-debug-modbus.log');
+startFixture([PHP_BINARY, $root . '/tests/fixtures/debug/iso8583_server.php', '127.0.0.1', '19008'], $logDir . '/apidoc-debug-iso8583.log');
 usleep(100000);
-if (!waitPort('127.0.0.1', 19011) || !waitPort('127.0.0.1', 19005) || !waitPort('127.0.0.1', 19003) || !waitPort('127.0.0.1', 19004)) {
+if (!waitPort('127.0.0.1', 19011) || !waitPort('127.0.0.1', 19005) || !waitPort('127.0.0.1', 19003) || !waitPort('127.0.0.1', 19004)
+    || !waitPort('127.0.0.1', 19007) || !waitPort('127.0.0.1', 19008)) {
     echo "FAIL  fixture 服务未就绪\n";
     exit(1);
 }
@@ -232,6 +264,68 @@ $subscribeMeta = (new ParseProtocol($config))->metadata($subscribeRef, $subscrib
 check('mqtt subscribe fixture mode', ($subscribeMeta['debug']['mode'] ?? '') === 'relay-stream');
 $subscribeProxy = $proxy->send('api', MqttSubscribeFixture::class . '@subscribe', ['fields' => ['topic' => 'debug/topic']]);
 check('mqtt subscribe rejected by unary proxy', ($subscribeProxy['ok'] ?? true) === false && strpos((string)($subscribeProxy['error'] ?? ''), 'not unary') !== false);
+
+// ---------- coap / modbus-tcp / iso8583 驱动 ----------
+check('debug registry has protocol drivers', DebugRegistry::driver('coap') instanceof CoapDriver
+    && DebugRegistry::driver('modbus-tcp') instanceof ModbusTcpDriver
+    && DebugRegistry::driver('iso8583') instanceof Iso8583Driver);
+check('coap fields registered', !array_diff(['method', 'path', 'payload'], array_column(DebugRegistry::driverFields('coap'), 'name')));
+check('modbus fields registered', !array_diff(['unitId', 'function', 'address', 'quantity', 'values'], array_column(DebugRegistry::driverFields('modbus-tcp'), 'name')));
+check('iso8583 fields registered', !array_diff(['lengthPrefix', 'mti', 'bitmap', 'fields'], array_column(DebugRegistry::driverFields('iso8583'), 'name')));
+
+$coap = new CoapDriver();
+check('coap header version 1', (ord($coap->encodeRequest(1, 1, 'coap://host/x', 'hi')[0]) >> 6) === 1);
+$coapReq = $coap->encodeRequest(0x1234, 2, 'coap://host/a/b', 'hi');
+check('coap post code and message id', bin2hex(substr($coapReq, 0, 4)) === '40021234');
+check('coap uri-path options', substr($coapReq, 4) === "\xB1a\x01b\xFFhi");
+$coapDecoded = $coap->decodeResponse("\x60\x45\x12\x34\xFFok");
+check('coap ack decoded', ($coapDecoded['ok'] ?? false) === true
+    && ($coapDecoded['type'] ?? -1) === 2
+    && ($coapDecoded['codeText'] ?? '') === '2.05'
+    && ($coapDecoded['messageId'] ?? 0) === 0x1234
+    && ($coapDecoded['payload'] ?? '') === 'ok');
+$coapRes = $coap->send(['method' => 'GET', 'path' => '/debug/coap', 'payload' => 'hi'], ['target' => 'udp://127.0.0.1:19006', 'timeout' => 2]);
+check('coap send ok', ($coapRes['ok'] ?? false) === true);
+check('coap send returns payload', ($coapRes['body'] ?? '') === 'coap-ok');
+check('coap send ack metadata', ($coapRes['meta']['code'] ?? '') === '2.05' && ($coapRes['meta']['type'] ?? -1) === 2);
+check('coap rejects tcp target', ($coap->send(['path' => '/x'], ['target' => 'tcp://127.0.0.1:19006'])['ok'] ?? true) === false);
+$coapProxyRes = $proxy->send('api', CoapDebugFixture::class . '@echo', ['fields' => ['method' => 'POST', 'path' => '/debug/coap', 'payload' => 'hi']]);
+check('coap via proxy ok', ($coapProxyRes['ok'] ?? false) === true && ($coapProxyRes['body'] ?? '') === 'coap-ok');
+
+$modbus = new ModbusTcpDriver();
+$req = $modbus->encodeRead(1, 3, 0, 2);
+check('modbus mbap length', bin2hex(substr($req, 4, 2)) === '0006');
+check('modbus function 3', ord($req[7]) === 3);
+check('modbus transaction, unit and pdu', bin2hex(substr($req, 0, 2)) === '0001' && ord($req[6]) === 1 && bin2hex(substr($req, 8)) === '00000002');
+$writeReq = $modbus->encodeWriteSingle(2, 6, 10, 500);
+check('modbus write register pdu', bin2hex(substr($writeReq, 7)) === '06000a01f4');
+$modbusException = ModbusTcpDriver::decodeResponse(pack('n', 1) . pack('n', 0) . pack('n', 3) . chr(1) . chr(0x83) . chr(2));
+check('modbus exception decoded', ($modbusException['ok'] ?? true) === false
+    && ($modbusException['meta']['exceptionCode'] ?? 0) === 2
+    && strpos((string)($modbusException['error'] ?? ''), 'exception 2') !== false);
+$modbusRes = $modbus->send(['function' => 3, 'address' => 0, 'quantity' => 2], ['target' => 'tcp://127.0.0.1:19007', 'timeout' => 2]);
+check('modbus send ok', ($modbusRes['ok'] ?? false) === true);
+check('modbus register values', ($modbusRes['meta']['values'] ?? []) === [100, 200] && strpos((string)($modbusRes['body'] ?? ''), '100, 200') !== false);
+check('modbus response hex returned', substr((string)($modbusRes['meta']['hex'] ?? ''), 0, 4) !== '');
+check('modbus rejects unsupported function', ($modbus->send(['function' => 99], ['target' => 'tcp://127.0.0.1:19007'])['ok'] ?? true) === false);
+$modbusProxyRes = $proxy->send('api', ModbusDebugFixture::class . '@read', ['fields' => ['function' => 3, 'address' => 0, 'quantity' => 2]]);
+check('modbus via proxy ok', ($modbusProxyRes['ok'] ?? false) === true && ($modbusProxyRes['meta']['values'] ?? []) === [100, 200]);
+
+$iso = new Iso8583Driver();
+$wire = $iso->encodeFrame('0800', str_repeat('00', 8), 2);
+check('iso length prefix', strlen($wire) === 2 + 4 + 8);
+check('iso length prefix value', bin2hex(substr($wire, 0, 2)) === '000c' && substr($wire, 2, 4) === '0800');
+check('iso ascii length prefix', substr($iso->encodeFrame('0800', str_repeat('00', 8), '2ascii'), 0, 2) === '12');
+check('iso no length prefix', strlen($iso->encodeFrame('0800', str_repeat('00', 8), 'none')) === 12);
+check('iso fields blob appended', strlen($iso->encodeFrame('0800', str_repeat('00', 8), 2, 'abcd')) === 2 + 4 + 8 + 2);
+$isoRes = $iso->send(['mti' => '0800', 'bitmap' => str_repeat('00', 16), 'fields' => '30303030'], ['target' => 'tcp://127.0.0.1:19008', 'timeout' => 2]);
+check('iso send ok', ($isoRes['ok'] ?? false) === true);
+check('iso response hex', strpos((string)($isoRes['body'] ?? ''), bin2hex('0810')) === 2 * 2 && strpos((string)($isoRes['body'] ?? ''), bin2hex('APPROVED')) !== false);
+check('iso response ascii preview', strpos((string)($isoRes['meta']['ascii'] ?? ''), 'APPROVED') !== false);
+check('iso rejects bad mti', ($iso->send(['mti' => '08'], ['target' => 'tcp://127.0.0.1:19008'])['ok'] ?? true) === false);
+check('iso rejects bad bitmap', ($iso->send(['bitmap' => 'zz'], ['target' => 'tcp://127.0.0.1:19008'])['ok'] ?? true) === false);
+$isoProxyRes = $proxy->send('api', Iso8583DebugFixture::class . '@send', ['fields' => ['mti' => '0800', 'bitmap' => str_repeat('00', 16)]]);
+check('iso8583 via proxy ok', ($isoProxyRes['ok'] ?? false) === true && strpos((string)($isoProxyRes['body'] ?? ''), bin2hex('APPROVED')) !== false);
 
 // ---------- 控制器端点 ----------
 $controllerConfig = $config;
