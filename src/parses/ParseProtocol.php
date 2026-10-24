@@ -31,9 +31,9 @@ class ParseProtocol
         $classAnnotations = $this->parseAnnotation->getClassAnnotation($refClass);
         $methodAnnotations = $this->parseAnnotation->getMethodAnnotation($refMethod);
 
-        $protocolRaw = $this->pick($classAnnotations, $methodAnnotations, 'protocol');
-        $channelRaw = $this->pick($classAnnotations, $methodAnnotations, 'channel');
-        $debugRaw = $this->pickDebug($classAnnotations, $methodAnnotations);
+        $protocolRaw = $this->mergeAnnotation($classAnnotations, $methodAnnotations, 'protocol');
+        $channelRaw = $this->mergeAnnotation($classAnnotations, $methodAnnotations, 'channel', ['name' => 'address']);
+        $debugRaw = $this->mergeAnnotation($classAnnotations, $methodAnnotations, 'debug', ['name' => 'driver']);
         if ($protocolRaw === null && $channelRaw === null && $debugRaw === null) {
             return [];
         }
@@ -137,44 +137,30 @@ class ParseProtocol
     }
 
     /**
-     * 方法注解优先于类注解;重复注解取第一个
+     * 注解按字段合并:类级为基,方法级非空字段覆盖,重复注解取第一个
+     * @param array $aliases 位置参数别名映射,如 ['name' => 'address']
      * @return array|null null 表示未声明
      */
-    protected function pick(array $classAnnotations, array $methodAnnotations, string $key)
+    protected function mergeAnnotation(array $classAnnotations, array $methodAnnotations, string $key, array $aliases = [])
     {
-        if (array_key_exists($key, $methodAnnotations)) {
-            $raw = $methodAnnotations[$key];
-        } elseif (array_key_exists($key, $classAnnotations)) {
-            $raw = $classAnnotations[$key];
-        } else {
-            return null;
-        }
-        $items = $this->normalizeItems($raw);
-        return $items[0] ?? [];
-    }
-
-    /**
-     * Debug 注解按字段合并:类级为基,方法级非空字段覆盖
-     * @return array|null null 表示未声明
-     */
-    protected function pickDebug(array $classAnnotations, array $methodAnnotations)
-    {
-        $hasClass = array_key_exists('debug', $classAnnotations);
-        $hasMethod = array_key_exists('debug', $methodAnnotations);
+        $hasClass = array_key_exists($key, $classAnnotations);
+        $hasMethod = array_key_exists($key, $methodAnnotations);
         if (!$hasClass && !$hasMethod) {
             return null;
         }
-        $classItems = $this->normalizeItems($hasClass ? $classAnnotations['debug'] : null);
-        $methodItems = $this->normalizeItems($hasMethod ? $methodAnnotations['debug'] : null);
+        $classItems = $this->normalizeItems($hasClass ? $classAnnotations[$key] : null);
+        $methodItems = $this->normalizeItems($hasMethod ? $methodAnnotations[$key] : null);
         $merged = $classItems[0] ?? [];
         $method = $methodItems[0] ?? [];
-        // 位置参数 #[Debug('raw')] 落在 name 上,方法级声明应覆盖类级 driver
-        if (!empty($method['name']) && empty($method['driver'])) {
-            $method['driver'] = $method['name'];
+        // 位置参数(x)解析为 name,方法级声明应覆盖类级同义字段
+        foreach ($aliases as $alias => $field) {
+            if (!empty($method[$alias]) && empty($method[$field])) {
+                $method[$field] = $method[$alias];
+            }
         }
-        foreach ($method as $key => $value) {
+        foreach ($method as $field => $value) {
             if ($value !== null && $value !== '' && $value !== []) {
-                $merged[$key] = $value;
+                $merged[$field] = $value;
             }
         }
         return $merged;

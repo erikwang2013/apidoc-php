@@ -76,6 +76,37 @@ class BrowserDebugFixture
     public function ping() {}
 }
 
+#[Protocol('mqtt', version: '3.1')]
+class MergedProtocolFixture
+{
+    #[Protocol(mode: 'relay-stream')]
+    #[Debug(target: 'tcp://broker:1883')]
+    public function run() {}
+}
+
+#[Protocol('mqtt')]
+#[Channel('tcp://class-host:1')]
+class MergedChannelFixture
+{
+    #[Channel(action: 'sub')]
+    public function run() {}
+}
+
+#[Protocol('mqtt')]
+#[Channel(address: 'tcp://class-host:1', action: 'publish')]
+class PositionalChannelOverrideFixture
+{
+    #[Channel('/method-address')]
+    public function run() {}
+}
+
+#[Protocol('mqtt')]
+class UnregisteredDriverFixture
+{
+    #[Debug(driver: 'def', target: 'tcp://broker:1883')]
+    public function run() {}
+}
+
 $config = [
     'cache' => ['folder' => 'apidoc'],
     'protocols' => ['debug' => ['relay_enable' => true]],
@@ -169,6 +200,27 @@ check('class Debug.fields kept when method omits it', in_array('topic', array_co
 $browserRef = new ReflectionClass(BrowserDebugFixture::class);
 $browser = $parser->metadata($browserRef, $browserRef->getMethod('ping'));
 check('browser mode debuggable with target despite no registered driver', ($browser['debug']['debuggable'] ?? false) === true);
+
+// ---------- Protocol / Channel 类级与方法级字段合并 ----------
+$mergedProtocolRef = new ReflectionClass(MergedProtocolFixture::class);
+$mergedProtocol = $parser->metadata($mergedProtocolRef, $mergedProtocolRef->getMethod('run'));
+check('class Protocol.name inherited when method omits it', ($mergedProtocol['protocol']['name'] ?? '') === 'mqtt');
+check('class Protocol.version inherited when method omits it', ($mergedProtocol['protocol']['version'] ?? '') === '3.1');
+check('method Protocol.mode overrides class', ($mergedProtocol['protocol']['mode'] ?? '') === 'relay-stream');
+
+$mergedChannelRef = new ReflectionClass(MergedChannelFixture::class);
+$mergedChannel = $parser->metadata($mergedChannelRef, $mergedChannelRef->getMethod('run'));
+check('class Channel.address inherited when method omits it', ($mergedChannel['channel']['address'] ?? '') === 'tcp://class-host:1');
+check('method Channel.action overrides class', ($mergedChannel['channel']['action'] ?? '') === 'sub');
+
+$positionalRef = new ReflectionClass(PositionalChannelOverrideFixture::class);
+$positional = $parser->metadata($positionalRef, $positionalRef->getMethod('run'));
+check('method positional Channel overrides class address', ($positional['channel']['address'] ?? '') === '/method-address');
+check('class Channel.action kept when method omits it', ($positional['channel']['action'] ?? '') === 'publish');
+
+$unregisteredRef = new ReflectionClass(UnregisteredDriverFixture::class);
+$unregistered = $parser->metadata($unregisteredRef, $unregisteredRef->getMethod('run'));
+check('unregistered driver not debuggable with relay enabled and target', ($unregistered['debug']['debuggable'] ?? true) === false);
 
 // 目录条目必须携带 defaultFormat，供定义解析计划消费
 check('rest default format', ProtocolCatalog::get('rest')['defaultFormat'] === 'openapi');
