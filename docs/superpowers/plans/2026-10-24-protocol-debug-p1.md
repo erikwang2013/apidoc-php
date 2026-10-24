@@ -767,8 +767,14 @@ $expired = $proxy->poll('nonexistent');
 check('unknown session rejected', ($expired['ok'] ?? true) === false);
 $wrongMode = $proxy->start('api', 'Tests\\Fixtures\\Protocol\\RawFixture@echo', ['fields'=>['topic'=>'a/b']]);
 check('relay-unary start rejected', ($wrongMode['ok'] ?? true) === false);
+$sessions = [];
+for ($i = 0; $i < 4; $i++) {
+    $s = $proxy->start('api', 'Tests\\Fixtures\\Protocol\\MqttSubscribeFixture@onMessage', [], 'session-limit-key');
+    $sessions[] = $s['sessionId'];
+}
 $limited = $proxy->start('api', 'Tests\\Fixtures\\Protocol\\MqttSubscribeFixture@onMessage', [], 'session-limit-key');
 check('max sessions per key enforced', ($limited['ok'] ?? true) === false);
+foreach ($sessions as $id) { $proxy->stop($id, 'session-limit-key'); }
 ```
 
 Add `MqttSubscribeFixture` (`#[Protocol('mqtt')]`, `action:'subscribe'`, `#[Debug(driver:'mqtt', target:'tcp://127.0.0.1:19003')]`) and `StompSubscribeFixture` (`action:'receive'`, `target:'tcp://127.0.0.1:19004'`). Extend `tests/fixtures/debug/mqtt_broker.php` and `stomp_server.php` to push one `hello` message after SUBSCRIBE; assert the poll returns it. Use `tcp://127.0.0.1:19003`/`19004` fixtures.
