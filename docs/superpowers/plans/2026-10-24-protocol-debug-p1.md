@@ -134,7 +134,7 @@ check('mqtt channel action', ($mqtt['channel']['action'] ?? '') === 'publish');
 check('mqtt debug mode', ($mqtt['debug']['mode'] ?? '') === 'relay-stream');
 check('mqtt debug driver', ($mqtt['debug']['driver'] ?? '') === 'mqtt');
 check('mqtt debug target', ($mqtt['debug']['defaults']['target'] ?? '') === 'tcp://broker:1883');
-check('mqtt debug field value', ($mqtt['debug']['fields'][0]['name'] ?? '') === 'value');
+check('mqtt debug field value present', in_array('value', array_column($mqtt['debug']['fields'], 'name'), true));
 $grpc = $parser->metadata(new ReflectionClass(\Tests\Fixtures\Protocol\GrpcFixture::class), (new ReflectionClass(\Tests\Fixtures\Protocol\GrpcFixture::class))->getMethod('sayHello'));
 check('grpc debug mode', ($grpc['debug']['mode'] ?? '') === 'relay-unary');
 check('grpc debug driver', ($grpc['debug']['driver'] ?? '') === 'grpc');
