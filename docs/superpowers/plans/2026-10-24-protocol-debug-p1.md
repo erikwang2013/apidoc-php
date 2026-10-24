@@ -354,7 +354,7 @@ git commit -m "feat(debug): expose protocol and debug metadata in menus and deta
 
 **Files:**
 - Create: `src/protocol/debug/DebugProxy.php`
-- Create: `src/protocol/debug/Driver/RawDriver.php`
+- Modify: `src/protocol/debug/Driver/RawDriver.php` (stub from Task 2; implement `send()` here)
 - Create: `src/protocol/debug/Driver/HttpRelayDriver.php`
 - Create: `src/protocol/debug/Support/Hex.php`
 - Modify: `src/providers/BaseService.php:13-30`
