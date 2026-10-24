@@ -11,6 +11,7 @@ use erikwang2013\apidoc\parses\ParseProtocol;
 use erikwang2013\apidoc\protocol\ProtocolCatalog;
 use erikwang2013\apidoc\protocol\debug\DebugRegistry;
 use erikwang2013\apidoc\protocol\debug\DebugTarget;
+use erikwang2013\apidoc\protocol\debug\Driver\GrpcDriver;
 use erikwang2013\apidoc\utils\ConfigProvider;
 
 error_reporting(E_ALL);
@@ -160,6 +161,9 @@ $grpcRef = new ReflectionClass(\Tests\Fixtures\Protocol\GrpcFixture::class);
 $grpc = $parser->metadata($grpcRef, $grpcRef->getMethod('sayHello'));
 check('grpc debug mode', ($grpc['debug']['mode'] ?? '') === 'relay-unary');
 check('grpc debug driver', ($grpc['debug']['driver'] ?? '') === 'grpc');
+$grpcAvailable = GrpcDriver::available();
+check('grpc debuggable follows curl http2 capability', ($grpc['debug']['debuggable'] ?? !$grpcAvailable) === $grpcAvailable);
+check('grpc reason matches curl http2 capability', ($grpc['debug']['debugReason'] ?? null) === ($grpcAvailable ? '' : 'curl HTTP/2 is required for gRPC'));
 $posRef = new ReflectionClass(\Tests\Fixtures\Protocol\PositionalDebugFixture::class);
 $pos = $parser->metadata($posRef, $posRef->getMethod('send'));
 check('positional Debug lands on driver', ($pos['debug']['driver'] ?? '') === 'raw');

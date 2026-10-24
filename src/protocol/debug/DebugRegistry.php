@@ -4,6 +4,8 @@ declare(strict_types = 1);
 namespace erikwang2013\apidoc\protocol\debug;
 
 use erikwang2013\apidoc\protocol\debug\Driver\CoapDriver;
+use erikwang2013\apidoc\protocol\debug\Driver\GrpcDriver;
+use erikwang2013\apidoc\protocol\debug\Driver\HessianDriver;
 use erikwang2013\apidoc\protocol\debug\Driver\HlsDriver;
 use erikwang2013\apidoc\protocol\debug\Driver\HttpRelayDriver;
 use erikwang2013\apidoc\protocol\debug\Driver\Iso8583Driver;
@@ -33,6 +35,8 @@ class DebugRegistry
         'iso8583' => Iso8583Driver::class,
         'rtsp' => RtspDriver::class,
         'sip' => SipDriver::class,
+        'grpc' => GrpcDriver::class,
+        'hessian' => HessianDriver::class,
         'hls' => HlsDriver::class,
     ];
 

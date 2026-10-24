@@ -12,6 +12,8 @@ use erikwang2013\apidoc\parses\ParseProtocol;
 use erikwang2013\apidoc\protocol\debug\DebugProxy;
 use erikwang2013\apidoc\protocol\debug\DebugRegistry;
 use erikwang2013\apidoc\protocol\debug\Driver\CoapDriver;
+use erikwang2013\apidoc\protocol\debug\Driver\GrpcDriver;
+use erikwang2013\apidoc\protocol\debug\Driver\HessianDriver;
 use erikwang2013\apidoc\protocol\debug\Driver\HlsDriver;
 use erikwang2013\apidoc\protocol\debug\Driver\Iso8583Driver;
 use erikwang2013\apidoc\protocol\debug\Driver\ModbusTcpDriver;
@@ -20,6 +22,7 @@ use erikwang2013\apidoc\protocol\debug\Driver\RtspDriver;
 use erikwang2013\apidoc\protocol\debug\Driver\SipDriver;
 use erikwang2013\apidoc\protocol\debug\Driver\StompDriver;
 use erikwang2013\apidoc\protocol\debug\Support\HttpClient;
+use erikwang2013\apidoc\protocol\debug\Support\Protobuf;
 use erikwang2013\apidoc\providers\BaseService;
 use erikwang2013\apidoc\utils\Cache;
 use erikwang2013\apidoc\utils\ConfigProvider;
@@ -151,10 +154,11 @@ startFixture([PHP_BINARY, $root . '/tests/fixtures/debug/iso8583_server.php', '1
 startFixture([PHP_BINARY, $root . '/tests/fixtures/debug/rtsp_server.php', '127.0.0.1', '19009'], $logDir . '/apidoc-debug-rtsp.log');
 startFixture([PHP_BINARY, $root . '/tests/fixtures/debug/sip_server.php', '127.0.0.1', '19010'], $logDir . '/apidoc-debug-sip.log');
 startFixture([PHP_BINARY, '-S', '127.0.0.1:19012', '-t', $root . '/tests/fixtures/debug/http'], $logDir . '/apidoc-debug-hls.log');
+startFixture([PHP_BINARY, '-S', '127.0.0.1:19013', $root . '/tests/fixtures/debug/hessian_server.php'], $logDir . '/apidoc-debug-hessian.log');
 usleep(100000);
 if (!waitPort('127.0.0.1', 19011) || !waitPort('127.0.0.1', 19005) || !waitPort('127.0.0.1', 19003) || !waitPort('127.0.0.1', 19004)
     || !waitPort('127.0.0.1', 19007) || !waitPort('127.0.0.1', 19008) || !waitPort('127.0.0.1', 19009)
-    || !waitPort('127.0.0.1', 19012)) {
+    || !waitPort('127.0.0.1', 19012) || !waitPort('127.0.0.1', 19013)) {
     echo "FAIL  fixture 服务未就绪\n";
     exit(1);
 }
@@ -424,6 +428,107 @@ check('hls fetch segment returns size and hash', ($hlsFetch['ok'] ?? false) === 
     && strlen((string)($hlsFetch['meta']['segment']['sha256'] ?? '')) === 64);
 check('hls fetch segment omits media bytes', strpos((string)($hlsFetch['body'] ?? ''), 'HLS-SEGMENT-1') === false);
 check('hls rejects non-http target', ($hls->send([], ['target' => 'tcp://127.0.0.1:19012'])['ok'] ?? true) === false);
+
+// ---------- grpc / hessian 驱动 ----------
+check('debug registry has rpc drivers', DebugRegistry::driver('grpc') instanceof GrpcDriver
+    && DebugRegistry::driver('hessian') instanceof HessianDriver);
+check('grpc fields registered', !array_diff(['service', 'method', 'metadata', 'payload', 'schema', 'tls'], array_column(DebugRegistry::driverFields('grpc'), 'name')));
+check('hessian fields registered', !array_diff(['method', 'args', 'payload'], array_column(DebugRegistry::driverFields('hessian'), 'name')));
+check('grpc mode is relay unary', (new GrpcDriver())->mode() === 'relay-unary');
+check('hessian mode is relay unary', (new HessianDriver())->mode() === 'relay-unary');
+
+$pb = Protobuf::encode([1 => ['type' => 'string', 'value' => 'hi']]);
+check('protobuf string field', bin2hex($pb) === '0a026869');
+$decoded = Protobuf::decode(hex2bin('0a026869'), [1 => ['name' => 'name', 'type' => 'string']]);
+check('protobuf decode', ($decoded['name'] ?? '') === 'hi');
+check('protobuf varint encode', bin2hex(Protobuf::encode([1 => ['type' => 'int', 'value' => 150]])) === '089601');
+check('protobuf varint decode', (Protobuf::decode(hex2bin('089601'), [1 => ['name' => 'n', 'type' => 'int']])['n'] ?? 0) === 150);
+check('protobuf bool field', bin2hex(Protobuf::encode([2 => ['type' => 'bool', 'value' => true]])) === '1001');
+check('protobuf double decode', (Protobuf::decode(Protobuf::encode([3 => ['type' => 'double', 'value' => 1.5]]), [3 => ['name' => 'd', 'type' => 'double']])['d'] ?? 0.0) === 1.5);
+$nested = Protobuf::encode([2 => ['type' => 'message', 'value' => [1 => ['type' => 'string', 'value' => 'hi']]]]);
+check('protobuf nested message bytes', bin2hex($nested) === '12040a026869');
+check('protobuf nested message decode', (Protobuf::decode($nested, [2 => ['name' => 'inner', 'type' => 'message', 'fields' => [1 => ['name' => 'name', 'type' => 'string']]]])['inner']['name'] ?? '') === 'hi');
+$repeated = Protobuf::encode([1 => ['type' => 'repeated', 'itemType' => 'int', 'value' => [1, 2]]]);
+check('protobuf repeated bytes', bin2hex($repeated) === '08010802');
+check('protobuf repeated decode', (Protobuf::decode($repeated, [1 => ['name' => 'nums', 'type' => 'repeated', 'itemType' => 'int']])['nums'] ?? []) === [1, 2]);
+check('protobuf packed repeated decode', (Protobuf::decode(hex2bin('0a03010203'), [1 => ['name' => 'nums', 'type' => 'repeated', 'itemType' => 'int']])['nums'] ?? []) === [1, 2, 3]);
+check('protobuf unknown field hex', (Protobuf::decode(hex2bin('182a'), [])['field_3'] ?? '') === '182a');
+$pbThrew = false;
+try {
+    Protobuf::decode(hex2bin('0880'), []);
+} catch (InvalidArgumentException $e) {
+    $pbThrew = true;
+}
+check('protobuf malformed varint throws', $pbThrew);
+$pbThrew = false;
+try {
+    Protobuf::decode(hex2bin('0a056869'), []);
+} catch (InvalidArgumentException $e) {
+    $pbThrew = true;
+}
+check('protobuf truncated length throws', $pbThrew);
+
+$grpc = new GrpcDriver();
+check('grpc frame prefix', bin2hex($grpc->frame("\x0a\x02hi")) === '00000000040a026869');
+check('grpc frame big endian length', substr($grpc->frame(str_repeat('a', 300)), 1, 4) === "\x00\x00\x01\x2c");
+$grpcRes = $grpc->send(
+    ['service' => 'demo.Greeter', 'method' => 'SayHello', 'payload' => '{"1":{"type":"string","value":"hi"}}'],
+    ['target' => '127.0.0.1:19005', 'timeout' => 2]
+);
+check('grpc non-grpc endpoint fails cleanly', ($grpcRes['ok'] ?? true) === false
+    && strpos((string)($grpcRes['error'] ?? ''), 'grpc-status') !== false);
+check('grpc rejects tcp scheme target', ($grpc->send(['service' => 'a', 'method' => 'b'], ['target' => 'tcp://127.0.0.1:19005'])['ok'] ?? true) === false);
+check('grpc rejects missing service', ($grpc->send(['method' => 'SayHello'], ['target' => '127.0.0.1:19005'])['ok'] ?? true) === false);
+check('grpc rejects invalid payload json', ($grpc->send(['service' => 'a', 'method' => 'b', 'payload' => 'nope'], ['target' => '127.0.0.1:19005'])['ok'] ?? true) === false);
+check('grpc rejects invalid metadata json', ($grpc->send(['service' => 'a', 'method' => 'b', 'metadata' => 'nope'], ['target' => '127.0.0.1:19005'])['ok'] ?? true) === false);
+
+$hessian = new HessianDriver();
+check('hessian string encode', bin2hex($hessian->encodeString('hi')) === '026869');
+check('hessian int encode', bin2hex($hessian->encodeInt(1)) === '91');
+check('hessian int two byte encode', bin2hex($hessian->encodeInt(1000)) === 'cbe8');
+check('hessian int negative two byte encode', bin2hex($hessian->encodeInt(-17)) === 'c7ef');
+check('hessian long encode', bin2hex($hessian->encodeLong(1)) === 'e1');
+check('hessian call envelope bytes', bin2hex($hessian->encodeCall('say', [])) === '6302006d00037361797a');
+check('hessian bool encode', $hessian->encodeBool(true) === 'T' && $hessian->encodeBool(false) === 'F');
+check('hessian null encode', $hessian->encodeNull() === 'N');
+check('hessian list roundtrip', $hessian->decode($hessian->encodeList([1, 'x', true])) === [1, 'x', true]);
+check('hessian map roundtrip', $hessian->decode($hessian->encodeMap(['a' => 1])) === ['a' => 1]);
+check('hessian binary roundtrip', $hessian->decode($hessian->encodeBinary("\x00\x01")) === "\x00\x01");
+check('hessian double roundtrip', $hessian->decode($hessian->encodeDouble(1.5)) === 1.5);
+check('hessian long roundtrip', $hessian->decode($hessian->encodeLong(1234567890123)) === 1234567890123);
+check('hessian map uses untyped marker', $hessian->encodeMap(['a' => 1])[0] === 'H');
+check('hessian compact double one', $hessian->decode("\x5c") === 1.0);
+check('hessian compact double byte', $hessian->decode("\x5d\x80") === -128.0);
+check('hessian compact double short', $hessian->decode("\x5e\x80\x00") === -32768.0);
+check('hessian compact double float', $hessian->decode("\x5f\x3f\x80\x00\x00") === 1.0);
+check('hessian compact binary', $hessian->decode("\x23abc") === 'abc');
+check('hessian string chunk', $hessian->decode("\x52\x00\x05hello\x05world") === 'helloworld');
+check('hessian compact untyped list', $hessian->decode("\x7a\x91\x92") === [1, 2]);
+check('hessian compact typed list', $hessian->decode("\x72\x04[int\x90\x91") === [0, 1]);
+check('hessian typed map decode', $hessian->decode("\x4d\x03Car\x01a\x91\x5a") === ['a' => 1]);
+check('hessian 32-bit long decode', $hessian->decode("\x59\x00\x00\x00\x2a") === 42);
+$hessianThrew = false;
+try {
+    $hessian->decode('');
+} catch (InvalidArgumentException $e) {
+    $hessianThrew = true;
+}
+check('hessian empty body throws', $hessianThrew);
+$hessianRes = $hessian->send(['method' => 'sayHello', 'args' => '["hi",1]'], ['target' => 'http://127.0.0.1:19013/hessian_server.php', 'timeout' => 2]);
+check('hessian send ok', ($hessianRes['ok'] ?? false) === true);
+check('hessian send decodes response', json_decode((string)($hessianRes['body'] ?? ''), true) === 'hello');
+check('hessian send status meta', ($hessianRes['meta']['status'] ?? 0) === 200);
+$hessianRaw = $hessian->send(['payload' => '6302006d00037361797a'], ['target' => 'http://127.0.0.1:19013/hessian_server.php', 'timeout' => 2]);
+check('hessian raw payload fallback', ($hessianRaw['ok'] ?? false) === true);
+$hessianEnvelope = $hessian->send(['method' => 'sayHello'], ['target' => 'http://127.0.0.1:19013/envelope', 'timeout' => 2]);
+check('hessian reply envelope decoded', ($hessianEnvelope['ok'] ?? false) === true
+    && json_decode((string)($hessianEnvelope['body'] ?? ''), true) === 'hello');
+$hessianFault = $hessian->send(['method' => 'sayHello'], ['target' => 'http://127.0.0.1:19013/fault', 'timeout' => 2]);
+check('hessian fault returns error', ($hessianFault['ok'] ?? true) === false
+    && strpos((string)($hessianFault['error'] ?? ''), 'File Not Found') !== false
+    && ($hessianFault['meta']['fault']['code'] ?? '') === 'ServiceException');
+check('hessian rejects bad args json', ($hessian->send(['method' => 'x', 'args' => 'nope'], ['target' => 'http://127.0.0.1:19013/hessian_server.php'])['ok'] ?? true) === false);
+check('hessian rejects non-http target', ($hessian->send(['method' => 'x'], ['target' => 'tcp://127.0.0.1:19013'])['ok'] ?? true) === false);
 
 // ---------- 控制器端点 ----------
 $controllerConfig = $config;

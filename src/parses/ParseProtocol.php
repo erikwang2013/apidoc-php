@@ -5,6 +5,7 @@ namespace erikwang2013\apidoc\parses;
 
 use erikwang2013\apidoc\protocol\ProtocolCatalog;
 use erikwang2013\apidoc\protocol\debug\DebugRegistry;
+use erikwang2013\apidoc\protocol\debug\Driver\GrpcDriver;
 use ReflectionClass;
 use ReflectionMethod;
 
@@ -127,6 +128,9 @@ class ParseProtocol
         } elseif (!$driverExists) {
             $debuggable = false;
             $debugReason = $protocol['debugReason'] !== '' ? $protocol['debugReason'] : '未支持的协议驱动（P2）';
+        } elseif ($driver === 'grpc' && !GrpcDriver::available()) {
+            $debuggable = false;
+            $debugReason = 'curl HTTP/2 is required for gRPC';
         } else {
             $debuggable = true;
             $debugReason = '';
