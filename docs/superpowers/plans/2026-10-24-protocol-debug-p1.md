@@ -1034,12 +1034,11 @@ git commit -m "feat(ui): add relay unary and stream debug panels"
     'debug' => [
         'relay_enable' => false,
         'relay_require_auth' => true,
-        'timeout' => 5,
         'max_timeout' => 30,
         'max_bytes' => 1048576,
         'rate_limit_per_minute' => 60,
         'max_sessions' => 4,
-        'session_ttl' => 60,
+        // 单次默认超时 5s、流式 session TTL 60s 是代码常量,不做配置项
     ],
 ],
 ```
