@@ -265,12 +265,14 @@ class DebugProxy
         foreach (['target', 'host', 'port'] as $key) {
             unset($input[$key], $driverFields[$key]);
         }
+        // 顶层 encoding 优先于 fields 内同名项与注解默认值;未知编码直接报错,不静默当 text
+        $encoding = $input['encoding'] ?? $driverFields['encoding'] ?? $defaults['encoding'] ?? 'text';
+        if (!is_string($encoding) || !in_array($encoding, ['text', 'json', 'hex', 'base64'], true)) {
+            return ['ok' => false, 'error' => 'unsupported encoding'];
+        }
+        unset($driverFields['encoding']);
         // 驱动字段优先于顶层同名字段;`fields` 本身可以是驱动字段(如 iso8583 的字段数据)
         $driverInput = array_merge($input, $driverFields);
-        $encoding = $driverInput['encoding'] ?? $defaults['encoding'] ?? 'text';
-        if (!is_string($encoding)) {
-            return ['ok' => false, 'error' => 'encoding must be a string'];
-        }
         $driverInput['encoding'] = $encoding;
         if (isset($driverInput['payload']) && !is_string($driverInput['payload'])) {
             return ['ok' => false, 'error' => 'payload must be a string'];

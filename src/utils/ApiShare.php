@@ -134,6 +134,27 @@ class ApiShare
         return $cacheData;
     }
 
+    /**
+     * api 类型的分享只能访问 apiKeys 内的接口;menuKey 可能是 urlencode 后的形式
+     */
+    public static function isApiKeyAllowed(array $shareData, string $apiKey): bool
+    {
+        if (($shareData['type'] ?? '') !== 'api') {
+            return true;
+        }
+        $apiKeys = $shareData['apiKeys'] ?? [];
+        if (!is_array($apiKeys)) {
+            return false;
+        }
+        $decoded = urldecode($apiKey);
+        foreach ([$apiKey, $decoded, urlencode($decoded)] as $candidate) {
+            if (in_array($candidate, $apiKeys, true)) {
+                return true;
+            }
+        }
+        return false;
+    }
+
     public static function getAppShareApis(array $config, array $apps, $parentKey = "", $filterAppKeys = [], $isParseDetail = false)
     {
         $appList = [];

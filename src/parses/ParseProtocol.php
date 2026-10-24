@@ -108,8 +108,17 @@ class ParseProtocol
                 $annotationFields[] = $item;
             }
         }
+        // Debug.meta 作为驱动字段的默认值;注解/Debug.fields 显式定义的字段合并时整体覆盖
+        $driverFields = DebugRegistry::driverFields($driver);
+        foreach ($driverFields as &$driverField) {
+            $fieldName = is_array($driverField) ? (string)($driverField['name'] ?? '') : '';
+            if ($fieldName !== '' && array_key_exists($fieldName, $meta)) {
+                $driverField['default'] = $meta[$fieldName];
+            }
+        }
+        unset($driverField);
         $fields = $this->mergeFields(array_merge(
-            DebugRegistry::driverFields($driver),
+            $driverFields,
             $this->normalizeItems($debugAnn['fields'] ?? null),
             $annotationFields,
             [['name' => 'target', 'in' => 'target', 'type' => 'string', 'require' => true, 'default' => $target]]
@@ -136,6 +145,11 @@ class ParseProtocol
             $debugReason = '';
         }
 
+        $hints = isset($meta['hints']) ? (string)$meta['hints'] : '';
+        if ($hints === '' && $driver === 'stomp' && $mode === 'relay-stream') {
+            // STOMP 无持久会话,每次长轮询重连的间隙可能丢消息
+            $hints = 'STOMP 长轮询每次重连的间隙可能丢失消息';
+        }
         $debug = [
             'mode' => $mode,
             'driver' => $driver,
@@ -144,8 +158,9 @@ class ParseProtocol
             'debugReason' => $debugReason,
             'fields' => $fields,
             'defaults' => $defaults,
+            'meta' => $meta,
             'responseEncoding' => isset($meta['responseEncoding']) ? $meta['responseEncoding'] : 'text',
-            'hints' => isset($meta['hints']) ? $meta['hints'] : '',
+            'hints' => $hints,
         ];
 
         $result = ['channel' => $channel, 'debug' => $debug];

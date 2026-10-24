@@ -146,6 +146,9 @@ class HlsDriver implements DebugDriverInterface
         // master playlist 不取 variant;media playlist 只取首个分片的大小/哈希
         if ($fetchSegment && $parsed['segments'] !== []) {
             $segmentUrl = $this->resolveUrl($url, $parsed['segments'][0]);
+            if (!HttpClient::sameOrigin($url, $segmentUrl)) {
+                return ['ok' => false, 'error' => 'cross-host segment blocked'];
+            }
             $segment = HttpClient::request([
                 'url' => $segmentUrl,
                 'method' => 'GET',

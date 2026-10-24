@@ -47,6 +47,7 @@ class ParseApiDetail
 
         try {
             $refClass  = new ReflectionClass($classPath);
+            $this->assertApiInAppScope($refClass);
             $refMethod= $refClass->getMethod($methodName);
             $methodItem = $this->parseApiMethod($refClass,$refMethod);
             return $methodItem;
@@ -55,6 +56,31 @@ class ParseApiDetail
         }
     }
 
+
+    /**
+     * 类文件必须位于所选 app 配置的 path 内,防止客户端用任意类名跨应用读取
+     * @throws ErrorException
+     */
+    protected function assertApiInAppScope(ReflectionClass $refClass): void
+    {
+        $appPath = $this->currentApp['path'] ?? '';
+        $paths = is_array($appPath) ? $appPath : [$appPath];
+        $file = $refClass->getFileName();
+        $fileReal = $file !== false ? realpath($file) : false;
+        if ($fileReal === false) {
+            throw new ErrorException("api not in app scope");
+        }
+        foreach ($paths as $path) {
+            if (!is_string($path) || $path === '') {
+                continue;
+            }
+            $dirReal = realpath(APIDOC_ROOT_PATH . str_replace('\\', '/', $path));
+            if ($dirReal !== false && strpos($fileReal, rtrim($dirReal, '/\\') . DIRECTORY_SEPARATOR) === 0) {
+                return;
+            }
+        }
+        throw new ErrorException("api not in app scope");
+    }
 
     public function parseApiMethod($refClass,$refMethod,$currentAppData = null){
         $config  = $this->config;

@@ -7,7 +7,7 @@ declare(strict_types=1);
  */
 
 use erikwang2013\apidoc\Controller;
-use erikwang2013\apidoc\annotation\{Channel, Debug, Protocol, Title};
+use erikwang2013\apidoc\exception\ErrorException;
 use erikwang2013\apidoc\parses\ParseProtocol;
 use erikwang2013\apidoc\protocol\debug\DebugProxy;
 use erikwang2013\apidoc\protocol\debug\DebugRegistry;
@@ -24,8 +24,15 @@ use erikwang2013\apidoc\protocol\debug\Driver\StompDriver;
 use erikwang2013\apidoc\protocol\debug\Support\HttpClient;
 use erikwang2013\apidoc\protocol\debug\Support\Protobuf;
 use erikwang2013\apidoc\providers\BaseService;
+use erikwang2013\apidoc\utils\ApiShare;
 use erikwang2013\apidoc\utils\Cache;
 use erikwang2013\apidoc\utils\ConfigProvider;
+use Tests\Fixtures\Protocol\CoapDebugFixture;
+use Tests\Fixtures\Protocol\Iso8583ProxyFixture;
+use Tests\Fixtures\Protocol\ModbusDebugFixture;
+use Tests\Fixtures\Protocol\MqttPublishFixture;
+use Tests\Fixtures\Protocol\MqttSubscribeFixture;
+use Tests\Fixtures\Protocol\StompSubscribeFixture;
 
 error_reporting(E_ALL);
 $root = dirname(__DIR__);
@@ -43,55 +50,6 @@ spl_autoload_register(function ($class) use ($root) {
     }
 });
 require __DIR__ . '/fixtures/protocol/AnnotationFixtures.php';
-
-#[Protocol('mqtt')]
-class MqttPublishFixture
-{
-    #[Channel('/debug/topic', action: 'publish')]
-    #[Debug(driver: 'mqtt', target: 'tcp://127.0.0.1:19003')]
-    public function publish() {}
-}
-
-#[Protocol('mqtt')]
-class MqttSubscribeFixture
-{
-    #[Channel('/debug/topic', action: 'subscribe')]
-    #[Debug(driver: 'mqtt', target: 'tcp://127.0.0.1:19003')]
-    public function subscribe() {}
-}
-
-#[Protocol('stomp')]
-class StompSubscribeFixture
-{
-    #[Channel('/debug/queue', action: 'receive')]
-    #[Debug(driver: 'stomp', target: 'tcp://127.0.0.1:19004')]
-    public function receive() {}
-}
-
-#[Protocol('coap')]
-class CoapDebugFixture
-{
-    #[Channel('/debug/coap', action: 'send')]
-    #[Debug(driver: 'coap', target: 'udp://127.0.0.1:19006')]
-    public function echo() {}
-}
-
-#[Protocol('modbus-tcp')]
-class ModbusDebugFixture
-{
-    #[Channel('/debug/modbus', action: 'send')]
-    #[Debug(driver: 'modbus-tcp', target: 'tcp://127.0.0.1:19007')]
-    public function read() {}
-}
-
-#[Protocol('iso8583')]
-class Iso8583ProxyFixture
-{
-    #[Channel('iso')]
-    #[Title('ISO')]
-    #[Debug(driver: 'iso8583', target: 'tcp://127.0.0.1:19008')]
-    public function send() {}
-}
 
 $pass = 0;
 $fail = 0;
@@ -174,7 +132,7 @@ usleep(100000);
 
 // ---------- 配置 ----------
 $config = require $root . '/src/config.php';
-$config['apps'] = [['key' => 'api', 'title' => 'API', 'path' => '']];
+$config['apps'] = [['key' => 'api', 'title' => 'API', 'path' => 'tests/fixtures/protocol']];
 $config['cache'] = ['enable' => false, 'folder' => 'apidoc'];
 $config['protocols']['debug'] = ['relay_enable' => true];
 ConfigProvider::set($config);
@@ -228,6 +186,31 @@ check('buildRequest drops client target/host/port', ($built['ok'] ?? false) === 
     && ($built['input']['payload'] ?? '') === 'hi'
     && ($built['input']['qos'] ?? 0) === 1);
 
+// ---------- 编码优先级 / 未知编码 ----------
+$encodingDefaults = ['defaults' => ['target' => 'tcp://127.0.0.1:19011', 'encoding' => 'text', 'timeout' => 2]];
+$topEncoding = $buildRequest->invoke($proxy, $config['protocols']['debug'], $encodingDefaults, [
+    'encoding' => 'hex',
+    'fields' => ['encoding' => 'base64', 'payload' => 'hi'],
+]);
+check('top-level encoding wins over fields encoding', ($topEncoding['ok'] ?? false) === true
+    && ($topEncoding['input']['encoding'] ?? '') === 'hex');
+$fieldEncoding = $buildRequest->invoke($proxy, $config['protocols']['debug'], $encodingDefaults, [
+    'fields' => ['encoding' => 'base64', 'payload' => 'aGk='],
+]);
+check('fields encoding used when top-level absent', ($fieldEncoding['ok'] ?? false) === true
+    && ($fieldEncoding['input']['encoding'] ?? '') === 'base64');
+$badEncoding = $buildRequest->invoke($proxy, $config['protocols']['debug'], $encodingDefaults, ['encoding' => 'utf-7']);
+check('unknown encoding rejected', ($badEncoding['ok'] ?? true) === false
+    && ($badEncoding['error'] ?? '') === 'unsupported encoding');
+$encodingEcho = $proxy->send('api', $rawApi, [
+    'payload' => '6869',
+    'encoding' => 'hex',
+    'fields' => ['encoding' => 'text'],
+    'timeout' => 2,
+]);
+check('top-level encoding reaches driver', ($encodingEcho['ok'] ?? false) === true
+    && ($encodingEcho['body'] ?? '') === '6869');
+
 $limitedConfig = $config;
 $limitedConfig['protocols']['debug']['rate_limit_per_minute'] = 1;
 $limited = new DebugProxy($limitedConfig);
@@ -254,6 +237,17 @@ check('oversize request rejected', ($oversize['ok'] ?? true) === false && strpos
 $http = $proxy->send('api', $httpApi, ['method' => 'POST', 'payload' => 'hello', 'encoding' => 'text']);
 check('http relay ok', ($http['ok'] ?? false) === true);
 check('http relay body', strpos((string)($http['body'] ?? ''), 'hello') !== false);
+$sameRedirect = $proxy->send('api', 'Tests\Fixtures\Protocol\HttpSameOriginRedirectFixture@echo', ['timeout' => 2]);
+check('same-origin redirect followed', ($sameRedirect['ok'] ?? false) === true && ($sameRedirect['status'] ?? 0) === 200);
+$crossRedirect = $proxy->send('api', 'Tests\Fixtures\Protocol\HttpRedirectFixture@echo', ['timeout' => 2]);
+check('cross-host redirect blocked', ($crossRedirect['ok'] ?? true) === false
+    && ($crossRedirect['error'] ?? '') === 'cross-host redirect blocked');
+$hostHeader = $proxy->send('api', 'Tests\Fixtures\Protocol\HttpHeadersFixture@echo', [
+    'headers' => ['Host' => 'evil.example', 'X-Test' => '1'],
+    'timeout' => 2,
+]);
+check('client Host header dropped', ($hostHeader['ok'] ?? false) === true
+    && ($hostHeader['body'] ?? '') === '127.0.0.1:19005');
 
 // ---------- mqtt / stomp 驱动 ----------
 $mqtt = new MqttDriver();
@@ -521,6 +515,9 @@ check('hls fetch segment returns size and hash', ($hlsFetch['ok'] ?? false) === 
     && ($hlsFetch['meta']['segment']['bytes'] ?? 0) === strlen('HLS-SEGMENT-1')
     && strlen((string)($hlsFetch['meta']['segment']['sha256'] ?? '')) === 64);
 check('hls fetch segment omits media bytes', strpos((string)($hlsFetch['body'] ?? ''), 'HLS-SEGMENT-1') === false);
+$hlsCrossHost = $hls->send(['fetchSegment' => true], ['target' => 'http://127.0.0.1:19012/cross-host.m3u8', 'timeout' => 2]);
+check('hls cross-host segment blocked', ($hlsCrossHost['ok'] ?? true) === false
+    && ($hlsCrossHost['error'] ?? '') === 'cross-host segment blocked');
 check('hls rejects non-http target', ($hls->send([], ['target' => 'tcp://127.0.0.1:19012'])['ok'] ?? true) === false);
 
 // ---------- grpc / hessian 驱动 ----------
@@ -644,6 +641,8 @@ check('hessian rejects non-http target', ($hessian->send(['method' => 'x'], ['ta
 
 // ---------- 控制器端点 ----------
 $controllerConfig = $config;
+// auth 全局关闭且 app 无密码时 token 不会被校验,这些用例刻意使用匿名/占位 token
+$controllerConfig['protocols']['debug']['relay_require_auth'] = false;
 $controllerConfig['request_params'] = [
     'appKey' => 'api',
     'path' => $rawApi,
@@ -668,8 +667,98 @@ ConfigProvider::set($deniedConfig);
 $denied = (new Controller())->debugSend();
 check('controller debugSend requires auth by default', ($denied['data']['ok'] ?? true) === false && ($denied['data']['error'] ?? '') === 'authentication required');
 
+// 仅凭非空 token 不够:auth/app 密码都没配置时 token 不会被校验,必须拒绝
+$presenceConfig = $controllerConfig;
+unset($presenceConfig['protocols']['debug']['relay_require_auth']);
+ConfigProvider::set($presenceConfig);
+$presence = (new Controller())->debugSend();
+check('presence-only token rejected when no auth configured', ($presence['data']['ok'] ?? true) === false
+    && ($presence['data']['error'] ?? '') === 'relay requires auth: enable auth or configure an app password');
+
+// ---------- 分享 apiKeys 范围 ----------
+$apiShare = ['type' => 'api', 'apiKeys' => [urlencode($rawApi)]];
+check('share api key raw allowed', ApiShare::isApiKeyAllowed($apiShare, $rawApi) === true);
+check('share api key encoded allowed', ApiShare::isApiKeyAllowed($apiShare, urlencode($rawApi)) === true);
+check('share api key disallowed', ApiShare::isApiKeyAllowed($apiShare, 'Tests\Fixtures\Protocol\UdpRawFixture@echo') === false);
+check('non-api share allows any key', ApiShare::isApiKeyAllowed(['type' => 'app'], 'Anything@x') === true);
+
+$shareStore = new ApiShare();
+$shareStore->addApiShare([
+    'key' => 'allowed-api-share',
+    'name' => 'Allowed API share',
+    'type' => 'api',
+    'apiKeys' => [urlencode($rawApi)],
+]);
+$shareStore->addApiShare([
+    'key' => 'denied-api-share',
+    'name' => 'Denied API share',
+    'type' => 'api',
+    'apiKeys' => [urlencode('Tests\Fixtures\Protocol\UdpRawFixture@echo')],
+]);
+// auth 开启时旧实现的 init(true) 会因分享无 token 直接拒绝;分享应只走 checkShareAuth
+$shareConfig = $config;
+$shareConfig['auth']['enable'] = true;
+$shareConfig['protocols']['debug']['relay_require_auth'] = true;
+$shareConfig['request_params'] = [
+    'appKey' => 'api',
+    'path' => $rawApi,
+    'shareKey' => 'allowed-api-share',
+    'input' => ['payload' => 'share', 'encoding' => 'text', 'timeout' => 2],
+];
+ConfigProvider::set($shareConfig);
+$shareAllowed = (new Controller())->debugSend();
+check('share api key allowed through init(false)', ($shareAllowed['data']['ok'] ?? false) === true
+    && ($shareAllowed['data']['body'] ?? '') === 'share');
+$shareDetail = (new Controller())->getApiDetail();
+check('share api key allowed for getApiDetail', ($shareDetail['code'] ?? -1) === 0
+    && ($shareDetail['data']['name'] ?? '') === 'echo');
+
+$shareDeniedConfig = $shareConfig;
+$shareDeniedConfig['request_params']['shareKey'] = 'denied-api-share';
+ConfigProvider::set($shareDeniedConfig);
+$shareDenied = false;
+try {
+    (new Controller())->debugSend();
+} catch (ErrorException $e) {
+    $shareDenied = $e->getMessage() === 'share api not allowed';
+}
+check('share api key disallowed for debugSend', $shareDenied);
+$shareDetailDenied = false;
+try {
+    (new Controller())->getApiDetail();
+} catch (ErrorException $e) {
+    $shareDetailDenied = $e->getMessage() === 'share api not allowed';
+}
+check('share api key disallowed for getApiDetail', $shareDetailDenied);
+
+// 流式会话:start/poll/stop 全部走分享校验,且不被 init 拦截
+$shareStore->addApiShare([
+    'key' => 'stream-api-share',
+    'name' => 'Stream API share',
+    'type' => 'api',
+    'apiKeys' => [urlencode(MqttSubscribeFixture::class . '@subscribe')],
+]);
+$streamShareConfig = $shareConfig;
+$streamShareConfig['request_params'] = [
+    'appKey' => 'api',
+    'path' => MqttSubscribeFixture::class . '@subscribe',
+    'shareKey' => 'stream-api-share',
+    'input' => ['fields' => ['topic' => 'debug/topic'], 'timeout' => 2],
+];
+ConfigProvider::set($streamShareConfig);
+$shareStart = (new Controller())->debugStart();
+$shareSessionId = (string)($shareStart['data']['sessionId'] ?? '');
+check('share stream start allowed', $shareSessionId !== '');
+$streamShareConfig['request_params'] = ['sessionId' => $shareSessionId, 'appKey' => 'api', 'shareKey' => 'stream-api-share'];
+ConfigProvider::set($streamShareConfig);
+$sharePoll = (new Controller())->debugPoll();
+check('share stream poll allowed', ($sharePoll['data']['ok'] ?? false) === true);
+$shareStop = (new Controller())->debugStop();
+check('share stream stop allowed', ($shareStop['data']['ok'] ?? false) === true);
+
 // auth 关闭时,任意 token 都归入同一个 anonymous 桶
 $anonConfig = $config;
+$anonConfig['protocols']['debug']['relay_require_auth'] = false;
 $anonConfig['protocols']['debug']['rate_limit_per_minute'] = 1;
 (new Cache(['expire' => 120]))->delete('debug/rate/' . md5('anonymous') . '/' . (int)floor(time() / 60));
 $anonResults = [];

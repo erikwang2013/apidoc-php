@@ -8,6 +8,7 @@ use erikwang2013\apidoc\parses\ParseCodeTemplate;
 use erikwang2013\apidoc\parses\ParseApiMenus;
 use erikwang2013\apidoc\parses\ParseMarkdown;
 use erikwang2013\apidoc\protocol\debug\DebugProxy;
+use erikwang2013\apidoc\protocol\debug\DebugSession;
 use erikwang2013\apidoc\utils\ApiShare;
 use erikwang2013\apidoc\utils\Cache;
 use erikwang2013\apidoc\utils\ConfigProvider;
@@ -65,6 +66,19 @@ class Controller
             return $shareData;
         } else {
             (new Auth($config))->checkAuth($params);
+        }
+        return null;
+    }
+
+    /**
+     * 分享为 api 类型时,只允许访问 apiKeys 内的接口
+     * @param array|null $shareData checkAuth() 的返回值
+     * @throws ErrorException
+     */
+    protected function assertShareApiAllowed($shareData, string $apiKey): void
+    {
+        if (is_array($shareData) && !ApiShare::isApiKeyAllowed($shareData, $apiKey)) {
+            throw new ErrorException('share api not allowed');
         }
     }
 
@@ -202,7 +216,7 @@ class Controller
         }
         $appKey = !empty($params['appKey']) ? $params['appKey'] : "";
         $apiKey = urldecode($params['path']);
-        $this->checkAuth();
+        $this->assertShareApiAllowed($this->checkAuth(), $apiKey);
         if (!empty($config['cache']) && $config['cache']['enable']) {
             // 清洗 path 防止 ../ 等穿越写缓存文件
             $cachePath = str_replace(['/', '\\', '..'], '', (string)$params['path']);
@@ -458,9 +472,10 @@ class Controller
      */
     public function debugSend()
     {
-        $this->init(true);
+        $this->init(false);
         $params = $this->requestParams;
-        $this->checkAuth();
+        $shareData = $this->checkAuth();
+        $this->assertShareApiAllowed($shareData, urldecode((string)($params['path'] ?? '')));
         $denied = $this->debugAuthDenied($params);
         if ($denied !== null) {
             return $denied;
@@ -480,9 +495,10 @@ class Controller
      */
     public function debugStart()
     {
-        $this->init(true);
+        $this->init(false);
         $params = $this->requestParams;
-        $this->checkAuth();
+        $shareData = $this->checkAuth();
+        $this->assertShareApiAllowed($shareData, urldecode((string)($params['path'] ?? '')));
         $denied = $this->debugAuthDenied($params);
         if ($denied !== null) {
             return $denied;
@@ -502,9 +518,10 @@ class Controller
      */
     public function debugPoll()
     {
-        $this->init(true);
+        $this->init(false);
         $params = $this->requestParams;
-        $this->checkAuth();
+        $shareData = $this->checkAuth();
+        $this->assertShareApiAllowed($shareData, $this->debugSessionApiKey($params));
         $denied = $this->debugAuthDenied($params);
         if ($denied !== null) {
             return $denied;
@@ -521,9 +538,10 @@ class Controller
      */
     public function debugStop()
     {
-        $this->init(true);
+        $this->init(false);
         $params = $this->requestParams;
-        $this->checkAuth();
+        $shareData = $this->checkAuth();
+        $this->assertShareApiAllowed($shareData, $this->debugSessionApiKey($params));
         $denied = $this->debugAuthDenied($params);
         if ($denied !== null) {
             return $denied;
@@ -536,14 +554,45 @@ class Controller
     }
 
     /**
+     * poll/stop 没有 path,用会话记录里的 apiKey 校验分享范围
+     */
+    protected function debugSessionApiKey(array $params): string
+    {
+        $session = DebugSession::get((string)($params['sessionId'] ?? ''));
+        return (string)($session['apiKey'] ?? '');
+    }
+
+    /**
      * 中继鉴权开关:配置缺失时默认要求 token/shareKey
+     * 仅凭"有 token"不够:全局 auth 与应用密码都未配置时该 token 不会被校验,视为匿名
      * @return array|null 拒绝响应;放行返回 null
      */
     protected function debugAuthDenied(array $params): ?array
     {
         $requireAuth = $this->config['protocols']['debug']['relay_require_auth'] ?? true;
-        if ($requireAuth && empty($params['token']) && empty($params['shareKey'])) {
+        if (!$requireAuth) {
+            return null;
+        }
+        if (empty($params['token']) && empty($params['shareKey'])) {
             return Helper::showJson(0, "", ['ok' => false, 'error' => 'authentication required']);
+        }
+        if (empty($params['shareKey'])) {
+            $authValidated = !empty($this->config['auth']['enable']);
+            if (!$authValidated) {
+                try {
+                    $appKey = (string)($params['appKey'] ?? '');
+                    $app = Helper::getCurrentAppConfig($appKey)['appConfig'] ?? [];
+                    $authValidated = !empty($app['password']);
+                } catch (\Throwable $e) {
+                    $authValidated = false;
+                }
+            }
+            if (!$authValidated) {
+                return Helper::showJson(0, "", [
+                    'ok' => false,
+                    'error' => 'relay requires auth: enable auth or configure an app password',
+                ]);
+            }
         }
         return null;
     }

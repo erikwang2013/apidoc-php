@@ -72,3 +72,73 @@ class HttpRelayFixture {
     #[Channel('/echo.php')] #[Title('HTTP echo')]
     public function echo() {}
 }
+
+#[Protocol('http')]
+#[Debug(driver:'http-relay', target:'http://127.0.0.1:19005/redirect.php')]
+class HttpRedirectFixture {
+    #[Channel('/redirect.php')] #[Title('HTTP cross-host redirect')]
+    public function echo() {}
+}
+
+#[Protocol('http')]
+#[Debug(driver:'http-relay', target:'http://127.0.0.1:19005/redirect-same.php')]
+class HttpSameOriginRedirectFixture {
+    #[Channel('/redirect-same.php')] #[Title('HTTP same-origin redirect')]
+    public function echo() {}
+}
+
+#[Protocol('http')]
+#[Debug(driver:'http-relay', target:'http://127.0.0.1:19005/headers.php')]
+class HttpHeadersFixture {
+    #[Channel('/headers.php')] #[Title('HTTP headers echo')]
+    public function echo() {}
+}
+
+#[Protocol('mqtt')]
+class MqttPublishFixture
+{
+    #[Channel('/debug/topic', action: 'publish')]
+    #[Debug(driver: 'mqtt', target: 'tcp://127.0.0.1:19003')]
+    public function publish() {}
+}
+
+#[Protocol('mqtt')]
+class MqttSubscribeFixture
+{
+    #[Channel('/debug/topic', action: 'subscribe')]
+    #[Debug(driver: 'mqtt', target: 'tcp://127.0.0.1:19003')]
+    public function subscribe() {}
+}
+
+#[Protocol('stomp')]
+class StompSubscribeFixture
+{
+    #[Channel('/debug/queue', action: 'receive')]
+    #[Debug(driver: 'stomp', target: 'tcp://127.0.0.1:19004')]
+    public function receive() {}
+}
+
+#[Protocol('coap')]
+class CoapDebugFixture
+{
+    #[Channel('/debug/coap', action: 'send')]
+    #[Debug(driver: 'coap', target: 'udp://127.0.0.1:19006')]
+    public function echo() {}
+}
+
+#[Protocol('modbus-tcp')]
+class ModbusDebugFixture
+{
+    #[Channel('/debug/modbus', action: 'send')]
+    #[Debug(driver: 'modbus-tcp', target: 'tcp://127.0.0.1:19007')]
+    public function read() {}
+}
+
+#[Protocol('iso8583')]
+class Iso8583ProxyFixture
+{
+    #[Channel('iso')]
+    #[Title('ISO')]
+    #[Debug(driver: 'iso8583', target: 'tcp://127.0.0.1:19008')]
+    public function send() {}
+}

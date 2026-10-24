@@ -1,0 +1,4 @@
+#EXTM3U
+#EXTINF:10,
+http://127.0.0.1:19014/seg.ts
+#EXT-X-ENDLIST

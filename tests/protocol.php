@@ -7,6 +7,8 @@ declare(strict_types=1);
  */
 
 use erikwang2013\apidoc\annotation\{Channel, Debug, Param, Protocol};
+use erikwang2013\apidoc\exception\ErrorException;
+use erikwang2013\apidoc\parses\ParseApiDetail;
 use erikwang2013\apidoc\parses\ParseProtocol;
 use erikwang2013\apidoc\protocol\ProtocolCatalog;
 use erikwang2013\apidoc\protocol\debug\DebugRegistry;
@@ -132,10 +134,31 @@ class StompReceiveModeFixture
     public function receive() {}
 }
 
+#[Protocol('modbus-tcp')]
+#[Debug(driver: 'modbus-tcp', target: 'tcp://127.0.0.1:19007', meta: ['unitId' => 7, 'hints' => 'meta hint'])]
+class MetaDefaultsFixture
+{
+    #[Channel('/meta')]
+    public function read() {}
+}
+
+#[Protocol('modbus-tcp')]
+#[Debug(
+    driver: 'modbus-tcp',
+    target: 'tcp://127.0.0.1:19007',
+    meta: ['unitId' => 7],
+    fields: [['name' => 'unitId', 'in' => 'meta', 'type' => 'number', 'default' => 9]]
+)]
+class MetaOverrideFixture
+{
+    #[Channel('/meta')]
+    public function read() {}
+}
+
 $config = [
     'cache' => ['folder' => 'apidoc'],
     'protocols' => ['debug' => ['relay_enable' => true]],
-    'apps' => [['key' => 'api', 'title' => 'API', 'path' => '']],
+    'apps' => [['key' => 'api', 'title' => 'API', 'path' => 'tests/fixtures/protocol']],
 ];
 ConfigProvider::set($config);
 
@@ -243,6 +266,21 @@ check('class Debug.encoding kept when method omits it', ($merged['debug']['defau
 check('method Debug.timeout overrides class', ($merged['debug']['defaults']['timeout'] ?? 0) === 3);
 check('class Debug.meta kept when method omits it', ($merged['debug']['responseEncoding'] ?? '') === 'json');
 check('class Debug.fields kept when method omits it', in_array('topic', array_column($merged['debug']['fields'] ?? [], 'name'), true));
+check('class Debug.meta hints exposed', ($merged['debug']['hints'] ?? '') === 'class hint');
+check('Debug.meta exposed in debug object', ($merged['debug']['meta']['responseEncoding'] ?? '') === 'json');
+
+// ---------- Debug.meta 作为字段默认值 ----------
+$metaDefaultsRef = new ReflectionClass(MetaDefaultsFixture::class);
+$metaDefaults = $parser->metadata($metaDefaultsRef, $metaDefaultsRef->getMethod('read'));
+$metaFieldByName = array_column($metaDefaults['debug']['fields'] ?? [], null, 'name');
+check('Debug.meta applied as driver field default', ($metaFieldByName['unitId']['default'] ?? null) === 7);
+check('Debug.meta unitId exposed', ($metaDefaults['debug']['meta']['unitId'] ?? null) === 7);
+check('Debug.meta hint exposed', ($metaDefaults['debug']['hints'] ?? '') === 'meta hint');
+$metaOverrideRef = new ReflectionClass(MetaOverrideFixture::class);
+$metaOverride = $parser->metadata($metaOverrideRef, $metaOverrideRef->getMethod('read'));
+$metaOverrideFields = array_column($metaOverride['debug']['fields'] ?? [], null, 'name');
+check('explicit field default overrides Debug.meta', ($metaOverrideFields['unitId']['default'] ?? null) === 9);
+check('stomp stream hint warns about poll gap', strpos((string)($stompReceive['debug']['hints'] ?? ''), 'STOMP') === 0);
 
 $browserRef = new ReflectionClass(BrowserDebugFixture::class);
 $browser = $parser->metadata($browserRef, $browserRef->getMethod('ping'));
@@ -304,6 +342,28 @@ sort($plainKeys);
 check('plain http menu keys unchanged', $plainKeys === ['appKey', 'author', 'menuKey', 'method', 'name', 'tag', 'title', 'url']);
 $grpcDetail = (new erikwang2013\apidoc\parses\ParseApiDetail($config))->renderApiDetail('api', 'Tests\\Fixtures\\Protocol\\GrpcFixture@sayHello');
 check('grpc detail url is channel address', ($grpcDetail['url'] ?? '') === 'helloworld.Greeter/SayHello');
+
+// ---------- app path 范围 ----------
+require __DIR__ . '/fixtures/OutsideFixture.php';
+$outsideThrew = false;
+try {
+    (new ParseApiDetail($config))->renderApiDetail('api', 'Tests\Fixtures\OutsideFixture@ping');
+} catch (ErrorException $e) {
+    $outsideThrew = $e->getMessage() === 'api not in app scope';
+}
+check('api outside app path rejected', $outsideThrew);
+
+$emptyScopeConfig = $config;
+$emptyScopeConfig['apps'][0]['path'] = '';
+ConfigProvider::set($emptyScopeConfig);
+$emptyScopeThrew = false;
+try {
+    (new ParseApiDetail($emptyScopeConfig))->renderApiDetail('api', 'Tests\Fixtures\Protocol\PlainHttpFixture@plain');
+} catch (ErrorException $e) {
+    $emptyScopeThrew = $e->getMessage() === 'api not in app scope';
+}
+check('empty app path rejects api', $emptyScopeThrew);
+ConfigProvider::set($config);
 
 echo "\n{$pass} passed, {$fail} failed\n";
 exit($fail > 0 ? 1 : 0);

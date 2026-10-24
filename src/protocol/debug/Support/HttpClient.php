@@ -28,6 +28,29 @@ class HttpClient
 
     protected static function viaCurl(array $options): array
     {
+        $url = (string)($options['url'] ?? '');
+        $origin = static::origin($url);
+        // 手动跟随重定向:只允许同 scheme/host/port,防止注解目标把中继跳到内网其他主机
+        for ($redirects = 0; ; $redirects++) {
+            $response = static::curlRequest($url, $options);
+            if (isset($response['error'])) {
+                return $response;
+            }
+            $status = (int)($response['status'] ?? 0);
+            $location = (string)($response['headers']['location'] ?? '');
+            if ($status < 300 || $status >= 400 || $location === '' || $redirects >= 3) {
+                return $response;
+            }
+            $next = static::resolveUrl($url, $location);
+            if ($origin === '' || static::origin($next) !== $origin) {
+                return ['error' => 'cross-host redirect blocked'];
+            }
+            $url = $next;
+        }
+    }
+
+    protected static function curlRequest(string $url, array $options): array
+    {
         $method = strtoupper((string)($options['method'] ?? 'GET'));
         $timeout = max(0.1, (float)($options['timeout'] ?? 5));
         $maxBytes = max(1, (int)($options['maxBytes'] ?? 1048576));
@@ -35,7 +58,7 @@ class HttpClient
         $body = (string)($options['body'] ?? '');
         $httpVersion = (int)($options['httpVersion'] ?? 1);
         $priorKnowledge = (bool)($options['http2PriorKnowledge'] ?? false);
-        $tls = strtolower((string)parse_url((string)($options['url'] ?? ''), PHP_URL_SCHEME)) === 'https';
+        $tls = strtolower((string)parse_url($url, PHP_URL_SCHEME)) === 'https';
 
         $status = 0;
         $responseHeaders = [];
@@ -44,12 +67,11 @@ class HttpClient
         $truncated = false;
         $responseBody = '';
 
-        $ch = curl_init((string)$options['url']);
+        $ch = curl_init($url);
         $curlOptions = [
             CURLOPT_CUSTOMREQUEST => $method,
             CURLOPT_RETURNTRANSFER => false,
-            CURLOPT_FOLLOWLOCATION => true,
-            CURLOPT_MAXREDIRS => 3,
+            CURLOPT_FOLLOWLOCATION => false,
             CURLOPT_TIMEOUT_MS => (int)round($timeout * 1000),
             CURLOPT_CONNECTTIMEOUT_MS => (int)round(min($timeout, 10) * 1000),
             CURLOPT_HTTPHEADER => $headers,
@@ -96,10 +118,8 @@ class HttpClient
         ];
         if (defined('CURLOPT_PROTOCOLS_STR')) {
             $curlOptions[CURLOPT_PROTOCOLS_STR] = 'http,https';
-            $curlOptions[CURLOPT_REDIR_PROTOCOLS_STR] = 'http,https';
         } else {
             $curlOptions[CURLOPT_PROTOCOLS] = CURLPROTO_HTTP | CURLPROTO_HTTPS;
-            $curlOptions[CURLOPT_REDIR_PROTOCOLS] = CURLPROTO_HTTP | CURLPROTO_HTTPS;
         }
         if ($body !== '' || in_array($method, ['POST', 'PUT', 'PATCH'], true)) {
             $curlOptions[CURLOPT_POSTFIELDS] = $body;
@@ -145,6 +165,7 @@ class HttpClient
         $headers = static::normalizeHeaders($options['headers'] ?? []);
         $body = (string)($options['body'] ?? '');
         $url = (string)$options['url'];
+        $origin = static::origin($url);
         // 总超时按绝对截止时间计,重定向各跳共享剩余时间
         $deadline = microtime(true) + $timeout;
 
@@ -185,7 +206,11 @@ class HttpClient
             }
             list($status, $responseHeaders) = static::parseHeaderLines($headerLines);
             if ($status >= 300 && $status < 400 && $redirects < 3 && !empty($responseHeaders['location'])) {
-                $url = static::resolveUrl($url, $responseHeaders['location']);
+                $next = static::resolveUrl($url, $responseHeaders['location']);
+                if ($origin === '' || static::origin($next) !== $origin) {
+                    return ['error' => 'cross-host redirect blocked'];
+                }
+                $url = $next;
                 continue;
             }
             return [
@@ -206,18 +231,46 @@ class HttpClient
         if (!is_array($headers)) {
             return [];
         }
+        // Host/content-length 等由客户端控制会改写实际目标或请求边界,一律丢弃
+        $blocked = ['host', 'content-length', 'connection', 'transfer-encoding'];
         $lines = [];
         foreach ($headers as $name => $value) {
             if (is_int($name)) {
                 $line = (string)$value;
+                $pos = strpos($line, ':');
+                $headerName = $pos === false ? $line : substr($line, 0, $pos);
             } else {
+                $headerName = (string)$name;
                 $line = $name . ': ' . $value;
+            }
+            if (in_array(strtolower(trim($headerName)), $blocked, true)) {
+                continue;
             }
             if (preg_match('/[\r\n\0]/', $line) !== 1) {
                 $lines[] = $line;
             }
         }
         return $lines;
+    }
+
+    /**
+     * scheme/host/port 归一化比较(默认端口补全)
+     */
+    public static function sameOrigin(string $a, string $b): bool
+    {
+        $originA = static::origin($a);
+        return $originA !== '' && $originA === static::origin($b);
+    }
+
+    protected static function origin(string $url): string
+    {
+        $parts = parse_url($url);
+        if (!is_array($parts) || empty($parts['scheme']) || empty($parts['host'])) {
+            return '';
+        }
+        $scheme = strtolower((string)$parts['scheme']);
+        $port = isset($parts['port']) ? (int)$parts['port'] : ($scheme === 'https' ? 443 : 80);
+        return $scheme . '://' . strtolower((string)$parts['host']) . ':' . $port;
     }
 
     /**
