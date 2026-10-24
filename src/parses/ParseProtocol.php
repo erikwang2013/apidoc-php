@@ -4,6 +4,7 @@ declare(strict_types = 1);
 namespace erikwang2013\apidoc\parses;
 
 use erikwang2013\apidoc\protocol\ProtocolCatalog;
+use erikwang2013\apidoc\protocol\debug\DebugRegistry;
 use ReflectionClass;
 use ReflectionMethod;
 
@@ -32,7 +33,7 @@ class ParseProtocol
 
         $protocolRaw = $this->pick($classAnnotations, $methodAnnotations, 'protocol');
         $channelRaw = $this->pick($classAnnotations, $methodAnnotations, 'channel');
-        $debugRaw = $this->pick($classAnnotations, $methodAnnotations, 'debug');
+        $debugRaw = $this->pickDebug($classAnnotations, $methodAnnotations);
         if ($protocolRaw === null && $channelRaw === null && $debugRaw === null) {
             return [];
         }
@@ -88,16 +89,21 @@ class ParseProtocol
             'timeout' => !empty($debugAnn['timeout']) ? $debugAnn['timeout'] : 5,
         ];
 
-        $fields = [];
+        $annotationFields = [];
         foreach (['param' => 'body', 'header' => 'header', 'query' => 'query'] as $key => $in) {
             foreach ($this->normalizeItems($methodAnnotations[$key] ?? null) as $item) {
                 $item['in'] = $in;
-                $fields[] = $item;
+                $annotationFields[] = $item;
             }
         }
-        $fields[] = ['name' => 'target', 'in' => 'target', 'type' => 'string', 'require' => true, 'default' => $target];
+        $fields = $this->mergeFields(array_merge(
+            DebugRegistry::driverFields($driver),
+            $this->normalizeItems($debugAnn['fields'] ?? null),
+            $annotationFields,
+            [['name' => 'target', 'in' => 'target', 'type' => 'string', 'require' => true, 'default' => $target]]
+        ));
 
-        $driverExists = $driver !== '' && $protocol['debuggable'];
+        $driverExists = DebugRegistry::driver($driver) !== null;
         if (in_array($mode, ['browser-http', 'browser-websocket', 'browser-sse'], true)) {
             $debuggable = $target !== '';
             $debugReason = $debuggable ? '' : '未配置调试目标';
@@ -145,6 +151,51 @@ class ParseProtocol
         }
         $items = $this->normalizeItems($raw);
         return $items[0] ?? [];
+    }
+
+    /**
+     * Debug 注解按字段合并:类级为基,方法级非空字段覆盖
+     * @return array|null null 表示未声明
+     */
+    protected function pickDebug(array $classAnnotations, array $methodAnnotations)
+    {
+        $hasClass = array_key_exists('debug', $classAnnotations);
+        $hasMethod = array_key_exists('debug', $methodAnnotations);
+        if (!$hasClass && !$hasMethod) {
+            return null;
+        }
+        $classItems = $this->normalizeItems($hasClass ? $classAnnotations['debug'] : null);
+        $methodItems = $this->normalizeItems($hasMethod ? $methodAnnotations['debug'] : null);
+        $merged = $classItems[0] ?? [];
+        $method = $methodItems[0] ?? [];
+        // 位置参数 #[Debug('raw')] 落在 name 上,方法级声明应覆盖类级 driver
+        if (!empty($method['name']) && empty($method['driver'])) {
+            $method['driver'] = $method['name'];
+        }
+        foreach ($method as $key => $value) {
+            if ($value !== null && $value !== '' && $value !== []) {
+                $merged[$key] = $value;
+            }
+        }
+        return $merged;
+    }
+
+    /**
+     * 按 in|name 去重,后出现的项覆盖先出现的项
+     * @param array $items
+     * @return array
+     */
+    protected function mergeFields(array $items): array
+    {
+        $merged = [];
+        foreach ($items as $item) {
+            if (!is_array($item) || !isset($item['name'])) {
+                continue;
+            }
+            $in = isset($item['in']) ? (string)$item['in'] : '';
+            $merged[$in . '|' . $item['name']] = $item;
+        }
+        return array_values($merged);
     }
 
     /**

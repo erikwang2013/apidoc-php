@@ -6,8 +6,11 @@ declare(strict_types=1);
  * 覆盖: ProtocolCatalog 回退、ParseProtocol::metadata 归一化输出
  */
 
+use erikwang2013\apidoc\annotation\{Channel, Debug, Param, Protocol};
 use erikwang2013\apidoc\parses\ParseProtocol;
 use erikwang2013\apidoc\protocol\ProtocolCatalog;
+use erikwang2013\apidoc\protocol\debug\DebugRegistry;
+use erikwang2013\apidoc\protocol\debug\DebugTarget;
 use erikwang2013\apidoc\utils\ConfigProvider;
 
 error_reporting(E_ALL);
@@ -41,6 +44,38 @@ function check(string $name, bool $cond): void
     }
 }
 
+#[Protocol('tcp')]
+class DebugFieldsFixture
+{
+    #[Channel('tcp://127.0.0.1:9000', action: 'send')]
+    #[Debug(driver: 'raw', fields: [['name' => 'device', 'in' => 'meta', 'type' => 'string']])]
+    #[Param(name: 'payload', type: 'number', require: true)]
+    public function send() {}
+}
+
+#[Protocol('mqtt')]
+#[Debug(
+    driver: 'mqtt',
+    target: 'tcp://class:1883',
+    encoding: 'json',
+    timeout: 9,
+    meta: ['responseEncoding' => 'json', 'hints' => 'class hint'],
+    fields: [['name' => 'topic', 'in' => 'meta', 'type' => 'string']]
+)]
+class MergedDebugFixture
+{
+    #[Channel('/merged')]
+    #[Debug(target: 'tcp://method:1883', timeout: 3)]
+    public function run() {}
+}
+
+#[Protocol('rest')]
+class BrowserDebugFixture
+{
+    #[Channel('https://api.example.com/ping')]
+    public function ping() {}
+}
+
 $config = [
     'cache' => ['folder' => 'apidoc'],
     'protocols' => ['debug' => ['relay_enable' => true]],
@@ -67,12 +102,73 @@ check('debug target falls back to channel address', ($pos['debug']['defaults']['
 $defRef = new ReflectionClass(\Tests\Fixtures\Protocol\DefaultDriverFixture::class);
 $def = $parser->metadata($defRef, $defRef->getMethod('publish'));
 check('empty Debug.driver falls back to catalog driver', ($def['debug']['driver'] ?? '') === 'mqtt');
-check('catalog driver fallback is debuggable with relay enabled', ($def['debug']['debuggable'] ?? false) === true);
+check('registered driver is debuggable with relay enabled', ($pos['debug']['debuggable'] ?? false) === true);
 $relayOffConfig = $config;
 $relayOffConfig['protocols']['debug']['relay_enable'] = false;
 $defOff = (new ParseProtocol($relayOffConfig))->metadata($defRef, $defRef->getMethod('publish'));
 check('catalog driver fallback not debuggable with relay disabled', ($defOff['debug']['debuggable'] ?? true) === false);
 check('unknown protocol falls back', ProtocolCatalog::get('nope')['label'] === 'NOPE');
+
+// ---------- 驱动注册表 / 调试目标 ----------
+check('target parses tcp', DebugTarget::parse('tcp://broker:1883')['port'] === 1883);
+check('target parses unix', DebugTarget::parse('unix:///tmp/app.sock')['scheme'] === 'unix');
+$bad = false;
+try { DebugTarget::parse('file:///etc/passwd'); } catch (Throwable $e) { $bad = true; }
+check('target rejects file scheme', $bad);
+check('registry raw driver', DebugRegistry::driver('raw')?->name() === 'raw');
+check('registry unknown driver', DebugRegistry::driver('nope') === null);
+
+check('target bare host:port is tcp', DebugTarget::parse('broker:1883')['scheme'] === 'tcp');
+check('target parses path', DebugTarget::parse('https://example.com/api')['path'] === '/api');
+check('target applies https default port', DebugTarget::parse('https://example.com/api')['port'] === 443);
+check('target applies ws default port', DebugTarget::parse('ws://example.com')['port'] === 80);
+$badPort = false;
+try { DebugTarget::parse('tcp://host:70000'); } catch (Throwable $e) { $badPort = true; }
+check('target rejects out of range port', $badPort);
+$badCreds = false;
+try { DebugTarget::parse('http://user:pass@host'); } catch (Throwable $e) { $badCreds = true; }
+check('target rejects credentials', $badCreds);
+$missingPort = false;
+try { DebugTarget::parse('tcp://broker'); } catch (Throwable $e) { $missingPort = true; }
+check('target requires explicit tcp port', $missingPort);
+
+$rawFields = DebugRegistry::driverFields('raw');
+$rawNames = array_column($rawFields, 'name');
+check('registry raw fields count', count($rawFields) === 4);
+check('registry raw fields names', !array_diff(['target', 'payload', 'encoding', 'timeout'], $rawNames));
+check('registry unknown fields', DebugRegistry::driverFields('nope') === []);
+check('raw driver send is stubbed', (DebugRegistry::driver('raw')->send([], [])['ok'] ?? true) === false);
+
+// ---------- debug.fields 注入 / 去重 / Debug 注解合并 ----------
+$fieldsRef = new ReflectionClass(DebugFieldsFixture::class);
+$fieldsMeta = $parser->metadata($fieldsRef, $fieldsRef->getMethod('send'));
+$debugFields = $fieldsMeta['debug']['fields'] ?? [];
+$byKey = [];
+foreach ($debugFields as $item) {
+    $byKey[($item['in'] ?? '') . '|' . ($item['name'] ?? '')] = $item;
+}
+check('driver field payload injected', isset($byKey['body|payload']));
+check('driver field encoding injected', isset($byKey['meta|encoding']));
+check('driver field timeout injected', isset($byKey['meta|timeout']));
+check('Debug.fields item injected', ($byKey['meta|device']['type'] ?? '') === 'string');
+check('annotation param overrides driver field', ($byKey['body|payload']['type'] ?? '') === 'number');
+check('driver target field deduped', count(array_filter($debugFields, function ($item) {
+    return ($item['in'] ?? '') === 'target' && ($item['name'] ?? '') === 'target';
+})) === 1);
+check('deduped target keeps default', ($byKey['target|target']['default'] ?? '') === 'tcp://127.0.0.1:9000');
+
+$mergedRef = new ReflectionClass(MergedDebugFixture::class);
+$merged = $parser->metadata($mergedRef, $mergedRef->getMethod('run'));
+check('class Debug.driver kept when method omits it', ($merged['debug']['driver'] ?? '') === 'mqtt');
+check('method Debug.target overrides class', ($merged['debug']['defaults']['target'] ?? '') === 'tcp://method:1883');
+check('class Debug.encoding kept when method omits it', ($merged['debug']['defaults']['encoding'] ?? '') === 'json');
+check('method Debug.timeout overrides class', ($merged['debug']['defaults']['timeout'] ?? 0) === 3);
+check('class Debug.meta kept when method omits it', ($merged['debug']['responseEncoding'] ?? '') === 'json');
+check('class Debug.fields kept when method omits it', in_array('topic', array_column($merged['debug']['fields'] ?? [], 'name'), true));
+
+$browserRef = new ReflectionClass(BrowserDebugFixture::class);
+$browser = $parser->metadata($browserRef, $browserRef->getMethod('ping'));
+check('browser mode debuggable with target despite no registered driver', ($browser['debug']['debuggable'] ?? false) === true);
 
 // 目录条目必须携带 defaultFormat，供定义解析计划消费
 check('rest default format', ProtocolCatalog::get('rest')['defaultFormat'] === 'openapi');
