@@ -110,6 +110,7 @@ class UnregisteredDriverFixture
 $config = [
     'cache' => ['folder' => 'apidoc'],
     'protocols' => ['debug' => ['relay_enable' => true]],
+    'apps' => [['key' => 'api', 'title' => 'API', 'path' => '']],
 ];
 ConfigProvider::set($config);
 
@@ -226,6 +227,19 @@ check('unregistered driver not debuggable with relay enabled and target', ($unre
 check('rest default format', ProtocolCatalog::get('rest')['defaultFormat'] === 'openapi');
 check('grpc default format', ProtocolCatalog::get('grpc')['defaultFormat'] === 'proto');
 check('p2 protocol not debuggable', ProtocolCatalog::get('kafka')['debuggable'] === false);
+
+// ---------- 明细/菜单集成 + 既有 HTTP 兼容 ----------
+$plainRef = new ReflectionClass(\Tests\Fixtures\Protocol\PlainHttpFixture::class);
+$plainMeta = (new erikwang2013\apidoc\parses\ParseProtocol($config))->metadata($plainRef, $plainRef->getMethod('plain'));
+check('plain http has no protocol metadata', $plainMeta === []);
+$detail = (new erikwang2013\apidoc\parses\ParseApiDetail($config))->renderApiDetail('api', 'Tests\\Fixtures\\Protocol\\MqttFixture@publishTemperature');
+check('mqtt detail has protocol', ($detail['protocol']['name'] ?? '') === 'mqtt');
+check('mqtt detail has debug', ($detail['debug']['driver'] ?? '') === 'mqtt');
+check('mqtt detail url is channel', ($detail['url'] ?? '') === '/sensors/+/temp');
+$menus = (new erikwang2013\apidoc\parses\ParseApiMenus($config));
+$controller = $menus->parseController(\Tests\Fixtures\Protocol\MqttFixture::class, false, 'api');
+check('menu has protocol key', ($controller['children'][0]['protocolKey'] ?? '') === 'mqtt');
+check('menu has no internal fields', !array_key_exists('_definitionFingerprints', $controller['children'][0]));
 
 echo "\n{$pass} passed, {$fail} failed\n";
 exit($fail > 0 ? 1 : 0);

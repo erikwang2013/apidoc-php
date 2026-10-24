@@ -223,6 +223,8 @@ class ParseApiMenus
             if ($methodItem===false){
                 continue;
             }
+            // 定义解析的内部字段不进菜单
+            unset($methodItem['_definitionFingerprints']);
             if ($isNotDebug) {
                 $methodItem['notDebug'] = true;
             }
@@ -259,9 +261,15 @@ class ParseApiMenus
             (isset($config['notDebug']) && $config['notDebug']===true) ||
             (isset($this->currentApp['notDebug']) && $this->currentApp['notDebug']===true) ||
             isset($methodAnnotation['notDebug']);
-        $methodInfo = ParseApiDetail::handleApiBaseInfo($methodAnnotation,$refClass->name,$refMethod->name,$textAnnotations,$config);
+        $protocolMeta = (new ParseProtocol($config))->metadata($refClass, $refMethod);
+        $methodInfo = ParseApiDetail::handleApiBaseInfo($methodAnnotation,$refClass->name,$refMethod->name,$textAnnotations,$config,$protocolMeta);
         $methodInfo['appKey'] = !empty($this->currentApp['appKey'])?$this->currentApp['appKey']:"";
-        $methodInfo = Helper::getArrayValuesByKeys($methodInfo,['title','method','url','author','tag','name','menuKey','appKey']);
+        $keys = ['title','method','url','author','tag','name','menuKey','appKey'];
+        if (!empty($protocolMeta['protocol'])) {
+            // 仅有协议注解时才输出,保持纯 HTTP 菜单 JSON 不变
+            $keys = array_merge($keys, ['protocolKey','protocolLabel','channelAddress']);
+        }
+        $methodInfo = Helper::getArrayValuesByKeys($methodInfo,$keys);
         if ($isNotDebug) {
             $methodInfo['notDebug'] = true;
         }

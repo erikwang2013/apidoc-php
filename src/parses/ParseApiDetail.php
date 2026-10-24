@@ -87,7 +87,8 @@ class ParseApiDetail
         if (isset($methodAnnotations['notParse']) || empty($methodAnnotations)) {
             return false;
         }
-        $methodAnnotations = self::handleApiBaseInfo($methodAnnotations,$refClass->name,$refMethod->name,$textAnnotations,$config);
+        $protocolMeta = (new ParseProtocol($config))->metadata($refClass, $refMethod);
+        $methodAnnotations = self::handleApiBaseInfo($methodAnnotations,$refClass->name,$refMethod->name,$textAnnotations,$config,$protocolMeta);
         // 是否开启debug
         if (
             in_array("NotDebug", $textAnnotations) ||
@@ -213,7 +214,7 @@ class ParseApiDetail
             }
         }
 
-        return $methodAnnotations;
+        return array_merge($methodAnnotations, $protocolMeta);
     }
 
     /**
@@ -409,7 +410,7 @@ class ParseApiDetail
 
 
 
-    public static function handleApiBaseInfo($methodInfo,$className,$methodName,$textAnnotations,$config){
+    public static function handleApiBaseInfo($methodInfo,$className,$methodName,$textAnnotations,$config,$protocolMeta=[]){
         // 是否存在apidoc的注解
         if (empty($methodInfo)) {
             return false;
@@ -442,9 +443,19 @@ class ParseApiDetail
         if (!empty($methodInfo['tag'])){
             $methodInfo['tag'] = static::handleTags($methodInfo['tag']);
         }
-        // 无url,自动生成
+        if (!empty($protocolMeta['protocol'])) {
+            $methodInfo['protocolKey'] = $protocolMeta['protocol']['name'];
+            $methodInfo['protocolLabel'] = $protocolMeta['protocol']['label'];
+            $methodInfo['channelAddress'] = !empty($protocolMeta['channel']['address']) ? $protocolMeta['channel']['address'] : '';
+        }
+        // 无url,自动生成;非 HTTP 协议优先用通道地址(不补前导 /)
         if (empty($methodInfo['url'])) {
-            $methodInfo['url'] = static::autoCreateUrl($className,$methodName,$config);
+            $channelAddress = !empty($protocolMeta['channel']['address']) ? $protocolMeta['channel']['address'] : '';
+            if (!empty($protocolMeta['protocol']) && empty($protocolMeta['protocol']['http']) && $channelAddress !== '') {
+                $methodInfo['url'] = $channelAddress;
+            } else {
+                $methodInfo['url'] = static::autoCreateUrl($className,$methodName,$config);
+            }
         } else if (!empty($methodInfo['url']) && is_string($methodInfo['url']) && substr($methodInfo['url'], 0, 1) != "/") {
             $methodInfo['url'] = "/" . $methodInfo['url'];
         }

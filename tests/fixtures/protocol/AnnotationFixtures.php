@@ -2,7 +2,7 @@
 
 namespace Tests\Fixtures\Protocol;
 
-use erikwang2013\apidoc\annotation\{Protocol, Channel, Debug, Param, Title};
+use erikwang2013\apidoc\annotation\{Protocol, Channel, Debug, Param, Title, Method, Url};
 
 #[Protocol('mqtt')]
 class MqttFixture
@@ -36,4 +36,10 @@ class DefaultDriverFixture
 {
     #[Debug(target: 'tcp://broker:1883')]
     public function publish() {}
+}
+
+class PlainHttpFixture
+{
+    #[Method('GET')] #[Url('/plain')] #[Title('Plain')]
+    public function plain() {}
 }
