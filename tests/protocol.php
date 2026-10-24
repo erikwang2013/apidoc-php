@@ -123,6 +123,14 @@ class StompSendModeFixture
     public function send() {}
 }
 
+#[Protocol('stomp')]
+class StompReceiveModeFixture
+{
+    #[Channel('/queue/a', action: 'receive')]
+    #[Debug(target: 'tcp://broker:61613')]
+    public function receive() {}
+}
+
 $config = [
     'cache' => ['folder' => 'apidoc'],
     'protocols' => ['debug' => ['relay_enable' => true]],
@@ -145,6 +153,9 @@ check('mqtt subscribe debug mode', ($mqttSub['debug']['mode'] ?? '') === 'relay-
 $stompSendRef = new ReflectionClass(StompSendModeFixture::class);
 $stompSend = $parser->metadata($stompSendRef, $stompSendRef->getMethod('send'));
 check('stomp send debug mode', ($stompSend['debug']['mode'] ?? '') === 'relay-unary');
+$stompReceiveRef = new ReflectionClass(StompReceiveModeFixture::class);
+$stompReceive = $parser->metadata($stompReceiveRef, $stompReceiveRef->getMethod('receive'));
+check('stomp receive debug mode', ($stompReceive['debug']['mode'] ?? '') === 'relay-stream');
 $grpcRef = new ReflectionClass(\Tests\Fixtures\Protocol\GrpcFixture::class);
 $grpc = $parser->metadata($grpcRef, $grpcRef->getMethod('sayHello'));
 check('grpc debug mode', ($grpc['debug']['mode'] ?? '') === 'relay-unary');

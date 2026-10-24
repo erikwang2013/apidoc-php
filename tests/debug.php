@@ -205,6 +205,17 @@ check('stomp content-length', strpos($stompFrame, 'content-length:2') !== false)
 $stompDecoded = StompDriver::decodeFrames($stomp->encodeFrame('CONNECTED', ['version' => '1.2']) . $stomp->encodeFrame('RECEIPT', ['receipt-id' => 'r1']));
 check('stomp decode frames', count($stompDecoded) === 2 && ($stompDecoded[0]['command'] ?? '') === 'CONNECTED');
 check('stomp decode receipt header', ($stompDecoded[1]['headers']['receipt-id'] ?? '') === 'r1');
+$stompCrlf = StompDriver::decodeFrames("CONNECTED\r\nversion:1.2\r\n\r\n\0");
+check(
+    'stomp CRLF frame decoded',
+    count($stompCrlf) === 1
+    && ($stompCrlf[0]['command'] ?? '') === 'CONNECTED'
+    && ($stompCrlf[0]['headers']['version'] ?? '') === '1.2'
+);
+$stompBinaryBody = "a\0b\n\r";
+$stompBinary = StompDriver::decodeFrames("MESSAGE\r\ncontent-length:" . strlen($stompBinaryBody) . "\r\n\r\n" . $stompBinaryBody . "\0");
+check('stomp CRLF content-length binary body', ($stompBinary[0]['body'] ?? '') === $stompBinaryBody);
+check('stomp partial CRLF frame incomplete', StompDriver::decodeFrames("MESSAGE\r\ncontent-length:5\r\n\r\nabc") === []);
 check('stomp streaming start is stubbed', ($stomp->start([], [])['ok'] ?? true) === false);
 check('stomp rejects non-string destination', ($stomp->send(['destination' => ['/queue/a']], ['target' => 'tcp://127.0.0.1:19004'])['ok'] ?? true) === false);
 $stompDirect = $stomp->send(['action' => 'send', 'destination' => '/queue/a', 'payload' => 'hi', 'receipt' => 'r1'], ['target' => 'tcp://127.0.0.1:19004', 'timeout' => 2]);

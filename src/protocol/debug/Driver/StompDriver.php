@@ -76,14 +76,23 @@ class StompDriver implements StreamingDriverInterface
             if ($offset >= $length) {
                 break;
             }
-            $headerEnd = strpos($bytes, "\n\n", $offset);
-            if ($headerEnd === false) {
+            // STOMP 1.2 行尾为 [CR]LF,头与体之间可能是 \n\n 或 \r\n\r\n
+            $lfEnd = strpos($bytes, "\n\n", $offset);
+            $crlfEnd = strpos($bytes, "\r\n\r\n", $offset);
+            if ($lfEnd === false && $crlfEnd === false) {
                 break;
+            }
+            if ($crlfEnd !== false && ($lfEnd === false || $crlfEnd < $lfEnd)) {
+                $headerEnd = $crlfEnd;
+                $terminatorLength = 4;
+            } else {
+                $headerEnd = $lfEnd;
+                $terminatorLength = 2;
             }
             $lines = explode("\n", substr($bytes, $offset, $headerEnd - $offset));
             $command = trim((string)array_shift($lines));
             if ($command === '') {
-                $offset = $headerEnd + 2;
+                $offset = $headerEnd + $terminatorLength;
                 continue;
             }
             $headers = [];
@@ -102,7 +111,7 @@ class StompDriver implements StreamingDriverInterface
                     $headers[$name] = $value;
                 }
             }
-            $bodyStart = $headerEnd + 2;
+            $bodyStart = $headerEnd + $terminatorLength;
             if (isset($headers['content-length']) && ctype_digit((string)$headers['content-length'])) {
                 $bodyLength = (int)$headers['content-length'];
                 if ($bodyStart + $bodyLength > $length) {
