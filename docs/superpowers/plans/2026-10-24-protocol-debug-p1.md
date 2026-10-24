@@ -358,11 +358,13 @@ git commit -m "feat(debug): expose protocol and debug metadata in menus and deta
 - Modify: `src/protocol/debug/Driver/RawDriver.php` (stub from Task 2; implement `send()` here)
 - Create: `src/protocol/debug/Driver/HttpRelayDriver.php`
 - Create: `src/protocol/debug/Support/Hex.php`
+- Create: `src/protocol/debug/Support/HttpClient.php`
 - Modify: `src/providers/BaseService.php:13-30`
 - Modify: `src/Controller.php` (add methods before the final `}`)
 - Modify: `src/config.php` (add `protocols.debug` in Task 13; defaults here)
 - Create: `tests/debug.php`, `tests/fixtures/debug/tcp_echo_server.php`
 - Create: `tests/fixtures/debug/udp_echo_server.php`
+- Create: `tests/fixtures/debug/http/echo.php` (served by `php -S` in the test)
 
 **Interfaces:**
 - Produces:
@@ -378,7 +380,7 @@ git commit -m "feat(debug): expose protocol and debug metadata in menus and deta
 php tests/fixtures/debug/tcp_echo_server.php 127.0.0.1 19001
 php tests/fixtures/debug/udp_echo_server.php 127.0.0.1 19002
 ```
-Fixtures listen on the given port and echo bytes back. Tests:
+Fixtures listen on the given port and echo bytes back. Also start `php -S 127.0.0.1:19005 -t tests/fixtures/debug/http` for the HTTP-relay test. Tests:
 ```php
 $config['protocols']['debug']['relay_enable'] = true;
 $proxy = new erikwang2013\apidoc\protocol\debug\DebugProxy($config);
@@ -392,13 +394,22 @@ $disabled = (new erikwang2013\apidoc\protocol\debug\DebugProxy($config))->send('
 check('relay disabled returns error', ($disabled['ok'] ?? true) === false);
 $evil = $proxy->send('api', 'Tests\\Fixtures\\Protocol\\RawFixture@echo', ['target' => 'tcp://127.0.0.1:19999', 'payload' => 'x']);
 check('client target ignored', ($evil['ok'] ?? true) === true && ($evil['body'] ?? '') === 'x');
+$http = $proxy->send('api', 'Tests\\Fixtures\\Protocol\\HttpRelayFixture@echo', ['method' => 'POST', 'payload' => 'hello', 'encoding' => 'text']);
+check('http relay ok', ($http['ok'] ?? false) === true);
+check('http relay body', strpos((string)($http['body'] ?? ''), 'hello') !== false);
 ```
-Add a `RawFixture` in `tests/fixtures/protocol/AnnotationFixtures.php`:
+Add a `RawFixture` and `HttpRelayFixture` in `tests/fixtures/protocol/AnnotationFixtures.php`:
 ```php
 #[Protocol('tcp')]
 #[Debug(driver:'raw', target:'tcp://127.0.0.1:19001')]
 class RawFixture {
     #[Channel('echo')] #[Title('Echo')]
+    public function echo() {}
+}
+#[Protocol('http')]
+#[Debug(driver:'http-relay', target:'http://127.0.0.1:19005/echo.php')]
+class HttpRelayFixture {
+    #[Channel('/echo.php')] #[Title('HTTP echo')]
     public function echo() {}
 }
 ```
@@ -430,9 +441,9 @@ Flow:
 3. If relay disabled -> `['ok'=>false,'error'=>'relay disabled']`.
 4. Resolve target from `$debug['defaults']['target']` (never `$input['target']`); parse with `DebugTarget`.
 5. Merge input: `$fields = $input['fields'] ?? []`; if `$input['payload']` is set, `$fields['payload'] = $input['payload']`; `$encoding = $input['encoding'] ?? $debug['defaults']['encoding']`; `$timeout = min((float)($input['timeout'] ?? $debug['defaults']['timeout']), $config['protocols']['debug']['max_timeout'])`; pass `headers`/`query` through unchanged.
-6. `DebugRegistry::driver($debug['driver'])`; abort if null.
+6. Require `$debug['mode'] === 'relay-unary'`; return `['ok'=>false,'error'=>'driver is not unary']` otherwise. `DebugRegistry::driver($debug['driver'])`; abort if null.
 7. Call `send($input, $context)` where `$context` has `target`, `meta`, `timeout`, `maxBytes`.
-8. Rate limit: `Cache` counter `debug/rate/{md5(token)}/{minute}`; abort over 60. Token from `$this->requestParams['token']`; `DebugProxy::send` receives a `rateKey` in `$config` or a `rateKey` argument. Use `send($appKey,$apiKey,$input,$rateKey='')`.
+8. Rate limit: `Cache` counter `debug/rate/{md5(token)}/{minute}`; abort over 60. Skip the check when `$rateKey === ''` (tests and read-only callers). `DebugProxy::send` signature is `send($appKey,$apiKey,$input,$rateKey='')`.
 
 - [ ] **Step 6: Add Controller endpoints and routes**
 
@@ -449,8 +460,8 @@ public function debugSend() {
     $this->init(true);
     $params = $this->requestParams;
     $this->checkAuth();
-    if (!empty($this->config['protocols']['debug']['relay_require_auth'])
-        && empty($params['token']) && empty($params['shareKey'])) {
+    $requireAuth = $this->config['protocols']['debug']['relay_require_auth'] ?? true;
+    if ($requireAuth && empty($params['token']) && empty($params['shareKey'])) {
         return Helper::showJson(0, '', ['ok'=>false, 'error'=>'authentication required']);
     }
     $res = (new DebugProxy($this->config))->send(
