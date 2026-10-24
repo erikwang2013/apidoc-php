@@ -551,15 +551,30 @@ class Controller
     }
 
     /**
-     * 限流标识:token 优先,其次 shareKey,均无则 anonymous
+     * 限流标识:按 checkAuth() 实际校验过的凭证分桶
+     * shareKey 优先;token 仅在 auth 开启或应用配置了密码时有效
      */
     protected function debugRateKey(array $params): string
     {
-        $key = (string)($params['token'] ?? '');
-        if ($key === '') {
-            $key = (string)($params['shareKey'] ?? '');
+        $shareKey = (string)($params['shareKey'] ?? '');
+        if ($shareKey !== '') {
+            return 'share:' . $shareKey;
         }
-        return $key !== '' ? $key : 'anonymous';
+        $token = (string)($params['token'] ?? '');
+        if ($token === '') {
+            return 'anonymous';
+        }
+        $tokenValidated = !empty($this->config['auth']['enable']);
+        if (!$tokenValidated) {
+            try {
+                $appKey = (string)($params['appKey'] ?? '');
+                $app = Helper::getCurrentAppConfig($appKey)['appConfig'] ?? [];
+                $tokenValidated = !empty($app['password']);
+            } catch (\Throwable $e) {
+                $tokenValidated = false;
+            }
+        }
+        return $tokenValidated ? 'token:' . $token : 'anonymous';
     }
 
 }

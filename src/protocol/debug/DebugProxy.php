@@ -26,7 +26,7 @@ class DebugProxy
      * @param string $appKey 应用 key
      * @param string $apiKey 类名@方法名
      * @param array $input 客户端输入
-     * @param string $rateKey 限流标识;为空时跳过限流(测试/只读调用)
+     * @param string $rateKey 限流标识;为空时归入 anonymous 桶
      * @return array
      */
     public function send(string $appKey, string $apiKey, array $input, string $rateKey = ''): array
@@ -81,10 +81,9 @@ class DebugProxy
             return ['ok' => false, 'error' => 'payload must be a string'];
         }
         $maxBytes = max(1, (int)($debugConfig['max_bytes'] ?? 1048576));
-        if (
-            strlen((string)($driverInput['payload'] ?? '')) > $maxBytes ||
-            strlen((string)json_encode($driverInput)) > $maxBytes
-        ) {
+        $encodedInput = json_encode($driverInput, JSON_INVALID_UTF8_SUBSTITUTE);
+        $inputSize = $encodedInput === false ? strlen(serialize($driverInput)) : strlen($encodedInput);
+        if (strlen((string)($driverInput['payload'] ?? '')) > $maxBytes || $inputSize > $maxBytes) {
             return ['ok' => false, 'error' => 'request exceeds max_bytes'];
         }
 

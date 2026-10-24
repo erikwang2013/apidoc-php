@@ -174,14 +174,45 @@ ConfigProvider::set($deniedConfig);
 $denied = (new Controller())->debugSend();
 check('controller debugSend requires auth by default', ($denied['data']['ok'] ?? true) === false && ($denied['data']['error'] ?? '') === 'authentication required');
 
+// auth 关闭时,任意 token 都归入同一个 anonymous 桶
+$anonConfig = $config;
+$anonConfig['protocols']['debug']['rate_limit_per_minute'] = 1;
+(new Cache(['expire' => 120]))->delete('debug/rate/' . md5('anonymous') . '/' . (int)floor(time() / 60));
+$anonResults = [];
+foreach (['arbitrary-1', 'arbitrary-2'] as $i => $token) {
+    $anonRequestConfig = $anonConfig;
+    $anonRequestConfig['request_params'] = [
+        'appKey' => 'api',
+        'path' => $rawApi,
+        'input' => ['payload' => 't' . $i, 'timeout' => 2],
+        'token' => $token,
+    ];
+    ConfigProvider::set($anonRequestConfig);
+    $anonResults[] = (new Controller())->debugSend();
+}
+check(
+    'auth-disabled arbitrary tokens share anonymous bucket',
+    ($anonResults[0]['data']['ok'] ?? false) === true
+    && ($anonResults[1]['data']['ok'] ?? true) === false
+    && strpos((string)($anonResults[1]['data']['error'] ?? ''), 'rate limit') !== false
+);
+
 $rateKeyMethod = new ReflectionMethod(Controller::class, 'debugRateKey');
+$configProp = new ReflectionProperty(Controller::class, 'config');
 if (PHP_VERSION_ID < 80100) {
     $rateKeyMethod->setAccessible(true);
+    $configProp->setAccessible(true);
 }
 $controllerForKeys = new Controller();
-check('rate key prefers token', $rateKeyMethod->invoke($controllerForKeys, ['token' => 't', 'shareKey' => 's']) === 't');
-check('rate key falls back to shareKey', $rateKeyMethod->invoke($controllerForKeys, ['shareKey' => 's']) === 's');
-check('rate key falls back to anonymous', $rateKeyMethod->invoke($controllerForKeys, []) === 'anonymous');
+ConfigProvider::set($config);
+$configProp->setValue($controllerForKeys, $config);
+check('rate key: shareKey wins over token', $rateKeyMethod->invoke($controllerForKeys, ['token' => 't', 'shareKey' => 's']) === 'share:s');
+check('rate key: auth-disabled client token maps to anonymous', $rateKeyMethod->invoke($controllerForKeys, ['token' => 'arbitrary', 'appKey' => 'api']) === 'anonymous');
+check('rate key: no credential maps to anonymous', $rateKeyMethod->invoke($controllerForKeys, []) === 'anonymous');
+$authOnConfig = $config;
+$authOnConfig['auth']['enable'] = true;
+$configProp->setValue($controllerForKeys, $authOnConfig);
+check('rate key: validated token maps to its own bucket', $rateKeyMethod->invoke($controllerForKeys, ['token' => 'tk', 'appKey' => 'api']) === 'token:tk');
 
 $routes = (new ReflectionClass(BaseService::class))->getStaticProperties()['routes'] ?? [];
 $rules = array_column($routes, 'rule');

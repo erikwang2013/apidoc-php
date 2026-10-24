@@ -160,7 +160,9 @@ class HttpClient
                 $headerLines = isset($vars['http_response_header']) ? (array)$vars['http_response_header'] : [];
             }
             if ($responseBody === false) {
-                return ['error' => microtime(true) >= $deadline ? 'request timed out' : 'request failed'];
+                // 流包装器超时可能比截止时间早几毫秒返回,留容差
+                $timedOut = $deadline - microtime(true) <= 0.1;
+                return ['error' => $timedOut ? 'request timed out' : 'request failed'];
             }
             list($status, $responseHeaders) = static::parseHeaderLines($headerLines);
             if ($status >= 300 && $status < 400 && $redirects < 3 && !empty($responseHeaders['location'])) {
