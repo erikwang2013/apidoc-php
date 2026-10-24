@@ -1021,6 +1021,8 @@ git commit -m "feat(ui): add relay unary and stream debug panels"
 
 - [ ] **Step 2: Add composer suggestions**
 
+Add a top-level `suggest` block (sibling of `require`, not inside it):
+
 ```json
 "suggest": {
     "ext-dom": "Required for WSDL/XSD/EDMX definition parsing",
