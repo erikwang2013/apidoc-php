@@ -393,6 +393,14 @@ check('sip send content length', strpos((string)($sipRes['body'] ?? ''), 'Conten
 check('sip send status meta', ($sipRes['meta']['status'] ?? 0) === 200);
 check('sip rejects bad method', ($sip->send(['method' => 'INVITE'], ['target' => 'udp://127.0.0.1:19010'])['ok'] ?? true) === false);
 check('sip rejects http target', ($sip->send([], ['target' => 'http://127.0.0.1:19010'])['ok'] ?? true) === false);
+$sipMessage = $sip->encodeRequest('MESSAGE', 'sip:host', 'a@b', 'c@d', 2, 'call-1', [], 'hello');
+check('sip message default content type', strpos($sipMessage, "Content-Type: application/sdp\r\n") !== false);
+check('sip caller content type wins', substr_count(strtolower($sip->encodeRequest('MESSAGE', 'sip:host', 'a@b', 'c@d', 2, 'call-1', ['Content-Type' => 'application/json'], '{}')), "content-type:") === 1
+    && strpos($sip->encodeRequest('MESSAGE', 'sip:host', 'a@b', 'c@d', 2, 'call-1', ['Content-Type' => 'application/json'], '{}'), "Content-Type: application/json\r\n") !== false);
+check('sip no content type for empty body', strpos($sip->encodeRequest('OPTIONS', 'sip:host', 'a@b', 'c@d', 1), 'Content-Type:') === false);
+check('sip content length counts bytes', strpos($sip->encodeRequest('MESSAGE', 'sip:host', 'a@b', 'c@d', 2, 'call-1', [], 'héllo'), "Content-Length: 6\r\n\r\nh\xc3\xa9llo") !== false);
+$sipMessageRes = $sip->send(['method' => 'MESSAGE', 'body' => '{}', 'headers' => '{"Content-Type":"application/json"}', 'callId' => 'msg-call', 'cseq' => 6], ['target' => 'udp://127.0.0.1:19010', 'timeout' => 2]);
+check('sip message send ok', ($sipMessageRes['ok'] ?? false) === true && ($sipMessageRes['meta']['status'] ?? 0) === 200);
 
 $hls = new HlsDriver();
 $parsed = $hls->parsePlaylist("#EXTM3U\n#EXTINF:10,\nseg1.ts\n#EXT-X-ENDLIST\n");

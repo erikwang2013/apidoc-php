@@ -19,9 +19,9 @@ class SipDriver implements DebugDriverInterface
     protected static $methods = ['OPTIONS', 'REGISTER', 'MESSAGE'];
 
     /**
-     * @var string[] 由驱动生成的头,额外头不能覆盖
+     * @var string[] 由驱动生成的头,额外头不能覆盖;Content-Type 允许调用方提供
      */
-    protected static $reserved = ['via', 'max-forwards', 'from', 'to', 'call-id', 'cseq', 'content-length', 'content-type'];
+    protected static $reserved = ['via', 'max-forwards', 'from', 'to', 'call-id', 'cseq', 'content-length'];
 
     public function name(): string
     {
@@ -42,7 +42,7 @@ class SipDriver implements DebugDriverInterface
             ['name' => 'to', 'in' => 'meta', 'type' => 'string', 'require' => false, 'desc' => 'Defaults to the request URI'],
             ['name' => 'callId', 'in' => 'meta', 'type' => 'string', 'require' => false, 'desc' => 'Generated when empty'],
             ['name' => 'cseq', 'in' => 'meta', 'type' => 'number', 'require' => false, 'default' => 1],
-            ['name' => 'headers', 'in' => 'meta', 'type' => 'string', 'require' => false, 'desc' => 'Extra headers as a JSON object'],
+            ['name' => 'headers', 'in' => 'meta', 'type' => 'string', 'require' => false, 'desc' => 'Extra headers as a JSON object; Content-Type defaults to application/sdp for MESSAGE bodies'],
             ['name' => 'body', 'in' => 'body', 'type' => 'string', 'require' => false, 'desc' => 'SDP or text body'],
         ];
     }
@@ -74,6 +74,15 @@ class SipDriver implements DebugDriverInterface
             'Call-ID: ' . $callId,
             'CSeq: ' . $cseq . ' ' . $method,
         ];
+        $hasContentType = false;
+        foreach ($headers as $name => $value) {
+            if (is_string($name) && strcasecmp($name, 'Content-Type') === 0) {
+                $hasContentType = true;
+            }
+        }
+        if ($body !== '' && !$hasContentType) {
+            $lines[] = 'Content-Type: ' . ($method === 'MESSAGE' ? 'application/sdp' : 'text/plain');
+        }
         foreach ($headers as $name => $value) {
             $name = (string)$name;
             if (!is_scalar($value)
