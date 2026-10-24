@@ -68,6 +68,10 @@ class HttpRelayDriver implements DebugDriverInterface
         } catch (InvalidArgumentException $e) {
             return ['ok' => false, 'error' => $e->getMessage()];
         }
+        $maxBytes = max(1, (int)($context['maxBytes'] ?? 1048576));
+        if (strlen($body) > $maxBytes) {
+            return ['ok' => false, 'error' => 'request exceeds max_bytes'];
+        }
         $url = (string)$context['target'];
         $query = isset($input['query']) && is_array($input['query']) ? $input['query'] : [];
         if ($query !== []) {
@@ -79,7 +83,7 @@ class HttpRelayDriver implements DebugDriverInterface
             'headers' => $input['headers'] ?? [],
             'body' => $body,
             'timeout' => (float)($context['timeout'] ?? 5),
-            'maxBytes' => (int)($context['maxBytes'] ?? 65536),
+            'maxBytes' => $maxBytes,
         ]);
         if (isset($result['error'])) {
             return ['ok' => false, 'error' => $result['error']];

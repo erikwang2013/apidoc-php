@@ -8,7 +8,9 @@ declare(strict_types=1);
 
 use erikwang2013\apidoc\Controller;
 use erikwang2013\apidoc\protocol\debug\DebugProxy;
+use erikwang2013\apidoc\protocol\debug\Support\HttpClient;
 use erikwang2013\apidoc\providers\BaseService;
+use erikwang2013\apidoc\utils\Cache;
 use erikwang2013\apidoc\utils\ConfigProvider;
 
 error_reporting(E_ALL);
@@ -127,13 +129,26 @@ $evil = $proxy->send('api', $rawApi, ['target' => 'tcp://127.0.0.1:19999', 'payl
 check('client target ignored', ($evil['ok'] ?? true) === true && ($evil['body'] ?? '') === 'x');
 
 $limitedConfig = $config;
-$limitedConfig['protocols']['debug']['rate_limit'] = 1;
+$limitedConfig['protocols']['debug']['rate_limit_per_minute'] = 1;
 $limited = new DebugProxy($limitedConfig);
 $first = $limited->send('api', $rawApi, ['payload' => 'a', 'timeout' => 2], 'token-a');
 $second = $limited->send('api', $rawApi, ['payload' => 'b', 'timeout' => 2], 'token-a');
 check('rate limit first call passes', ($first['ok'] ?? false) === true);
 check('rate limit second call rejected', ($second['ok'] ?? true) === false && strpos((string)($second['error'] ?? ''), 'rate limit') !== false);
-check('rate limit skipped without key', ((new DebugProxy($limitedConfig))->send('api', $rawApi, ['payload' => 'c', 'timeout' => 2])['ok'] ?? false) === true);
+$shareFirst = $limited->send('api', $rawApi, ['payload' => 'c', 'timeout' => 2], 'share-style-key');
+$shareSecond = $limited->send('api', $rawApi, ['payload' => 'd', 'timeout' => 2], 'share-style-key');
+check('share-style rate key limited', ($shareFirst['ok'] ?? false) === true && ($shareSecond['ok'] ?? true) === false);
+// 清掉前面无 key 调用累计的 anonymous 桶,再验证空 key 不会绕过限流
+(new Cache(['expire' => 120]))->delete('debug/rate/' . md5('anonymous') . '/' . (int)floor(time() / 60));
+$anonFirst = $limited->send('api', $rawApi, ['payload' => 'e', 'timeout' => 2]);
+$anonSecond = $limited->send('api', $rawApi, ['payload' => 'f', 'timeout' => 2]);
+check('anonymous rate key limited', ($anonFirst['ok'] ?? false) === true && ($anonSecond['ok'] ?? true) === false);
+
+// ---------- 请求体大小上限 ----------
+$smallConfig = $config;
+$smallConfig['protocols']['debug']['max_bytes'] = 4;
+$oversize = (new DebugProxy($smallConfig))->send('api', $rawApi, ['payload' => 'hello', 'encoding' => 'text']);
+check('oversize request rejected', ($oversize['ok'] ?? true) === false && strpos((string)($oversize['error'] ?? ''), 'max_bytes') !== false);
 
 // ---------- http-relay 驱动 ----------
 $http = $proxy->send('api', $httpApi, ['method' => 'POST', 'payload' => 'hello', 'encoding' => 'text']);
@@ -159,9 +174,33 @@ ConfigProvider::set($deniedConfig);
 $denied = (new Controller())->debugSend();
 check('controller debugSend requires auth by default', ($denied['data']['ok'] ?? true) === false && ($denied['data']['error'] ?? '') === 'authentication required');
 
+$rateKeyMethod = new ReflectionMethod(Controller::class, 'debugRateKey');
+if (PHP_VERSION_ID < 80100) {
+    $rateKeyMethod->setAccessible(true);
+}
+$controllerForKeys = new Controller();
+check('rate key prefers token', $rateKeyMethod->invoke($controllerForKeys, ['token' => 't', 'shareKey' => 's']) === 't');
+check('rate key falls back to shareKey', $rateKeyMethod->invoke($controllerForKeys, ['shareKey' => 's']) === 's');
+check('rate key falls back to anonymous', $rateKeyMethod->invoke($controllerForKeys, []) === 'anonymous');
+
 $routes = (new ReflectionClass(BaseService::class))->getStaticProperties()['routes'] ?? [];
 $rules = array_column($routes, 'rule');
 check('debug routes registered', !array_diff(['debugSend', 'debugStart', 'debugPoll', 'debugStop'], $rules));
+
+// ---------- stream 回退总超时(放在最后,slow 端点会占用内置服务器) ----------
+$viaStream = new ReflectionMethod(HttpClient::class, 'viaStream');
+if (PHP_VERSION_ID < 80100) {
+    $viaStream->setAccessible(true);
+}
+$slowStart = microtime(true);
+$slow = $viaStream->invoke(null, [
+    'url' => 'http://127.0.0.1:19005/slow.php',
+    'method' => 'GET',
+    'timeout' => 1,
+    'maxBytes' => 1024,
+]);
+$slowElapsed = microtime(true) - $slowStart;
+check('stream fallback bounds total timeout', ($slow['error'] ?? '') === 'request timed out' && $slowElapsed < 2.0);
 
 echo "\n{$pass} passed, {$fail} failed\n";
 exit($fail > 0 ? 1 : 0);

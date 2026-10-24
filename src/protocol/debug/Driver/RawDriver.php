@@ -55,7 +55,10 @@ class RawDriver implements DebugDriverInterface
         if ($timeout <= 0) {
             $timeout = 5.0;
         }
-        $maxBytes = max(1, (int)($context['maxBytes'] ?? 65536));
+        $maxBytes = max(1, (int)($context['maxBytes'] ?? 1048576));
+        if (strlen($payload) > $maxBytes) {
+            return ['ok' => false, 'error' => 'request exceeds max_bytes'];
+        }
         $address = $target['scheme'] === 'unix'
             ? 'unix://' . $target['path']
             : $target['scheme'] . '://' . $target['host'] . ':' . $target['port'];

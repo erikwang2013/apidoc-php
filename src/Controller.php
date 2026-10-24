@@ -469,7 +469,7 @@ class Controller
             (string)($params['appKey'] ?? ''),
             (string)($params['path'] ?? ''),
             (array)($params['input'] ?? []),
-            (string)($params['token'] ?? '')
+            $this->debugRateKey($params)
         );
         return Helper::showJson(0, "", $res);
     }
@@ -490,7 +490,7 @@ class Controller
             (string)($params['appKey'] ?? ''),
             (string)($params['path'] ?? ''),
             (array)($params['input'] ?? []),
-            (string)($params['token'] ?? '')
+            $this->debugRateKey($params)
         );
         return Helper::showJson(0, "", $res);
     }
@@ -510,7 +510,8 @@ class Controller
         $res = (new DebugProxy($this->config))->poll(
             (string)($params['sessionId'] ?? ''),
             (string)($params['appKey'] ?? ''),
-            (string)($params['path'] ?? '')
+            (string)($params['path'] ?? ''),
+            $this->debugRateKey($params)
         );
         return Helper::showJson(0, "", $res);
     }
@@ -530,7 +531,8 @@ class Controller
         $res = (new DebugProxy($this->config))->stop(
             (string)($params['sessionId'] ?? ''),
             (string)($params['appKey'] ?? ''),
-            (string)($params['path'] ?? '')
+            (string)($params['path'] ?? ''),
+            $this->debugRateKey($params)
         );
         return Helper::showJson(0, "", $res);
     }
@@ -546,6 +548,18 @@ class Controller
             return Helper::showJson(0, "", ['ok' => false, 'error' => 'authentication required']);
         }
         return null;
+    }
+
+    /**
+     * 限流标识:token 优先,其次 shareKey,均无则 anonymous
+     */
+    protected function debugRateKey(array $params): string
+    {
+        $key = (string)($params['token'] ?? '');
+        if ($key === '') {
+            $key = (string)($params['shareKey'] ?? '');
+        }
+        return $key !== '' ? $key : 'anonymous';
     }
 
 }

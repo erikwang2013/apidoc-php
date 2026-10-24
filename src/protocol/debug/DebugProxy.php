@@ -37,7 +37,8 @@ class DebugProxy
         if (($debugConfig['relay_enable'] ?? false) !== true) {
             return ['ok' => false, 'error' => 'relay disabled'];
         }
-        if ($rateKey !== '' && !$this->consumeRate($debugConfig, $rateKey)) {
+        // 匿名调用也有独立桶,避免空 key 绕过限流
+        if (!$this->consumeRate($debugConfig, $rateKey !== '' ? $rateKey : 'anonymous')) {
             return ['ok' => false, 'error' => 'rate limit exceeded'];
         }
         try {
@@ -79,6 +80,13 @@ class DebugProxy
         if (isset($driverInput['payload']) && !is_string($driverInput['payload'])) {
             return ['ok' => false, 'error' => 'payload must be a string'];
         }
+        $maxBytes = max(1, (int)($debugConfig['max_bytes'] ?? 1048576));
+        if (
+            strlen((string)($driverInput['payload'] ?? '')) > $maxBytes ||
+            strlen((string)json_encode($driverInput)) > $maxBytes
+        ) {
+            return ['ok' => false, 'error' => 'request exceeds max_bytes'];
+        }
 
         $timeout = (float)($input['timeout'] ?? $defaults['timeout'] ?? 5);
         $maxTimeout = (float)($debugConfig['max_timeout'] ?? 30);
@@ -92,7 +100,7 @@ class DebugProxy
             'target' => $target,
             'meta' => $debug,
             'timeout' => $timeout,
-            'maxBytes' => max(1, (int)($debugConfig['max_bytes'] ?? 65536)),
+            'maxBytes' => $maxBytes,
         ];
         try {
             $result = $driver->send($driverInput, $context);
@@ -107,12 +115,12 @@ class DebugProxy
         return ['ok' => false, 'error' => 'streaming driver not implemented yet'];
     }
 
-    public function poll(string $sessionId, string $appKey = '', string $apiKey = ''): array
+    public function poll(string $sessionId, string $appKey = '', string $apiKey = '', string $rateKey = ''): array
     {
         return ['ok' => false, 'error' => 'streaming driver not implemented yet'];
     }
 
-    public function stop(string $sessionId, string $appKey = '', string $apiKey = ''): array
+    public function stop(string $sessionId, string $appKey = '', string $apiKey = '', string $rateKey = ''): array
     {
         return ['ok' => false, 'error' => 'streaming driver not implemented yet'];
     }
@@ -122,7 +130,7 @@ class DebugProxy
      */
     protected function consumeRate(array $debugConfig, string $rateKey): bool
     {
-        $limit = (int)($debugConfig['rate_limit'] ?? 60);
+        $limit = (int)($debugConfig['rate_limit_per_minute'] ?? 60);
         if ($limit <= 0) {
             return true;
         }

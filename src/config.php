@@ -124,12 +124,12 @@ return [
             'relay_enable'=>false,
             // 中继接口是否要求 token/shareKey(缺失时按 true 处理)
             'relay_require_auth'=>true,
-            // 每个 token 每分钟请求上限
-            'rate_limit'=>60,
+            // 每个 token/shareKey 每分钟请求上限
+            'rate_limit_per_minute'=>60,
             // 单次调试超时上限(秒)
             'max_timeout'=>30,
-            // 单次调试响应字节上限
-            'max_bytes'=>65536,
+            // 单次调试请求/响应字节上限(1MB)
+            'max_bytes'=>1048576,
         ],
     ],
 ];

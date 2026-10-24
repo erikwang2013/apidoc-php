@@ -30,7 +30,7 @@ class HttpClient
     {
         $method = strtoupper((string)($options['method'] ?? 'GET'));
         $timeout = max(0.1, (float)($options['timeout'] ?? 5));
-        $maxBytes = max(1, (int)($options['maxBytes'] ?? 65536));
+        $maxBytes = max(1, (int)($options['maxBytes'] ?? 1048576));
         $headers = static::normalizeHeaders($options['headers'] ?? []);
         $body = (string)($options['body'] ?? '');
         $httpVersion = (int)($options['httpVersion'] ?? 1);
@@ -122,12 +122,18 @@ class HttpClient
         }
         $method = strtoupper((string)($options['method'] ?? 'GET'));
         $timeout = max(0.1, (float)($options['timeout'] ?? 5));
-        $maxBytes = max(1, (int)($options['maxBytes'] ?? 65536));
+        $maxBytes = max(1, (int)($options['maxBytes'] ?? 1048576));
         $headers = static::normalizeHeaders($options['headers'] ?? []);
         $body = (string)($options['body'] ?? '');
         $url = (string)$options['url'];
+        // 总超时按绝对截止时间计,重定向各跳共享剩余时间
+        $deadline = microtime(true) + $timeout;
 
         for ($redirects = 0; ; $redirects++) {
+            $remaining = $deadline - microtime(true);
+            if ($remaining <= 0) {
+                return ['error' => 'request timed out'];
+            }
             $scheme = strtolower((string)parse_url($url, PHP_URL_SCHEME));
             if (!in_array($scheme, ['http', 'https'], true)) {
                 return ['error' => '仅支持 http/https 目标'];
@@ -135,7 +141,7 @@ class HttpClient
             $http = [
                 'method' => $method,
                 'header' => implode("\r\n", $headers),
-                'timeout' => $timeout,
+                'timeout' => $remaining,
                 'ignore_errors' => true,
                 'follow_location' => 0,
                 'protocol_version' => 1.1,
@@ -154,7 +160,7 @@ class HttpClient
                 $headerLines = isset($vars['http_response_header']) ? (array)$vars['http_response_header'] : [];
             }
             if ($responseBody === false) {
-                return ['error' => 'request failed'];
+                return ['error' => microtime(true) >= $deadline ? 'request timed out' : 'request failed'];
             }
             list($status, $responseHeaders) = static::parseHeaderLines($headerLines);
             if ($status >= 300 && $status < 400 && $redirects < 3 && !empty($responseHeaders['location'])) {
