@@ -202,6 +202,17 @@ $defOff = (new ParseProtocol($relayOffConfig))->metadata($defRef, $defRef->getMe
 check('catalog driver fallback not debuggable with relay disabled', ($defOff['debug']['debuggable'] ?? true) === false);
 check('unknown protocol falls back', ProtocolCatalog::get('nope')['label'] === 'NOPE');
 
+// ---------- P2 回退:目录驱动与元数据 ----------
+$p2RawRef = new ReflectionClass(\Tests\Fixtures\Protocol\P2RawFixture::class);
+$p2Raw = $parser->metadata($p2RawRef, $p2RawRef->getMethod('publish'));
+check('p2 amqp raw fallback driver', ($p2Raw['debug']['driver'] ?? '') === 'raw');
+check('p2 amqp raw fallback mode', ($p2Raw['debug']['mode'] ?? '') === 'relay-unary');
+check('p2 amqp raw fallback fields include payload', in_array('payload', array_column($p2Raw['debug']['fields'] ?? [], 'name'), true));
+$p2NoRef = new ReflectionClass(\Tests\Fixtures\Protocol\P2NoDriverFixture::class);
+$p2No = $parser->metadata($p2NoRef, $p2NoRef->getMethod('offer'));
+check('webrtc p2 metadata not debuggable', ($p2No['debug']['debuggable'] ?? true) === false);
+check('webrtc p2 metadata reason', strpos((string)($p2No['debug']['debugReason'] ?? ''), 'SDP') !== false && strpos((string)($p2No['debug']['debugReason'] ?? ''), 'P2') !== false);
+
 // ---------- 驱动注册表 / 调试目标 ----------
 check('target parses tcp', DebugTarget::parse('tcp://broker:1883')['port'] === 1883);
 check('target parses unix', DebugTarget::parse('unix:///tmp/app.sock')['scheme'] === 'unix');
@@ -310,7 +321,26 @@ check('unregistered driver not debuggable with relay enabled and target', ($unre
 // 目录条目必须携带 defaultFormat，供定义解析计划消费
 check('rest default format', ProtocolCatalog::get('rest')['defaultFormat'] === 'openapi');
 check('grpc default format', ProtocolCatalog::get('grpc')['defaultFormat'] === 'proto');
-check('p2 protocol not debuggable', ProtocolCatalog::get('kafka')['debuggable'] === false);
+check('amqp p2 fallback driver', ProtocolCatalog::get('amqp')['defaultDriver'] === 'raw');
+check('amqp p2 fallback mode', ProtocolCatalog::get('amqp')['defaultMode'] === 'relay-unary');
+check('binary-body uses http relay', ProtocolCatalog::get('binary-body')['defaultDriver'] === 'http-relay' && ProtocolCatalog::get('binary-body')['defaultMode'] === 'relay-unary');
+check('websocket-binary uses browser websocket', ProtocolCatalog::get('websocket-binary')['defaultDriver'] === 'websocket' && ProtocolCatalog::get('websocket-binary')['defaultMode'] === 'browser-websocket');
+check('socket.io uses browser websocket fallback', ProtocolCatalog::get('socket.io')['defaultMode'] === 'browser-websocket');
+check('stomp-binary uses stomp driver', ProtocolCatalog::get('stomp-binary')['defaultDriver'] === 'stomp' && ProtocolCatalog::get('stomp-binary')['defaultMode'] === 'relay-stream');
+check('http2 uses browser http', ProtocolCatalog::get('http2')['defaultDriver'] === 'http' && ProtocolCatalog::get('http2')['defaultMode'] === 'browser-http');
+check('webrtc keeps no driver', ProtocolCatalog::get('webrtc')['defaultDriver'] === '' && ProtocolCatalog::get('webrtc')['defaultMode'] === '');
+check('webrtc p2 reason', ProtocolCatalog::get('webrtc')['debugReason'] === 'WebRTC 需要手动 SDP/信令（P2）');
+$noDriverIds = ['webrtc', 'webrtc-datachannel'];
+$missingDefaults = [];
+foreach (ProtocolCatalog::ids() as $id) {
+    $entry = ProtocolCatalog::get($id);
+    $noDriver = in_array($id, $noDriverIds, true);
+    if ($entry['label'] === '' || (!$noDriver && ($entry['defaultDriver'] === '' || $entry['defaultMode'] === ''))) {
+        $missingDefaults[] = $id;
+    }
+}
+check('every catalog id has debug defaults', $missingDefaults === []);
+check('catalog ids returns all protocol ids', array_diff(['http', 'mqtt', 'amqp', 'webrtc'], ProtocolCatalog::ids()) === []);
 
 // ---------- 明细/菜单集成 + 既有 HTTP 兼容 ----------
 $plainRef = new ReflectionClass(\Tests\Fixtures\Protocol\PlainHttpFixture::class);

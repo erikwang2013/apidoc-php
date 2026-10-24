@@ -142,3 +142,20 @@ class Iso8583ProxyFixture
     #[Debug(driver: 'iso8583', target: 'tcp://127.0.0.1:19008')]
     public function send() {}
 }
+
+// P2 协议无专用驱动,回退到原始套接字面板
+#[Protocol('amqp')]
+#[Channel('tcp://broker:5672')]
+#[Debug(target: 'tcp://broker:5672')]
+class P2RawFixture
+{
+    #[Title('Publish AMQP frame')]
+    public function publish() {}
+}
+
+#[Protocol('webrtc')]
+class P2NoDriverFixture
+{
+    #[Title('Send WebRTC offer')]
+    public function offer() {}
+}

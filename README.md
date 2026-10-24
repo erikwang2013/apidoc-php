@@ -98,6 +98,26 @@ public function publishTemperature() {}
 ],
 ```
 
+### 协议覆盖与回退
+
+P1 已有专用驱动的协议使用专用面板，其余协议回退到通用面板（`webrtc`/`webrtc-datachannel` 除外）。**通用面板不实现协议语义**：`raw` 只按 `text`/`hex`/`base64` 发送原始字节，HTTP 中继只发普通 HTTP 请求，浏览器 WebSocket 只收发 WebSocket 帧。
+
+| 协议 id | P1 专用驱动 | P2 通用回退 |
+| - | - | - |
+| `http` `rest` `soap` `graphql` `json-rpc` `xml-rpc` `webhooks` `odata` `mcp` `a2a` | `http`（浏览器 HTTP 面板） | — |
+| `websocket` | 浏览器 WebSocket | — |
+| `sse` | 浏览器 EventSource | — |
+| `mqtt` `stomp` | `mqtt` / `stomp`（发布单次中继、订阅流式） | — |
+| `coap` `modbus-tcp` `iso8583` `rtsp` `sip` `hls` `grpc` `hessian` | 同名专用驱动 | — |
+| `tcp` `udp` `unix-socket` `raw-socket` | `raw` | — |
+| `thrift` `dubbo` `amqp` `kafka` `xmpp` `rtmp` `opc-ua` `dnp3` `iec-104` `lwm2m` `rtp` `rtcp` `bacnet-ip` | 无 | `raw`（TCP/UDP/UDS 文本/hex/base64） |
+| `binary-body` | 无 | `http-relay`（单次 HTTP 中继） |
+| `websocket-binary` | 无 | 浏览器 WebSocket |
+| `socket.io` | 无 | 浏览器 WebSocket 原始回退（Engine.IO 驱动仍为 P2） |
+| `stomp-binary` | 无 | `stomp`（发布/发送单次中继，接收流式） |
+| `http2` `http3` | 无 | 浏览器 HTTP（不实现 HTTP/2、HTTP/3 语义） |
+| `webrtc` `webrtc-datachannel` | 无 | 无（需手动 SDP/信令，P2） |
+
 注解参数、调试模式与中继安全说明见 [Attributes 使用说明](docs/ATTRIBUTES.md) 的「任意协议调试」。
 
 

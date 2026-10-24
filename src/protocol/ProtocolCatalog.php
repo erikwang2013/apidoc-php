@@ -9,7 +9,7 @@ namespace erikwang2013\apidoc\protocol;
 class ProtocolCatalog
 {
     /**
-     * P1 协议带驱动；P2 协议仅有身份(驱动为空)
+     * P1 协议带专用驱动；P2 协议回退到通用驱动(WebRTC 暂无可用回退)
      * @var array
      */
     protected static $protocols = [
@@ -39,28 +39,30 @@ class ProtocolCatalog
         'udp' => ['label' => 'UDP', 'transport' => 'udp', 'http' => false, 'defaultDriver' => 'raw', 'defaultMode' => 'relay-unary'],
         'unix-socket' => ['label' => 'Unix Domain Socket', 'transport' => 'unix', 'http' => false, 'defaultDriver' => 'raw', 'defaultMode' => 'relay-unary'],
         'raw-socket' => ['label' => 'Raw Socket', 'transport' => 'tcp', 'http' => false, 'defaultDriver' => 'raw', 'defaultMode' => 'relay-unary'],
-        // P2: 只有协议身份,驱动留待后续计划
-        'thrift' => ['label' => 'Thrift', 'transport' => 'tcp', 'http' => false],
-        'dubbo' => ['label' => 'Dubbo', 'transport' => 'tcp', 'http' => false],
-        'amqp' => ['label' => 'AMQP', 'transport' => 'tcp', 'http' => false],
-        'kafka' => ['label' => 'Kafka', 'transport' => 'tcp', 'http' => false],
-        'socket.io' => ['label' => 'Socket.IO', 'transport' => 'tcp', 'http' => false],
-        'xmpp' => ['label' => 'XMPP', 'transport' => 'tcp', 'http' => false],
-        'webrtc' => ['label' => 'WebRTC', 'transport' => 'udp', 'http' => false],
-        'webrtc-datachannel' => ['label' => 'WebRTC DataChannel', 'transport' => 'udp', 'http' => false],
-        'rtmp' => ['label' => 'RTMP', 'transport' => 'tcp', 'http' => false],
-        'rtp' => ['label' => 'RTP', 'transport' => 'udp', 'http' => false],
-        'rtcp' => ['label' => 'RTCP', 'transport' => 'udp', 'http' => false],
-        'lwm2m' => ['label' => 'LwM2M', 'transport' => 'udp', 'http' => false],
-        'opc-ua' => ['label' => 'OPC UA', 'transport' => 'tcp', 'http' => false],
-        'dnp3' => ['label' => 'DNP3', 'transport' => 'tcp', 'http' => false],
-        'iec-104' => ['label' => 'IEC 104', 'transport' => 'tcp', 'http' => false],
-        'bacnet-ip' => ['label' => 'BACnet/IP', 'transport' => 'udp', 'http' => false],
-        'binary-body' => ['label' => 'Binary Body', 'transport' => 'http', 'http' => true],
-        'websocket-binary' => ['label' => 'WebSocket Binary', 'transport' => 'tcp', 'http' => false],
-        'stomp-binary' => ['label' => 'STOMP Binary', 'transport' => 'tcp', 'http' => false],
-        'http2' => ['label' => 'HTTP/2', 'transport' => 'http2', 'http' => true],
-        'http3' => ['label' => 'HTTP/3', 'transport' => 'http3', 'http' => true],
+        // P2: 专用驱动待后续计划,先回退到通用面板
+        'thrift' => ['label' => 'Thrift', 'transport' => 'tcp', 'http' => false, 'defaultDriver' => 'raw', 'defaultMode' => 'relay-unary'],
+        'dubbo' => ['label' => 'Dubbo', 'transport' => 'tcp', 'http' => false, 'defaultDriver' => 'raw', 'defaultMode' => 'relay-unary'],
+        'amqp' => ['label' => 'AMQP', 'transport' => 'tcp', 'http' => false, 'defaultDriver' => 'raw', 'defaultMode' => 'relay-unary'],
+        'kafka' => ['label' => 'Kafka', 'transport' => 'tcp', 'http' => false, 'defaultDriver' => 'raw', 'defaultMode' => 'relay-unary'],
+        // socket.io 回退到浏览器 WebSocket 面板,Engine.IO 驱动仍为 P2
+        'socket.io' => ['label' => 'Socket.IO', 'transport' => 'tcp', 'http' => false, 'defaultDriver' => 'websocket', 'defaultMode' => 'browser-websocket'],
+        'xmpp' => ['label' => 'XMPP', 'transport' => 'tcp', 'http' => false, 'defaultDriver' => 'raw', 'defaultMode' => 'relay-unary'],
+        'webrtc' => ['label' => 'WebRTC', 'transport' => 'udp', 'http' => false, 'defaultDriver' => '', 'defaultMode' => '', 'debugReason' => 'WebRTC 需要手动 SDP/信令（P2）'],
+        'webrtc-datachannel' => ['label' => 'WebRTC DataChannel', 'transport' => 'udp', 'http' => false, 'defaultDriver' => '', 'defaultMode' => '', 'debugReason' => 'WebRTC 需要手动 SDP/信令（P2）'],
+        'rtmp' => ['label' => 'RTMP', 'transport' => 'tcp', 'http' => false, 'defaultDriver' => 'raw', 'defaultMode' => 'relay-unary'],
+        'rtp' => ['label' => 'RTP', 'transport' => 'udp', 'http' => false, 'defaultDriver' => 'raw', 'defaultMode' => 'relay-unary'],
+        'rtcp' => ['label' => 'RTCP', 'transport' => 'udp', 'http' => false, 'defaultDriver' => 'raw', 'defaultMode' => 'relay-unary'],
+        'lwm2m' => ['label' => 'LwM2M', 'transport' => 'udp', 'http' => false, 'defaultDriver' => 'raw', 'defaultMode' => 'relay-unary'],
+        'opc-ua' => ['label' => 'OPC UA', 'transport' => 'tcp', 'http' => false, 'defaultDriver' => 'raw', 'defaultMode' => 'relay-unary'],
+        'dnp3' => ['label' => 'DNP3', 'transport' => 'tcp', 'http' => false, 'defaultDriver' => 'raw', 'defaultMode' => 'relay-unary'],
+        'iec-104' => ['label' => 'IEC 104', 'transport' => 'tcp', 'http' => false, 'defaultDriver' => 'raw', 'defaultMode' => 'relay-unary'],
+        'bacnet-ip' => ['label' => 'BACnet/IP', 'transport' => 'udp', 'http' => false, 'defaultDriver' => 'raw', 'defaultMode' => 'relay-unary'],
+        'binary-body' => ['label' => 'Binary Body', 'transport' => 'http', 'http' => true, 'defaultDriver' => 'http-relay', 'defaultMode' => 'relay-unary'],
+        'websocket-binary' => ['label' => 'WebSocket Binary', 'transport' => 'tcp', 'http' => false, 'defaultDriver' => 'websocket', 'defaultMode' => 'browser-websocket'],
+        // publish/send 由 action 规则改判 relay-unary
+        'stomp-binary' => ['label' => 'STOMP Binary', 'transport' => 'tcp', 'http' => false, 'defaultDriver' => 'stomp', 'defaultMode' => 'relay-stream'],
+        'http2' => ['label' => 'HTTP/2', 'transport' => 'http2', 'http' => true, 'defaultDriver' => 'http', 'defaultMode' => 'browser-http'],
+        'http3' => ['label' => 'HTTP/3', 'transport' => 'http3', 'http' => true, 'defaultDriver' => 'http', 'defaultMode' => 'browser-http'],
     ];
 
     /**
@@ -112,7 +114,15 @@ class ProtocolCatalog
             'defaultMode' => isset($entry['defaultMode']) ? $entry['defaultMode'] : '',
             'defaultFormat' => isset(static::$formats[$name]) ? static::$formats[$name] : '',
             'debuggable' => $driver !== '',
-            'debugReason' => $driver !== '' ? '' : '未支持的协议驱动（P2）',
+            'debugReason' => isset($entry['debugReason']) ? $entry['debugReason'] : ($driver !== '' ? '' : '未支持的协议驱动（P2）'),
         ];
+    }
+
+    /**
+     * @return array 协议 id 列表
+     */
+    public static function ids(): array
+    {
+        return array_keys(static::$protocols);
     }
 }

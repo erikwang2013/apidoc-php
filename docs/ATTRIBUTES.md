@@ -752,13 +752,43 @@ class GreeterController
 
 浏览器模式不经过服务端，受浏览器同源/CORS 限制；中继模式由服务端发起连接，因此**默认关闭**。
 
+### 协议覆盖与回退
+
+P1 已有专用驱动的协议使用专用面板；其余协议在 P2 专用驱动落地前回退到通用面板（`webrtc`/`webrtc-datachannel` 除外，见下表）。**通用面板不实现协议语义**：`raw` 只按 `text`/`hex`/`base64` 发送原始字节，HTTP 中继只发普通 HTTP 请求，浏览器 WebSocket 只收发 WebSocket 帧，报文内容需自行编码。
+
+| 协议 id | P1 专用驱动 | P2 通用回退 |
+| - | - | - |
+| `http` `rest` `soap` `graphql` `json-rpc` `xml-rpc` `webhooks` `odata` `mcp` `a2a` | `http`（浏览器 HTTP 面板） | — |
+| `websocket` | `websocket`（浏览器 WebSocket） | — |
+| `sse` | `sse`（浏览器 EventSource） | — |
+| `mqtt` | `mqtt`（发布单次中继、订阅流式） | — |
+| `stomp` | `stomp`（发布单次中继、订阅流式） | — |
+| `coap` | `coap` | — |
+| `modbus-tcp` | `modbus-tcp` | — |
+| `iso8583` | `iso8583` | — |
+| `rtsp` | `rtsp` | — |
+| `sip` | `sip` | — |
+| `hls` | `hls` | — |
+| `grpc` | `grpc` | — |
+| `hessian` | `hessian` | — |
+| `tcp` `udp` `unix-socket` `raw-socket` | `raw` | — |
+| `thrift` `dubbo` `amqp` `kafka` `xmpp` `rtmp` `opc-ua` `dnp3` `iec-104` `lwm2m` `rtp` `rtcp` `bacnet-ip` | 无 | `raw`（TCP/UDP/UDS 文本/hex/base64） |
+| `binary-body` | 无 | `http-relay`（单次 HTTP 中继） |
+| `websocket-binary` | 无 | 浏览器 WebSocket |
+| `socket.io` | 无 | 浏览器 WebSocket 原始回退（Engine.IO 专用驱动仍为 P2） |
+| `stomp-binary` | 无 | `stomp`（`publish`/`send` 走单次中继，`receive` 走流式） |
+| `http2` `http3` | 无 | 浏览器 HTTP（不实现 HTTP/2、HTTP/3 语义） |
+| `webrtc` `webrtc-datachannel` | 无 | 无（需手动 SDP/信令，P2；面板只读并提示原因） |
+
+回退协议沿用 `Debug.target` → `Channel.address` → `Url` 的目标推导；`raw`/`http-relay`/`stomp` 需要开启 `protocols.debug.relay_enable`，浏览器 HTTP/WebSocket 面板不需要中继。
+
 ### 中继安全
 
 - **默认关闭**：`protocols.debug.relay_enable` 默认为 `false`。中继会让文档服务端向注解声明的目标发起出站连接，若误开启且目标写错，等于给文档站点增加了一条内网探测/SSRF 通道，因此必须显式开启。
 - **目标只来自注解**：中继每次按 `appKey + path` 重新解析接口注解，目标取 `Debug.target` → `Channel.address` → `Url`；请求体里的 `target`/`host`/`port` 一律丢弃，客户端无法改变连接目标。
 - **鉴权**：`relay_require_auth` 默认 `true`（配置缺失也按 `true` 处理），请求必须携带 `token` 或 `shareKey`；流式会话与会话拉取绑定同一鉴权标识，其他 token 无法读取。
 - **限制**：每 token/shareKey 每分钟 `rate_limit_per_minute` 次；单次超时上限 `max_timeout` 秒、默认 5 秒；请求/响应各 `max_bytes` 字节；每 token 同时最多 `max_sessions` 个流式会话；会话 60 秒无操作过期。
-- **原始套接字回退**：没有专用驱动的协议（P2 的 `thrift`/`dubbo`/`amqp`/`kafka`/`socket.io`/`xmpp`/`webrtc`/`rtmp`/`rtp`/`rtcp`/`lwm2m`/`opc-ua`/`dnp3`/`iec-104`/`bacnet-ip` 等）仍可显式声明 `#[Debug(driver: 'raw', target: 'tcp://host:port')]`，用 `tcp://`/`udp://`/`unix:///` 目标按 `text`/`hex`/`base64` 收发原始报文；`debuggable=false` 的面板只读展示字段，发送按钮禁用。
+- **原始套接字回退**：没有专用驱动的协议默认回退到通用面板（见上表），也可用 `#[Debug(driver: 'raw', target: 'tcp://host:port')]` 显式覆盖，用 `tcp://`/`udp://`/`unix:///` 目标按 `text`/`hex`/`base64` 收发原始报文；`debuggable=false` 的面板只读展示字段，发送按钮禁用。
 - **部署注意**：`debugPoll` 为长轮询，单次最多占用一个 PHP worker 25 秒（`min(25, max_timeout)`）。部署时需把 `max_execution_time`/PHP-FPM `request_terminate_timeout` 调到 30 秒以上，并限制 FPM 进程数与中继并发，否则少量调试客户端即可占满 worker。
 
 配置示例（默认值，全部可省略）：
