@@ -60,6 +60,14 @@ class MqttSubscribeFixture
     public function subscribe() {}
 }
 
+#[Protocol('stomp')]
+class StompSubscribeFixture
+{
+    #[Channel('/debug/queue', action: 'receive')]
+    #[Debug(driver: 'stomp', target: 'tcp://127.0.0.1:19004')]
+    public function receive() {}
+}
+
 #[Protocol('coap')]
 class CoapDebugFixture
 {
@@ -236,7 +244,8 @@ $mqttPackets = MqttDriver::decodePackets("\x20\x02\x00\x00\x40\x02\x00\x07");
 check('mqtt decode connack', ($mqttPackets[0]['type'] ?? 0) === 2 && ($mqttPackets[0]['body'] ?? '') === "\x00\x00");
 check('mqtt decode puback', ($mqttPackets[1]['type'] ?? 0) === 4 && ($mqttPackets[1]['body'] ?? '') === "\x00\x07");
 check('mqtt decode ignores partial packet', MqttDriver::decodePackets("\x20\x02\x00") === []);
-check('mqtt streaming start is stubbed', ($mqtt->start([], [])['ok'] ?? true) === false);
+check('mqtt streaming start ok', ($mqtt->start(['topic' => 'a/b'], [])['ok'] ?? false) === true);
+check('mqtt streaming start requires topic', ($mqtt->start([], [])['ok'] ?? true) === false);
 check('mqtt rejects non-string topic', ($mqtt->send(['topic' => ['a/b']], ['target' => 'tcp://127.0.0.1:19003'])['ok'] ?? true) === false);
 $mqttDirect = $mqtt->send(['action' => 'publish', 'topic' => 'debug/topic', 'qos' => 1, 'payload' => 'hello'], ['target' => 'tcp://127.0.0.1:19003', 'timeout' => 2]);
 check('mqtt direct publish ok', ($mqttDirect['ok'] ?? false) === true);
@@ -260,7 +269,8 @@ $stompBinaryBody = "a\0b\n\r";
 $stompBinary = StompDriver::decodeFrames("MESSAGE\r\ncontent-length:" . strlen($stompBinaryBody) . "\r\n\r\n" . $stompBinaryBody . "\0");
 check('stomp CRLF content-length binary body', ($stompBinary[0]['body'] ?? '') === $stompBinaryBody);
 check('stomp partial CRLF frame incomplete', StompDriver::decodeFrames("MESSAGE\r\ncontent-length:5\r\n\r\nabc") === []);
-check('stomp streaming start is stubbed', ($stomp->start([], [])['ok'] ?? true) === false);
+check('stomp streaming start ok', ($stomp->start(['destination' => '/queue/a'], [])['ok'] ?? false) === true);
+check('stomp streaming start requires destination', ($stomp->start([], [])['ok'] ?? true) === false);
 check('stomp rejects non-string destination', ($stomp->send(['destination' => ['/queue/a']], ['target' => 'tcp://127.0.0.1:19004'])['ok'] ?? true) === false);
 $stompDirect = $stomp->send(['action' => 'send', 'destination' => '/queue/a', 'payload' => 'hi', 'receipt' => 'r1'], ['target' => 'tcp://127.0.0.1:19004', 'timeout' => 2]);
 check('stomp direct send ok', ($stompDirect['ok'] ?? false) === true);
@@ -276,6 +286,46 @@ $subscribeMeta = (new ParseProtocol($config))->metadata($subscribeRef, $subscrib
 check('mqtt subscribe fixture mode', ($subscribeMeta['debug']['mode'] ?? '') === 'relay-stream');
 $subscribeProxy = $proxy->send('api', MqttSubscribeFixture::class . '@subscribe', ['fields' => ['topic' => 'debug/topic']]);
 check('mqtt subscribe rejected by unary proxy', ($subscribeProxy['ok'] ?? true) === false && strpos((string)($subscribeProxy['error'] ?? ''), 'not unary') !== false);
+
+// ---------- 流式会话(MQTT/STOMP) ----------
+$start = $proxy->start('api', MqttSubscribeFixture::class . '@subscribe', ['fields' => ['topic' => 'debug/topic']]);
+check('session start returns id', !empty($start['sessionId']));
+$poll = $proxy->poll((string)($start['sessionId'] ?? ''));
+check('session poll returns messages array', is_array($poll['messages'] ?? null));
+check('session poll receives broker message', strpos((string)json_encode($poll['messages'] ?? []), 'hello') !== false);
+$stop = $proxy->stop((string)($start['sessionId'] ?? ''));
+check('session stop', ($stop['ok'] ?? false) === true);
+$expired = $proxy->poll('nonexistent');
+check('unknown session rejected', ($expired['ok'] ?? true) === false);
+$wrongMode = $proxy->start('api', 'Tests\Fixtures\Protocol\RawFixture@echo', ['fields' => ['topic' => 'a/b']]);
+check('relay-unary start rejected', ($wrongMode['ok'] ?? true) === false);
+
+$credStart = $proxy->start('api', MqttSubscribeFixture::class . '@subscribe', ['fields' => ['topic' => 'debug/topic']], 'stream-key');
+$wrongCredPoll = $proxy->poll((string)($credStart['sessionId'] ?? ''), 'other-key');
+check('poll with different rate key rejected', ($wrongCredPoll['ok'] ?? true) === false);
+$proxy->stop((string)($credStart['sessionId'] ?? ''), 'stream-key');
+
+$sessions = [];
+for ($i = 0; $i < 4; $i++) {
+    $s = $proxy->start('api', MqttSubscribeFixture::class . '@subscribe', [], 'session-limit-key');
+    $sessions[] = (string)($s['sessionId'] ?? '');
+}
+check('max sessions per key allows four', count(array_filter($sessions)) === 4);
+$limited = $proxy->start('api', MqttSubscribeFixture::class . '@subscribe', [], 'session-limit-key');
+check('max sessions per key enforced', ($limited['ok'] ?? true) === false);
+foreach ($sessions as $id) {
+    $proxy->stop($id, 'session-limit-key');
+}
+$afterStop = $proxy->start('api', MqttSubscribeFixture::class . '@subscribe', [], 'session-limit-key');
+check('stop frees session slot', !empty($afterStop['sessionId']));
+$proxy->stop((string)($afterStop['sessionId'] ?? ''), 'session-limit-key');
+
+$stompStart = $proxy->start('api', StompSubscribeFixture::class . '@receive', ['fields' => ['destination' => '/queue/a']]);
+check('stomp session start returns id', !empty($stompStart['sessionId']));
+$stompPoll = $proxy->poll((string)($stompStart['sessionId'] ?? ''));
+check('stomp session poll receives broker message', strpos((string)json_encode($stompPoll['messages'] ?? []), 'hello') !== false);
+$stompStop = $proxy->stop((string)($stompStart['sessionId'] ?? ''));
+check('stomp session stop', ($stompStop['ok'] ?? false) === true);
 
 // ---------- coap / modbus-tcp / iso8583 驱动 ----------
 check('debug registry has protocol drivers', DebugRegistry::driver('coap') instanceof CoapDriver

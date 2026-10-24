@@ -59,6 +59,11 @@ while (true) {
         } elseif ($frame['command'] === 'SEND') {
             $receiptId = $frame['headers']['receipt'] ?? 'receipt-1';
             writeAll($conn, "RECEIPT\nreceipt-id:" . $receiptId . "\n\n\0");
+        } elseif ($frame['command'] === 'SUBSCRIBE') {
+            // SUBSCRIBE -> 一条 hello MESSAGE
+            $destination = (string)($frame['headers']['destination'] ?? '');
+            $headers = $destination !== '' ? 'destination:' . $destination . "\n" : '';
+            writeAll($conn, "MESSAGE\n" . $headers . "subscription:0\ncontent-length:5\n\nhello\0");
         } elseif ($frame['command'] === 'DISCONNECT') {
             break;
         }

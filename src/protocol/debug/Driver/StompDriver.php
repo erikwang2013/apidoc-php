@@ -36,16 +36,163 @@ class StompDriver implements StreamingDriverInterface
 
     public function start(array $input, array $context): array
     {
-        return ['ok' => false, 'error' => 'streaming driver not implemented yet'];
+        $destination = $this->streamDestination($input, $context);
+        if ($destination === null) {
+            return ['ok' => false, 'error' => 'destination 非法'];
+        }
+        if ($destination === '') {
+            return ['ok' => false, 'error' => 'destination 不能为空'];
+        }
+        return ['ok' => true];
     }
 
+    /**
+     * 长轮询:每次重新 CONNECT + SUBSCRIBE,读取一批 MESSAGE 后 DISCONNECT
+     */
     public function poll(string $sessionId, array $context): array
     {
-        return ['ok' => false, 'error' => 'streaming driver not implemented yet'];
+        try {
+            $target = DebugTarget::parse((string)($context['target'] ?? ''));
+        } catch (InvalidArgumentException $e) {
+            return ['ok' => false, 'error' => $e->getMessage()];
+        }
+        if ($target['scheme'] !== 'tcp') {
+            return ['ok' => false, 'error' => 'stomp 驱动仅支持 tcp 目标'];
+        }
+        $input = is_array($context['fields'] ?? null) ? $context['fields'] : [];
+        $destination = $this->streamDestination($input, $context);
+        if ($destination === null) {
+            return ['ok' => false, 'error' => 'destination 非法'];
+        }
+        if ($destination === '') {
+            return ['ok' => false, 'error' => 'destination 不能为空'];
+        }
+        $timeout = (float)($context['timeout'] ?? 25);
+        if ($timeout <= 0) {
+            $timeout = 25.0;
+        }
+        $maxBytes = max(1, (int)($context['maxBytes'] ?? 1048576));
+        $maxMessages = max(1, (int)($context['maxMessages'] ?? 100));
+
+        $errno = 0;
+        $errstr = '';
+        $socket = @stream_socket_client(
+            'tcp://' . $target['host'] . ':' . $target['port'],
+            $errno,
+            $errstr,
+            min($timeout, 5.0),
+            STREAM_CLIENT_CONNECT
+        );
+        if (!$socket) {
+            $message = trim($errstr) !== '' ? $errstr . ' (' . $errno . ')' : 'connect failed (' . $errno . ')';
+            return ['ok' => false, 'error' => $message];
+        }
+        stream_set_blocking($socket, true);
+        try {
+            if (!$this->writeAll($socket, $this->encodeFrame('CONNECT', ['accept-version' => '1.2', 'host' => $target['host']]))) {
+                return ['ok' => false, 'error' => 'write failed'];
+            }
+            $frames = $this->readFrames($socket, min($timeout, 5.0), $maxBytes, function (array $frames): bool {
+                return $this->findFrame($frames, 'CONNECTED') !== null || $this->findFrame($frames, 'ERROR') !== null;
+            });
+            $error = $this->findFrame($frames, 'ERROR');
+            if ($error !== null) {
+                return ['ok' => false, 'error' => $this->frameError($error)];
+            }
+            if ($this->findFrame($frames, 'CONNECTED') === null) {
+                return ['ok' => false, 'error' => 'CONNECTED timed out'];
+            }
+            if (!$this->writeAll($socket, $this->encodeFrame('SUBSCRIBE', ['id' => '0', 'destination' => $destination]))) {
+                return ['ok' => false, 'error' => 'write failed'];
+            }
+            $messages = $this->readMessages($socket, $timeout, $maxBytes, $maxMessages);
+            $this->writeAll($socket, $this->encodeFrame('DISCONNECT'));
+            return ['ok' => true, 'messages' => $messages];
+        } finally {
+            fclose($socket);
+        }
     }
 
     public function stop(string $sessionId, array $context): void
     {
+        // broker 侧订阅随连接关闭;会话记录由 DebugProxy 删除
+    }
+
+    /**
+     * 读取 MESSAGE 帧,收到一批后最多再等 100ms 收尾
+     */
+    protected function readMessages($socket, float $timeout, int $maxBytes, int $maxMessages): array
+    {
+        $deadline = microtime(true) + $timeout;
+        $buffer = '';
+        $processed = 0;
+        $messages = [];
+        while (true) {
+            $frames = static::decodeFrames($buffer);
+            for (; $processed < count($frames); $processed++) {
+                $frame = $frames[$processed];
+                if ($frame['command'] !== 'MESSAGE') {
+                    continue;
+                }
+                $messages[] = $this->streamMessage($frame['body']);
+            }
+            if (count($messages) >= $maxMessages) {
+                break;
+            }
+            $left = $deadline - microtime(true);
+            if ($left <= 0) {
+                break;
+            }
+            $wait = $messages === [] ? $left : min(0.1, $left);
+            $read = [$socket];
+            $write = null;
+            $except = null;
+            $ready = @stream_select($read, $write, $except, (int)$wait, (int)(($wait - (int)$wait) * 1000000));
+            if ($ready !== 1) {
+                break;
+            }
+            $chunk = @fread($socket, 8192);
+            if ($chunk === false || $chunk === '') {
+                if ($chunk === false || feof($socket)) {
+                    break;
+                }
+                continue;
+            }
+            $buffer .= $chunk;
+            if (strlen($buffer) >= $maxBytes) {
+                break;
+            }
+        }
+        return $messages;
+    }
+
+    protected function streamMessage(string $payload): array
+    {
+        $text = preg_match('//u', $payload) === 1;
+        return [
+            'time' => date('Y-m-d H:i:s'),
+            'type' => 'MESSAGE',
+            'body' => $text ? $payload : bin2hex($payload),
+            'encoding' => $text ? 'text' : 'hex',
+        ];
+    }
+
+    /**
+     * @return string|null null 表示字段类型非法或含控制字符
+     */
+    protected function streamDestination(array $input, array $context): ?string
+    {
+        if (isset($input['destination']) && !is_string($input['destination'])) {
+            return null;
+        }
+        $destination = trim((string)($input['destination'] ?? ''));
+        if ($destination === '') {
+            $destination = trim((string)($context['channel']['address'] ?? ''));
+        }
+        if (preg_match('/[\r\n\0]/', $destination) === 1) {
+            return null;
+        }
+        return $destination;
     }
 
     public function encodeFrame(string $command, array $headers = [], string $body = ''): string

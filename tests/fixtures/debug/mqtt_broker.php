@@ -57,6 +57,20 @@ function writeAll($conn, string $data): void
     }
 }
 
+function encodeRemainingLength(int $length): string
+{
+    $encoded = '';
+    do {
+        $digit = $length % 128;
+        $length = intdiv($length, 128);
+        if ($length > 0) {
+            $digit |= 0x80;
+        }
+        $encoded .= chr($digit);
+    } while ($length > 0);
+    return $encoded;
+}
+
 while (true) {
     $conn = @stream_socket_accept($server, -1);
     if (!$conn) {
@@ -74,6 +88,16 @@ while (true) {
                 $packetId = substr($packet['body'], 2 + $topicLength, 2);
                 // PUBACK
                 writeAll($conn, "\x40\x02" . $packetId);
+            }
+        } elseif ($packet['type'] === 8) {
+            // SUBSCRIBE: packetId + topic + qos -> SUBACK + 一条 hello PUBLISH
+            if (strlen($packet['body']) >= 4) {
+                $packetId = substr($packet['body'], 0, 2);
+                $topicLength = unpack('n', substr($packet['body'], 2, 2))[1];
+                $topic = substr($packet['body'], 4, $topicLength);
+                writeAll($conn, "\x90\x03" . $packetId . "\x01");
+                $publishBody = pack('n', strlen($topic)) . $topic . 'hello';
+                writeAll($conn, "\x30" . encodeRemainingLength(strlen($publishBody)) . $publishBody);
             }
         } elseif ($packet['type'] === 14) {
             break;

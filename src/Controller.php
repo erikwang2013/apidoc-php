@@ -475,7 +475,7 @@ class Controller
     }
 
     /**
-     * 调试中继:建立流式会话(P1 暂未实现)
+     * 调试中继:建立流式会话
      */
     public function debugStart()
     {
@@ -496,7 +496,7 @@ class Controller
     }
 
     /**
-     * 调试中继:拉取流式消息(P1 暂未实现)
+     * 调试中继:拉取流式消息
      */
     public function debugPoll()
     {
@@ -509,15 +509,13 @@ class Controller
         }
         $res = (new DebugProxy($this->config))->poll(
             (string)($params['sessionId'] ?? ''),
-            (string)($params['appKey'] ?? ''),
-            (string)($params['path'] ?? ''),
             $this->debugRateKey($params)
         );
         return Helper::showJson(0, "", $res);
     }
 
     /**
-     * 调试中继:结束流式会话(P1 暂未实现)
+     * 调试中继:结束流式会话
      */
     public function debugStop()
     {
@@ -530,8 +528,6 @@ class Controller
         }
         $res = (new DebugProxy($this->config))->stop(
             (string)($params['sessionId'] ?? ''),
-            (string)($params['appKey'] ?? ''),
-            (string)($params['path'] ?? ''),
             $this->debugRateKey($params)
         );
         return Helper::showJson(0, "", $res);

@@ -49,16 +49,234 @@ class MqttDriver implements StreamingDriverInterface
 
     public function start(array $input, array $context): array
     {
-        return ['ok' => false, 'error' => 'streaming driver not implemented yet'];
+        $topic = $this->streamTopic($input, $context);
+        if ($topic === null) {
+            return ['ok' => false, 'error' => 'topic must be a string'];
+        }
+        if ($topic === '') {
+            return ['ok' => false, 'error' => 'topic 不能为空'];
+        }
+        if (strlen($topic) > 65535) {
+            return ['ok' => false, 'error' => 'topic 过长'];
+        }
+        if ($this->streamQos($input) === null) {
+            return ['ok' => false, 'error' => 'qos 仅支持 0 或 1'];
+        }
+        return ['ok' => true];
     }
 
+    /**
+     * 长轮询:每次重新 CONNECT(cleanSession=false) + SUBSCRIBE,读取一批消息后 DISCONNECT
+     */
     public function poll(string $sessionId, array $context): array
     {
-        return ['ok' => false, 'error' => 'streaming driver not implemented yet'];
+        try {
+            $target = DebugTarget::parse((string)($context['target'] ?? ''));
+        } catch (InvalidArgumentException $e) {
+            return ['ok' => false, 'error' => $e->getMessage()];
+        }
+        if ($target['scheme'] !== 'tcp') {
+            return ['ok' => false, 'error' => 'mqtt 驱动仅支持 tcp 目标'];
+        }
+        $input = is_array($context['fields'] ?? null) ? $context['fields'] : [];
+        $topic = $this->streamTopic($input, $context);
+        if ($topic === null) {
+            return ['ok' => false, 'error' => 'topic must be a string'];
+        }
+        if ($topic === '') {
+            return ['ok' => false, 'error' => 'topic 不能为空'];
+        }
+        if (strlen($topic) > 65535) {
+            return ['ok' => false, 'error' => 'topic 过长'];
+        }
+        $qos = $this->streamQos($input);
+        if ($qos === null) {
+            return ['ok' => false, 'error' => 'qos 仅支持 0 或 1'];
+        }
+        $timeout = (float)($context['timeout'] ?? 25);
+        if ($timeout <= 0) {
+            $timeout = 25.0;
+        }
+        $maxBytes = max(1, (int)($context['maxBytes'] ?? 1048576));
+        $maxMessages = max(1, (int)($context['maxMessages'] ?? 100));
+        $connectOptions = [
+            // 持久会话:同一 sessionId 复用 clientId
+            'clientId' => 'apidoc-' . substr($sessionId, 0, 8),
+            'keepalive' => 60,
+            'cleanSession' => false,
+        ];
+        if ((string)($input['username'] ?? '') !== '') {
+            $connectOptions['username'] = (string)$input['username'];
+        }
+        if ((string)($input['password'] ?? '') !== '') {
+            $connectOptions['password'] = (string)$input['password'];
+        }
+
+        $errno = 0;
+        $errstr = '';
+        $socket = @stream_socket_client(
+            'tcp://' . $target['host'] . ':' . $target['port'],
+            $errno,
+            $errstr,
+            min($timeout, 5.0),
+            STREAM_CLIENT_CONNECT
+        );
+        if (!$socket) {
+            $message = trim($errstr) !== '' ? $errstr . ' (' . $errno . ')' : 'connect failed (' . $errno . ')';
+            return ['ok' => false, 'error' => $message];
+        }
+        stream_set_blocking($socket, true);
+        try {
+            if (!$this->writeAll($socket, $this->encodeConnect($connectOptions))) {
+                return ['ok' => false, 'error' => 'write failed'];
+            }
+            $packets = $this->readPackets($socket, min($timeout, 5.0), $maxBytes, function (array $packets): bool {
+                return $this->findPacket($packets, 2) !== null;
+            });
+            $connack = $this->findPacket($packets, 2);
+            if ($connack === null) {
+                return ['ok' => false, 'error' => 'CONNACK timed out'];
+            }
+            if (strlen($connack['body']) < 2) {
+                return ['ok' => false, 'error' => 'invalid CONNACK'];
+            }
+            $code = ord($connack['body'][1]);
+            if ($code !== 0) {
+                $name = isset(static::$connackCodes[$code]) ? static::$connackCodes[$code] : 'unknown return code';
+                return ['ok' => false, 'error' => 'CONNACK ' . $code . ': ' . $name];
+            }
+            if (!$this->writeAll($socket, $this->encodeSubscribe($topic, $qos, 1))) {
+                return ['ok' => false, 'error' => 'write failed'];
+            }
+            $messages = $this->readMessages($socket, $timeout, $maxBytes, $maxMessages);
+            $this->writeAll($socket, $this->encodeDisconnect());
+            return ['ok' => true, 'messages' => $messages];
+        } finally {
+            fclose($socket);
+        }
     }
 
     public function stop(string $sessionId, array $context): void
     {
+        // 无 broker 侧会话需要清理;会话记录由 DebugProxy 删除
+    }
+
+    /**
+     * 读取 PUBLISH 报文,收到一批后最多再等 100ms 收尾
+     */
+    protected function readMessages($socket, float $timeout, int $maxBytes, int $maxMessages): array
+    {
+        $deadline = microtime(true) + $timeout;
+        $buffer = '';
+        $processed = 0;
+        $messages = [];
+        while (true) {
+            $packets = static::decodePackets($buffer);
+            for (; $processed < count($packets); $processed++) {
+                if ($packets[$processed]['type'] !== 3) {
+                    continue;
+                }
+                $publish = $this->decodePublish($packets[$processed]);
+                if ($publish === null) {
+                    continue;
+                }
+                if ($publish['qos'] === 1 && $publish['packetId'] !== null) {
+                    $this->writeAll($socket, "\x40\x02" . pack('n', $publish['packetId']));
+                }
+                $messages[] = $this->streamMessage('PUBLISH', $publish['payload']);
+            }
+            if (count($messages) >= $maxMessages) {
+                break;
+            }
+            $left = $deadline - microtime(true);
+            if ($left <= 0) {
+                break;
+            }
+            $wait = $messages === [] ? $left : min(0.1, $left);
+            $read = [$socket];
+            $write = null;
+            $except = null;
+            $ready = @stream_select($read, $write, $except, (int)$wait, (int)(($wait - (int)$wait) * 1000000));
+            if ($ready !== 1) {
+                break;
+            }
+            $chunk = @fread($socket, 8192);
+            if ($chunk === false || $chunk === '') {
+                if ($chunk === false || feof($socket)) {
+                    break;
+                }
+                continue;
+            }
+            $buffer .= $chunk;
+            if (strlen($buffer) >= $maxBytes) {
+                break;
+            }
+        }
+        return $messages;
+    }
+
+    protected function decodePublish(array $packet): ?array
+    {
+        $body = $packet['body'];
+        if (strlen($body) < 2) {
+            return null;
+        }
+        $topicLength = unpack('n', substr($body, 0, 2))[1];
+        $offset = 2 + $topicLength;
+        if (strlen($body) < $offset) {
+            return null;
+        }
+        $qos = ($packet['flags'] >> 1) & 0x03;
+        $packetId = null;
+        if ($qos > 0) {
+            if (strlen($body) < $offset + 2) {
+                return null;
+            }
+            $packetId = unpack('n', substr($body, $offset, 2))[1];
+            $offset += 2;
+        }
+        return [
+            'qos' => $qos,
+            'packetId' => $packetId,
+            'payload' => substr($body, $offset),
+        ];
+    }
+
+    protected function streamMessage(string $type, string $payload): array
+    {
+        $text = preg_match('//u', $payload) === 1;
+        return [
+            'time' => date('Y-m-d H:i:s'),
+            'type' => $type,
+            'body' => $text ? $payload : bin2hex($payload),
+            'encoding' => $text ? 'text' : 'hex',
+        ];
+    }
+
+    /**
+     * @return string|null null 表示字段类型非法
+     */
+    protected function streamTopic(array $input, array $context): ?string
+    {
+        foreach (['topic', 'username', 'password'] as $key) {
+            if (isset($input[$key]) && !is_string($input[$key])) {
+                return null;
+            }
+        }
+        $topic = trim((string)($input['topic'] ?? ''));
+        if ($topic === '') {
+            $topic = trim((string)($context['channel']['address'] ?? ''));
+        }
+        return $topic;
+    }
+
+    protected function streamQos(array $input): ?int
+    {
+        $qosRaw = $input['qos'] ?? 1;
+        if (!is_numeric($qosRaw) || !in_array((int)$qosRaw, [0, 1], true)) {
+            return null;
+        }
+        return (int)$qosRaw;
     }
 
     public function encodeConnect(array $options = []): string
