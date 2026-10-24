@@ -628,6 +628,13 @@ ConfigProvider::set($controllerConfig);
 $response = (new Controller())->debugSend();
 check('controller debugSend relays', ($response['data']['ok'] ?? false) === true && ($response['data']['body'] ?? '') === 'hello');
 
+$encodedConfig = $controllerConfig;
+$encodedConfig['request_params']['path'] = rawurlencode($rawApi);
+$encodedConfig['request_params']['token'] = 'controller-encoded-token';
+ConfigProvider::set($encodedConfig);
+$encodedResponse = (new Controller())->debugSend();
+check('controller debugSend decodes path', ($encodedResponse['data']['ok'] ?? false) === true && ($encodedResponse['data']['body'] ?? '') === 'hello');
+
 $deniedConfig = $controllerConfig;
 $deniedConfig['request_params'] = ['appKey' => 'api', 'path' => $rawApi, 'input' => ['payload' => 'x']];
 unset($deniedConfig['protocols']['debug']['relay_require_auth']);

@@ -130,6 +130,9 @@ return [
             'max_timeout'=>30,
             // 单次调试请求/响应字节上限(1MB)
             'max_bytes'=>1048576,
+            // 每个 token/shareKey 同时存活的流式会话上限
+            'max_sessions'=>4,
+            // 单次默认超时 5s、流式 session TTL 60s 是代码常量,不做配置项
         ],
     ],
 ];

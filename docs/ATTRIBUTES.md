@@ -693,3 +693,94 @@ class ApiDocTest
     }
 }
 ```
+
+## 十一、任意协议调试（Protocol / Channel / Debug / Definition）
+
+HTTP 之外的接口（MQTT、STOMP、gRPC、TCP/UDP 等）也可以用注解声明协议身份，详情页会按同一套字段表生成调试面板。方法仍需至少一个方法级注解（如 `Title`/`Param`/`Method`）才会被收录；类级 `Protocol`/`Channel`/`Debug`/`Definition` 只被已收录的方法继承，方法级非空字段覆盖类级同名字段。
+
+```php
+use erikwang2013\apidoc\annotation\{Protocol, Channel, Debug, Param, Title};
+
+#[Protocol('mqtt')]
+class SensorController
+{
+    #[Title('发布温度')]
+    #[Channel('/sensors/+/temp', action: 'publish')]
+    #[Debug(driver: 'mqtt', target: 'tcp://broker:1883', encoding: 'json', meta: ['qos' => 1])]
+    #[Param(name: 'value', type: 'number', require: true)]
+    public function publishTemperature() {}
+}
+
+#[Protocol(name: 'grpc', version: '1.0', transport: 'http2')]
+class GreeterController
+{
+    #[Title('SayHello')]
+    #[Channel('helloworld.Greeter/SayHello', action: 'call')]
+    #[Debug(driver: 'grpc', target: 'localhost:50051')]
+    public function sayHello() {}
+}
+```
+
+### 注解参数
+
+| 注解 | 参数 | 说明 |
+| - | - | - |
+| `Protocol` | 协议 id（位置参数/`name`） | 如 `mqtt`、`grpc`、`tcp`；缺省从 `ProtocolCatalog` 推导 label/transport/驱动 |
+| | `version` | 协议版本 |
+| | `transport` | 传输层：`http` `tcp` `udp` `http2` `unix`，缺省取协议目录 |
+| | `mode` | 协议模式（如 `unary`、`pub_sub`），缺省取协议目录 |
+| `Channel` | 地址（位置参数/`address`） | 主题/路径/服务方法，如 `/sensors/+/temp`、`helloworld.Greeter/SayHello` |
+| | `action` | `call` `publish` `subscribe` `send` `receive` `request` `response` `notify` `webhook`；MQTT/STOMP 的 `publish`/`send` 走单次中继，`subscribe`/`receive` 走流式会话 |
+| | `meta` | 协议专属信息（`qos`、`exchange`、`routingKey`、`service`、`method` 等） |
+| `Debug` | 驱动（位置参数/`driver`） | `auto` `http` `websocket` `sse` `raw` `http-relay` `mqtt` `stomp` `coap` `modbus-tcp` `iso8583` `rtsp` `sip` `grpc` `hessian` `hls`；`auto` 按协议目录推导 |
+| | `target` | 调试目标（URL 或 `tcp://host:port`/`udp://host:port`/`unix:///path`）；为空时取 `Channel.address`，再取 `Url` |
+| | `encoding` | 请求体编码：`text` `json` `hex` `base64`，默认 `text` |
+| | `timeout` | 超时秒数，默认 5，受配置 `max_timeout` 上限约束 |
+| | `meta` | 驱动专属默认值（`qos`、`unitId`、`service`/`method`、`headers`、`responseEncoding`、`hints` 等） |
+| | `fields` | 追加驱动字段定义，形状同 `Param` |
+| `Definition` | `file`/`format`/`operation`/`message`/`direction`/`sample`/`sampleFile`/`sampleEncoding`/`strict` | 定义文件声明，供后续的定义解析计划消费；P1 不解析定义文件，调试字段来自驱动字段与 `Param`/`Header`/`Query` |
+
+### 调试模式：浏览器直连 vs 服务端中继
+
+| `debug.mode` | 执行位置 | 适用协议 |
+| - | - | - |
+| `browser-http` | 浏览器直接发 HTTP | HTTP/REST/SOAP/GraphQL/JSON-RPC/XML-RPC/OData/MCP/A2A/Webhooks 等，沿用原有在线调试面板 |
+| `browser-websocket` | 浏览器原生 WebSocket | WebSocket |
+| `browser-sse` | 浏览器 EventSource | SSE |
+| `relay-unary` | 服务端 `POST /debugSend` 发一次请求并返回 | TCP/UDP/Unix Socket、MQTT/STOMP 发布、CoAP、Modbus TCP、ISO 8583、RTSP、SIP、gRPC、Hessian、HLS 等 |
+| `relay-stream` | `POST /debugStart` 建会话，`POST /debugPoll` 长轮询取消息，`POST /debugStop` 结束 | MQTT/STOMP 订阅 |
+
+浏览器模式不经过服务端，受浏览器同源/CORS 限制；中继模式由服务端发起连接，因此**默认关闭**。
+
+### 中继安全
+
+- **默认关闭**：`protocols.debug.relay_enable` 默认为 `false`。中继会让文档服务端向注解声明的目标发起出站连接，若误开启且目标写错，等于给文档站点增加了一条内网探测/SSRF 通道，因此必须显式开启。
+- **目标只来自注解**：中继每次按 `appKey + path` 重新解析接口注解，目标取 `Debug.target` → `Channel.address` → `Url`；请求体里的 `target`/`host`/`port` 一律丢弃，客户端无法改变连接目标。
+- **鉴权**：`relay_require_auth` 默认 `true`（配置缺失也按 `true` 处理），请求必须携带 `token` 或 `shareKey`；流式会话与会话拉取绑定同一鉴权标识，其他 token 无法读取。
+- **限制**：每 token/shareKey 每分钟 `rate_limit_per_minute` 次；单次超时上限 `max_timeout` 秒、默认 5 秒；请求/响应各 `max_bytes` 字节；每 token 同时最多 `max_sessions` 个流式会话；会话 60 秒无操作过期。
+- **原始套接字回退**：没有专用驱动的协议（P2 的 `thrift`/`dubbo`/`amqp`/`kafka`/`socket.io`/`xmpp`/`webrtc`/`rtmp`/`rtp`/`rtcp`/`lwm2m`/`opc-ua`/`dnp3`/`iec-104`/`bacnet-ip` 等）仍可显式声明 `#[Debug(driver: 'raw', target: 'tcp://host:port')]`，用 `tcp://`/`udp://`/`unix:///` 目标按 `text`/`hex`/`base64` 收发原始报文；`debuggable=false` 的面板只读展示字段，发送按钮禁用。
+- **部署注意**：`debugPoll` 为长轮询，单次最多占用一个 PHP worker 25 秒（`min(25, max_timeout)`）。部署时需把 `max_execution_time`/PHP-FPM `request_terminate_timeout` 调到 30 秒以上，并限制 FPM 进程数与中继并发，否则少量调试客户端即可占满 worker。
+
+配置示例（默认值，全部可省略）：
+
+```php
+'protocols' => [
+    'debug' => [
+        // 是否允许服务端中继调试请求
+        'relay_enable' => false,
+        // 中继接口是否要求 token/shareKey（缺失时按 true 处理）
+        'relay_require_auth' => true,
+        // 每个 token/shareKey 每分钟请求上限
+        'rate_limit_per_minute' => 60,
+        // 单次调试超时上限（秒）
+        'max_timeout' => 30,
+        // 单次调试请求/响应字节上限（1MB）
+        'max_bytes' => 1048576,
+        // 每个 token/shareKey 同时存活的流式会话上限
+        'max_sessions' => 4,
+        // 单次默认超时 5s、流式 session TTL 60s 是代码常量，不做配置项
+    ],
+],
+```
+
+依赖提示：`ext-dom` 用于后续 WSDL/XSD/EDMX 定义解析，`ext-curl` 用于 gRPC 与部分驱动的 HTTP 中继；缺少 `ext-curl` 或 curl 未启用 HTTP/2 时，gRPC 面板会标记为不可调试并给出原因。

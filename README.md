@@ -71,6 +71,35 @@ class User
 
 访问 `http://你的域名/apidoc` 即可查看自动生成的接口文档（在线调试、Mock、Json/TypeScript 生成等能力开箱即用）。
 
+## 🔌任意协议调试
+
+除 HTTP 接口外，还可以用 `#[Protocol]` / `#[Channel]` / `#[Debug]` 注解为 MQTT、STOMP、gRPC、TCP/UDP 等任意协议生成调试面板：HTTP/WebSocket/SSE 由浏览器直连，其余协议经服务端调试中继执行。中继**默认关闭**，开启后要求鉴权，目标只能来自接口注解（客户端无法修改），并受超时、大小、速率与会话数限制。
+
+```php
+#[Apidoc\Protocol('mqtt')]
+#[Apidoc\Channel('/sensors/+/temp', action: 'publish')]
+#[Apidoc\Debug(driver: 'mqtt', target: 'tcp://broker:1883', encoding: 'json', meta: ['qos' => 1])]
+#[Apidoc\Param(name: 'value', type: 'number', require: true)]
+public function publishTemperature() {}
+```
+
+确需服务端中继时在配置中开启（以下均为默认值）：
+
+```php
+'protocols' => [
+    'debug' => [
+        'relay_enable' => false,          // 默认关闭，确认鉴权与目标后再开启
+        'relay_require_auth' => true,
+        'rate_limit_per_minute' => 60,
+        'max_timeout' => 30,
+        'max_bytes' => 1048576,
+        'max_sessions' => 4,
+    ],
+],
+```
+
+注解参数、调试模式与中继安全说明见 [Attributes 使用说明](docs/ATTRIBUTES.md) 的「任意协议调试」。
+
 
 ## 📌兼容
 

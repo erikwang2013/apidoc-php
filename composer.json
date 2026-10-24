@@ -14,6 +14,10 @@
     "require": {
         "php": "^8.0"
     },
+    "suggest": {
+        "ext-dom": "Required for WSDL/XSD/EDMX definition parsing",
+        "ext-curl": "Required for gRPC and HTTP relay in some drivers"
+    },
     "license": "MIT",
     "authors": [
         {

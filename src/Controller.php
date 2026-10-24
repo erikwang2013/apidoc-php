@@ -467,7 +467,8 @@ class Controller
         }
         $res = (new DebugProxy($this->config))->send(
             (string)($params['appKey'] ?? ''),
-            (string)($params['path'] ?? ''),
+            // 与 getApiDetail 一致:客户端可传编码后的 path
+            urldecode((string)($params['path'] ?? '')),
             (array)($params['input'] ?? []),
             $this->debugRateKey($params)
         );
@@ -488,7 +489,8 @@ class Controller
         }
         $res = (new DebugProxy($this->config))->start(
             (string)($params['appKey'] ?? ''),
-            (string)($params['path'] ?? ''),
+            // 与 getApiDetail 一致:客户端可传编码后的 path
+            urldecode((string)($params['path'] ?? '')),
             (array)($params['input'] ?? []),
             $this->debugRateKey($params)
         );
