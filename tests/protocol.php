@@ -107,6 +107,22 @@ class UnregisteredDriverFixture
     public function run() {}
 }
 
+#[Protocol('mqtt')]
+class MqttSubscribeModeFixture
+{
+    #[Channel('/sensors/+/temp', action: 'subscribe')]
+    #[Debug(target: 'tcp://broker:1883')]
+    public function subscribe() {}
+}
+
+#[Protocol('stomp')]
+class StompSendModeFixture
+{
+    #[Channel('/queue/a', action: 'send')]
+    #[Debug(target: 'tcp://broker:61613')]
+    public function send() {}
+}
+
 $config = [
     'cache' => ['folder' => 'apidoc'],
     'protocols' => ['debug' => ['relay_enable' => true]],
@@ -119,10 +135,16 @@ $mqttRef = new ReflectionClass(\Tests\Fixtures\Protocol\MqttFixture::class);
 $mqtt = $parser->metadata($mqttRef, $mqttRef->getMethod('publishTemperature'));
 check('mqtt protocol label', ($mqtt['protocol']['label'] ?? '') === 'MQTT');
 check('mqtt channel action', ($mqtt['channel']['action'] ?? '') === 'publish');
-check('mqtt debug mode', ($mqtt['debug']['mode'] ?? '') === 'relay-stream');
+check('mqtt publish debug mode', ($mqtt['debug']['mode'] ?? '') === 'relay-unary');
 check('mqtt debug driver', ($mqtt['debug']['driver'] ?? '') === 'mqtt');
 check('mqtt debug target', ($mqtt['debug']['defaults']['target'] ?? '') === 'tcp://broker:1883');
 check('mqtt debug field value present', in_array('value', array_column($mqtt['debug']['fields'], 'name'), true));
+$mqttSubRef = new ReflectionClass(MqttSubscribeModeFixture::class);
+$mqttSub = $parser->metadata($mqttSubRef, $mqttSubRef->getMethod('subscribe'));
+check('mqtt subscribe debug mode', ($mqttSub['debug']['mode'] ?? '') === 'relay-stream');
+$stompSendRef = new ReflectionClass(StompSendModeFixture::class);
+$stompSend = $parser->metadata($stompSendRef, $stompSendRef->getMethod('send'));
+check('stomp send debug mode', ($stompSend['debug']['mode'] ?? '') === 'relay-unary');
 $grpcRef = new ReflectionClass(\Tests\Fixtures\Protocol\GrpcFixture::class);
 $grpc = $parser->metadata($grpcRef, $grpcRef->getMethod('sayHello'));
 check('grpc debug mode', ($grpc['debug']['mode'] ?? '') === 'relay-unary');
@@ -134,6 +156,7 @@ check('debug target falls back to channel address', ($pos['debug']['defaults']['
 $defRef = new ReflectionClass(\Tests\Fixtures\Protocol\DefaultDriverFixture::class);
 $def = $parser->metadata($defRef, $defRef->getMethod('publish'));
 check('empty Debug.driver falls back to catalog driver', ($def['debug']['driver'] ?? '') === 'mqtt');
+check('mqtt without action keeps catalog mode', ($def['debug']['mode'] ?? '') === 'relay-stream');
 check('registered driver is debuggable with relay enabled', ($pos['debug']['debuggable'] ?? false) === true);
 $relayOffConfig = $config;
 $relayOffConfig['protocols']['debug']['relay_enable'] = false;
@@ -169,6 +192,14 @@ $rawNames = array_column($rawFields, 'name');
 check('registry raw fields count', count($rawFields) === 4);
 check('registry raw fields names', !array_diff(['target', 'payload', 'encoding', 'timeout'], $rawNames));
 check('registry unknown fields', DebugRegistry::driverFields('nope') === []);
+check('registry mqtt driver', DebugRegistry::driver('mqtt')?->name() === 'mqtt');
+check('registry stomp driver', DebugRegistry::driver('stomp')?->name() === 'stomp');
+$mqttFields = DebugRegistry::driverFields('mqtt');
+check('registry mqtt fields', !array_diff(['topic', 'qos', 'clientId', 'username', 'password', 'payload'], array_column($mqttFields, 'name')));
+check('registry mqtt qos default', ($mqttFields[1]['default'] ?? null) === 1);
+$stompFields = DebugRegistry::driverFields('stomp');
+check('registry stomp fields', !array_diff(['destination', 'command', 'contentType', 'payload'], array_column($stompFields, 'name')));
+check('registry stomp contentType default', ($stompFields[2]['default'] ?? '') === 'text/plain');
 check('raw driver send is stubbed', (DebugRegistry::driver('raw')->send([], [])['ok'] ?? true) === false);
 
 // ---------- debug.fields 注入 / 去重 / Debug 注解合并 ----------

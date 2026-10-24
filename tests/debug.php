@@ -3,11 +3,15 @@ declare(strict_types=1);
 
 /**
  * 调试中继测试（无框架、无依赖）: php tests/debug.php
- * 覆盖: raw(http/tcp/udp/hex) 驱动、http-relay 驱动、中继开关、目标不可被客户端覆盖、限流、控制器鉴权
+ * 覆盖: raw(http/tcp/udp/hex) 驱动、http-relay 驱动、mqtt/stomp 驱动、中继开关、目标不可被客户端覆盖、限流、控制器鉴权
  */
 
 use erikwang2013\apidoc\Controller;
+use erikwang2013\apidoc\annotation\{Channel, Debug, Protocol};
+use erikwang2013\apidoc\parses\ParseProtocol;
 use erikwang2013\apidoc\protocol\debug\DebugProxy;
+use erikwang2013\apidoc\protocol\debug\Driver\MqttDriver;
+use erikwang2013\apidoc\protocol\debug\Driver\StompDriver;
 use erikwang2013\apidoc\protocol\debug\Support\HttpClient;
 use erikwang2013\apidoc\providers\BaseService;
 use erikwang2013\apidoc\utils\Cache;
@@ -29,6 +33,22 @@ spl_autoload_register(function ($class) use ($root) {
     }
 });
 require __DIR__ . '/fixtures/protocol/AnnotationFixtures.php';
+
+#[Protocol('mqtt')]
+class MqttPublishFixture
+{
+    #[Channel('/debug/topic', action: 'publish')]
+    #[Debug(driver: 'mqtt', target: 'tcp://127.0.0.1:19003')]
+    public function publish() {}
+}
+
+#[Protocol('mqtt')]
+class MqttSubscribeFixture
+{
+    #[Channel('/debug/topic', action: 'subscribe')]
+    #[Debug(driver: 'mqtt', target: 'tcp://127.0.0.1:19003')]
+    public function subscribe() {}
+}
 
 $pass = 0;
 $fail = 0;
@@ -91,8 +111,10 @@ $logDir = sys_get_temp_dir();
 startFixture([PHP_BINARY, $root . '/tests/fixtures/debug/tcp_echo_server.php', '127.0.0.1', '19011'], $logDir . '/apidoc-debug-tcp.log');
 startFixture([PHP_BINARY, $root . '/tests/fixtures/debug/udp_echo_server.php', '127.0.0.1', '19002'], $logDir . '/apidoc-debug-udp.log');
 startFixture([PHP_BINARY, '-S', '127.0.0.1:19005', '-t', $root . '/tests/fixtures/debug/http'], $logDir . '/apidoc-debug-http.log');
+startFixture([PHP_BINARY, $root . '/tests/fixtures/debug/mqtt_broker.php', '127.0.0.1', '19003'], $logDir . '/apidoc-debug-mqtt.log');
+startFixture([PHP_BINARY, $root . '/tests/fixtures/debug/stomp_server.php', '127.0.0.1', '19004'], $logDir . '/apidoc-debug-stomp.log');
 usleep(100000);
-if (!waitPort('127.0.0.1', 19011) || !waitPort('127.0.0.1', 19005)) {
+if (!waitPort('127.0.0.1', 19011) || !waitPort('127.0.0.1', 19005) || !waitPort('127.0.0.1', 19003) || !waitPort('127.0.0.1', 19004)) {
     echo "FAIL  fixture 服务未就绪\n";
     exit(1);
 }
@@ -154,6 +176,51 @@ check('oversize request rejected', ($oversize['ok'] ?? true) === false && strpos
 $http = $proxy->send('api', $httpApi, ['method' => 'POST', 'payload' => 'hello', 'encoding' => 'text']);
 check('http relay ok', ($http['ok'] ?? false) === true);
 check('http relay body', strpos((string)($http['body'] ?? ''), 'hello') !== false);
+
+// ---------- mqtt / stomp 驱动 ----------
+$mqtt = new MqttDriver();
+$connectHex = bin2hex($mqtt->encodeConnect(['clientId' => 'apidoc', 'keepalive' => 60]));
+check('mqtt connect packet starts with 0x10', substr($connectHex, 0, 2) === '10');
+check('mqtt connect client id encoded', strpos($mqtt->encodeConnect(['clientId' => 'apidoc']), 'apidoc') !== false);
+$mqttPublish = $mqtt->encodePublish('a/b', 0, 'hi');
+check('mqtt publish topic encoded', strpos($mqttPublish, 'a/b') !== false);
+check('mqtt publish qos0 fixed header', ord($mqttPublish[0]) === 0x30);
+check('mqtt publish qos1 carries packet id', strpos($mqtt->encodePublish('a/b', 1, 'hi', 7), "a/b\x00\x07hi") !== false);
+check('mqtt subscribe wildcard encoded', strpos($mqtt->encodeSubscribe('sensors/+/temp', 1, 3), 'sensors/+/temp') !== false);
+check('mqtt disconnect packet', $mqtt->encodeDisconnect() === "\xE0\x00");
+$mqttPackets = MqttDriver::decodePackets("\x20\x02\x00\x00\x40\x02\x00\x07");
+check('mqtt decode connack', ($mqttPackets[0]['type'] ?? 0) === 2 && ($mqttPackets[0]['body'] ?? '') === "\x00\x00");
+check('mqtt decode puback', ($mqttPackets[1]['type'] ?? 0) === 4 && ($mqttPackets[1]['body'] ?? '') === "\x00\x07");
+check('mqtt decode ignores partial packet', MqttDriver::decodePackets("\x20\x02\x00") === []);
+check('mqtt streaming start is stubbed', ($mqtt->start([], [])['ok'] ?? true) === false);
+check('mqtt rejects non-string topic', ($mqtt->send(['topic' => ['a/b']], ['target' => 'tcp://127.0.0.1:19003'])['ok'] ?? true) === false);
+$mqttDirect = $mqtt->send(['action' => 'publish', 'topic' => 'debug/topic', 'qos' => 1, 'payload' => 'hello'], ['target' => 'tcp://127.0.0.1:19003', 'timeout' => 2]);
+check('mqtt direct publish ok', ($mqttDirect['ok'] ?? false) === true);
+check('mqtt direct publish returns PUBACK', ($mqttDirect['body'] ?? '') === 'PUBACK');
+
+$stomp = new StompDriver();
+$stompFrame = $stomp->encodeFrame('SEND', ['destination' => '/queue/a', 'content-length' => 2], 'hi');
+check('stomp frame ends with NUL', substr($stompFrame, -1) === "\0");
+check('stomp content-length', strpos($stompFrame, 'content-length:2') !== false);
+$stompDecoded = StompDriver::decodeFrames($stomp->encodeFrame('CONNECTED', ['version' => '1.2']) . $stomp->encodeFrame('RECEIPT', ['receipt-id' => 'r1']));
+check('stomp decode frames', count($stompDecoded) === 2 && ($stompDecoded[0]['command'] ?? '') === 'CONNECTED');
+check('stomp decode receipt header', ($stompDecoded[1]['headers']['receipt-id'] ?? '') === 'r1');
+check('stomp streaming start is stubbed', ($stomp->start([], [])['ok'] ?? true) === false);
+check('stomp rejects non-string destination', ($stomp->send(['destination' => ['/queue/a']], ['target' => 'tcp://127.0.0.1:19004'])['ok'] ?? true) === false);
+$stompDirect = $stomp->send(['action' => 'send', 'destination' => '/queue/a', 'payload' => 'hi', 'receipt' => 'r1'], ['target' => 'tcp://127.0.0.1:19004', 'timeout' => 2]);
+check('stomp direct send ok', ($stompDirect['ok'] ?? false) === true);
+check('stomp direct send returns receipt', ($stompDirect['body'] ?? '') === 'RECEIPT' && ($stompDirect['meta']['receiptId'] ?? '') === 'r1');
+
+$publishRef = new ReflectionClass(MqttPublishFixture::class);
+$publishMeta = (new ParseProtocol($config))->metadata($publishRef, $publishRef->getMethod('publish'));
+check('mqtt publish fixture mode', ($publishMeta['debug']['mode'] ?? '') === 'relay-unary');
+$publishProxy = $proxy->send('api', MqttPublishFixture::class . '@publish', ['fields' => ['topic' => 'debug/topic', 'qos' => 1, 'payload' => 'hello']]);
+check('mqtt publish via proxy ok', ($publishProxy['ok'] ?? false) === true && ($publishProxy['body'] ?? '') === 'PUBACK');
+$subscribeRef = new ReflectionClass(MqttSubscribeFixture::class);
+$subscribeMeta = (new ParseProtocol($config))->metadata($subscribeRef, $subscribeRef->getMethod('subscribe'));
+check('mqtt subscribe fixture mode', ($subscribeMeta['debug']['mode'] ?? '') === 'relay-stream');
+$subscribeProxy = $proxy->send('api', MqttSubscribeFixture::class . '@subscribe', ['fields' => ['topic' => 'debug/topic']]);
+check('mqtt subscribe rejected by unary proxy', ($subscribeProxy['ok'] ?? true) === false && strpos((string)($subscribeProxy['error'] ?? ''), 'not unary') !== false);
 
 // ---------- 控制器端点 ----------
 $controllerConfig = $config;

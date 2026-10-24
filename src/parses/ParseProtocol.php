@@ -70,7 +70,18 @@ class ParseProtocol
         $relayEnabled = ($this->config['protocols']['debug']['relay_enable'] ?? false) === true;
 
         $catalogMode = (string)$protocol['defaultMode'];
-        if (in_array($driver, ['http', 'websocket', 'sse'], true)) {
+        $actionFollowingMode = '';
+        if (in_array($driver, ['mqtt', 'stomp'], true)) {
+            // 发布/发送走单次中继,订阅/接收走流式会话
+            if (in_array(strtolower($channel['action']), ['publish', 'send'], true)) {
+                $actionFollowingMode = 'relay-unary';
+            } elseif (in_array(strtolower($channel['action']), ['subscribe', 'receive'], true)) {
+                $actionFollowingMode = 'relay-stream';
+            }
+        }
+        if ($actionFollowingMode !== '') {
+            $mode = $actionFollowingMode;
+        } elseif (in_array($driver, ['http', 'websocket', 'sse'], true)) {
             $mode = $catalogMode !== '' ? $catalogMode : 'browser-' . $driver;
         } else {
             $mode = $catalogMode === 'relay-stream' ? 'relay-stream' : 'relay-unary';
