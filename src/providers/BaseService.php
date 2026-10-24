@@ -27,6 +27,10 @@ trait BaseService
         ['rule'=>'getApiShareDetail','route'=>'getApiShareDetail'],
         ['rule'=>'deleteApiShare','route'=>'deleteApiShare'],
         ['rule'=>'handleApiShareAction','route'=>'handleApiShareAction'],
+        ['rule'=>'debugSend','route'=>'debugSend'],
+        ['rule'=>'debugStart','route'=>'debugStart'],
+        ['rule'=>'debugPoll','route'=>'debugPoll'],
+        ['rule'=>'debugStop','route'=>'debugStop'],
         // 注:原 exportSwagger 路由已移除(ExportSwagger 类从未实现);
         // 各 provider 中 export_config 的读取为预留配置(当前无消费者),暂留以兼容旧配置
     ];

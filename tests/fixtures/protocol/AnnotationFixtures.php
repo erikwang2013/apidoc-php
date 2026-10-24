@@ -50,3 +50,25 @@ class DebugOnlyFixture
     #[Debug(driver: 'http', target: 'https://api.example.com/ping')]
     public function ping() {}
 }
+
+// 本机 19001 已被 minio 占用,测试 TCP 回显改用 19011
+#[Protocol('tcp')]
+#[Debug(driver:'raw', target:'tcp://127.0.0.1:19011')]
+class RawFixture {
+    #[Channel('echo')] #[Title('Echo')]
+    public function echo() {}
+}
+
+#[Protocol('udp')]
+#[Debug(driver:'raw', target:'udp://127.0.0.1:19002')]
+class UdpRawFixture {
+    #[Channel('echo')] #[Title('UDP echo')]
+    public function echo() {}
+}
+
+#[Protocol('http')]
+#[Debug(driver:'http-relay', target:'http://127.0.0.1:19005/echo.php')]
+class HttpRelayFixture {
+    #[Channel('/echo.php')] #[Title('HTTP echo')]
+    public function echo() {}
+}

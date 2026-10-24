@@ -117,4 +117,19 @@ return [
         // 自定义接口分享操作，二维数组，每个配置为一个按钮操作
         'actions'=>[]
     ],
+    // （选配）协议调试中继
+    'protocols'=>[
+        'debug'=>[
+            // 是否允许服务端中继调试请求
+            'relay_enable'=>false,
+            // 中继接口是否要求 token/shareKey(缺失时按 true 处理)
+            'relay_require_auth'=>true,
+            // 每个 token 每分钟请求上限
+            'rate_limit'=>60,
+            // 单次调试超时上限(秒)
+            'max_timeout'=>30,
+            // 单次调试响应字节上限
+            'max_bytes'=>65536,
+        ],
+    ],
 ];

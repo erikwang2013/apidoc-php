@@ -3,6 +3,7 @@ declare(strict_types = 1);
 
 namespace erikwang2013\apidoc\protocol\debug;
 
+use erikwang2013\apidoc\protocol\debug\Driver\HttpRelayDriver;
 use erikwang2013\apidoc\protocol\debug\Driver\RawDriver;
 
 /**
@@ -16,6 +17,7 @@ class DebugRegistry
      */
     protected static $drivers = [
         'raw' => RawDriver::class,
+        'http-relay' => HttpRelayDriver::class,
     ];
 
     /**

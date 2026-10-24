@@ -7,6 +7,7 @@ use erikwang2013\apidoc\parses\ParseApiDetail;
 use erikwang2013\apidoc\parses\ParseCodeTemplate;
 use erikwang2013\apidoc\parses\ParseApiMenus;
 use erikwang2013\apidoc\parses\ParseMarkdown;
+use erikwang2013\apidoc\protocol\debug\DebugProxy;
 use erikwang2013\apidoc\utils\ApiShare;
 use erikwang2013\apidoc\utils\Cache;
 use erikwang2013\apidoc\utils\ConfigProvider;
@@ -450,6 +451,101 @@ class Controller
         }
         $res = (new ApiShare())->handleApiShareAction($config, $params['key'], $params['index']);
         return Helper::showJson(0, "", $res);
+    }
+
+    /**
+     * 调试中继:单次请求
+     */
+    public function debugSend()
+    {
+        $this->init(true);
+        $params = $this->requestParams;
+        $this->checkAuth();
+        $denied = $this->debugAuthDenied($params);
+        if ($denied !== null) {
+            return $denied;
+        }
+        $res = (new DebugProxy($this->config))->send(
+            (string)($params['appKey'] ?? ''),
+            (string)($params['path'] ?? ''),
+            (array)($params['input'] ?? []),
+            (string)($params['token'] ?? '')
+        );
+        return Helper::showJson(0, "", $res);
+    }
+
+    /**
+     * 调试中继:建立流式会话(P1 暂未实现)
+     */
+    public function debugStart()
+    {
+        $this->init(true);
+        $params = $this->requestParams;
+        $this->checkAuth();
+        $denied = $this->debugAuthDenied($params);
+        if ($denied !== null) {
+            return $denied;
+        }
+        $res = (new DebugProxy($this->config))->start(
+            (string)($params['appKey'] ?? ''),
+            (string)($params['path'] ?? ''),
+            (array)($params['input'] ?? []),
+            (string)($params['token'] ?? '')
+        );
+        return Helper::showJson(0, "", $res);
+    }
+
+    /**
+     * 调试中继:拉取流式消息(P1 暂未实现)
+     */
+    public function debugPoll()
+    {
+        $this->init(true);
+        $params = $this->requestParams;
+        $this->checkAuth();
+        $denied = $this->debugAuthDenied($params);
+        if ($denied !== null) {
+            return $denied;
+        }
+        $res = (new DebugProxy($this->config))->poll(
+            (string)($params['sessionId'] ?? ''),
+            (string)($params['appKey'] ?? ''),
+            (string)($params['path'] ?? '')
+        );
+        return Helper::showJson(0, "", $res);
+    }
+
+    /**
+     * 调试中继:结束流式会话(P1 暂未实现)
+     */
+    public function debugStop()
+    {
+        $this->init(true);
+        $params = $this->requestParams;
+        $this->checkAuth();
+        $denied = $this->debugAuthDenied($params);
+        if ($denied !== null) {
+            return $denied;
+        }
+        $res = (new DebugProxy($this->config))->stop(
+            (string)($params['sessionId'] ?? ''),
+            (string)($params['appKey'] ?? ''),
+            (string)($params['path'] ?? '')
+        );
+        return Helper::showJson(0, "", $res);
+    }
+
+    /**
+     * 中继鉴权开关:配置缺失时默认要求 token/shareKey
+     * @return array|null 拒绝响应;放行返回 null
+     */
+    protected function debugAuthDenied(array $params): ?array
+    {
+        $requireAuth = $this->config['protocols']['debug']['relay_require_auth'] ?? true;
+        if ($requireAuth && empty($params['token']) && empty($params['shareKey'])) {
+            return Helper::showJson(0, "", ['ok' => false, 'error' => 'authentication required']);
+        }
+        return null;
     }
 
 }
