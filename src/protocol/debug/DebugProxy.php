@@ -260,10 +260,13 @@ class DebugProxy
         }
 
         $driverFields = is_array($input['fields'] ?? null) ? $input['fields'] : [];
-        unset($input['fields'], $input['target']);
+        unset($input['fields']);
+        // 客户端传入的 target/host/port 一律丢弃,连接目标只取注解
+        foreach (['target', 'host', 'port'] as $key) {
+            unset($input[$key], $driverFields[$key]);
+        }
         // 驱动字段优先于顶层同名字段;`fields` 本身可以是驱动字段(如 iso8583 的字段数据)
         $driverInput = array_merge($input, $driverFields);
-        unset($driverInput['target']);
         $encoding = $driverInput['encoding'] ?? $defaults['encoding'] ?? 'text';
         if (!is_string($encoding)) {
             return ['ok' => false, 'error' => 'encoding must be a string'];

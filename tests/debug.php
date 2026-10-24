@@ -201,6 +201,32 @@ $disabled = (new DebugProxy($disabledConfig))->send('api', $rawApi, ['payload' =
 check('relay disabled returns error', ($disabled['ok'] ?? true) === false);
 $evil = $proxy->send('api', $rawApi, ['target' => 'tcp://127.0.0.1:19999', 'payload' => 'x', 'timeout' => 2]);
 check('client target ignored', ($evil['ok'] ?? true) === true && ($evil['body'] ?? '') === 'x');
+// 客户端传入的 target/host/port 不能进入驱动输入,目标只取注解
+$buildRequest = new ReflectionMethod(DebugProxy::class, 'buildRequest');
+if (PHP_VERSION_ID < 80100) {
+    $buildRequest->setAccessible(true);
+}
+$built = $buildRequest->invoke($proxy, $config['protocols']['debug'], [
+    'defaults' => ['target' => 'tcp://127.0.0.1:19001', 'encoding' => 'text', 'timeout' => 2],
+], [
+    'target' => 'tcp://127.0.0.1:19999',
+    'host' => '127.0.0.1',
+    'port' => 19999,
+    'payload' => 'hi',
+    'fields' => [
+        'target' => 'tcp://127.0.0.1:19998',
+        'host' => '127.0.0.1',
+        'port' => 19998,
+        'qos' => 1,
+    ],
+]);
+check('buildRequest drops client target/host/port', ($built['ok'] ?? false) === true
+    && $built['target'] === 'tcp://127.0.0.1:19001'
+    && !array_key_exists('target', $built['input'] ?? [])
+    && !array_key_exists('host', $built['input'] ?? [])
+    && !array_key_exists('port', $built['input'] ?? [])
+    && ($built['input']['payload'] ?? '') === 'hi'
+    && ($built['input']['qos'] ?? 0) === 1);
 
 $limitedConfig = $config;
 $limitedConfig['protocols']['debug']['rate_limit_per_minute'] = 1;
