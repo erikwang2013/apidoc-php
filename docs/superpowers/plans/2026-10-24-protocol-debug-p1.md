@@ -755,17 +755,23 @@ git commit -m "feat(debug): add gRPC and Hessian drivers"
 ```php
 $config['protocols']['debug']['relay_enable'] = true;
 $proxy = new erikwang2013\apidoc\protocol\debug\DebugProxy($config);
-$start = $proxy->start('api', 'Tests\\Fixtures\\Protocol\\RawFixture@echo', ['fields'=>['topic'=>'a/b']]);
+// Use a streaming fixture (MQTT subscribe), not the relay-unary RawFixture.
+$start = $proxy->start('api', 'Tests\\Fixtures\\Protocol\\MqttSubscribeFixture@onMessage', ['fields'=>['topic'=>'a/b']]);
 check('session start returns id', !empty($start['sessionId']));
 $poll = $proxy->poll($start['sessionId']);
 check('session poll returns messages array', is_array($poll['messages'] ?? null));
+check('session poll receives broker message', strpos(json_encode($poll['messages']), 'hello') !== false);
 $stop = $proxy->stop($start['sessionId']);
 check('session stop', ($stop['ok'] ?? false) === true);
 $expired = $proxy->poll('nonexistent');
 check('unknown session rejected', ($expired['ok'] ?? true) === false);
+$wrongMode = $proxy->start('api', 'Tests\\Fixtures\\Protocol\\RawFixture@echo', ['fields'=>['topic'=>'a/b']]);
+check('relay-unary start rejected', ($wrongMode['ok'] ?? true) === false);
+$limited = $proxy->start('api', 'Tests\\Fixtures\\Protocol\\MqttSubscribeFixture@onMessage', [], 'session-limit-key');
+check('max sessions per key enforced', ($limited['ok'] ?? true) === false);
 ```
 
-Extend `tests/fixtures/debug/mqtt_broker.php` and `stomp_server.php` to push one message after SUBSCRIBE; assert the poll returns that message text. Use `tcp://127.0.0.1:19003` / `19004` fixtures.
+Add `MqttSubscribeFixture` (`#[Protocol('mqtt')]`, `action:'subscribe'`, `#[Debug(driver:'mqtt', target:'tcp://127.0.0.1:19003')]`) and `StompSubscribeFixture` (`action:'receive'`, `target:'tcp://127.0.0.1:19004'`). Extend `tests/fixtures/debug/mqtt_broker.php` and `stomp_server.php` to push one `hello` message after SUBSCRIBE; assert the poll returns it. Use `tcp://127.0.0.1:19003`/`19004` fixtures.
 
 - [ ] **Step 2: Run the test to verify it fails**
 
@@ -783,7 +789,7 @@ Use `Cache` with key `debug/session/{id}`. Value: `['id','appKey','apiKey','rate
 
 - [ ] **Step 5: Wire Controller methods**
 
-`debugStart` -> `DebugProxy::start(...)`; `debugPoll` -> `poll`; `debugStop` -> `stop`. All call `init(true)` + `checkAuth()`. Return `Helper::showJson(0,'',$res)`.
+`debugStart` -> `DebugProxy::start($appKey,$apiKey,$input,$rateKey)`; `debugPoll` -> `DebugProxy::poll($sessionId,$rateKey)`; `debugStop` -> `DebugProxy::stop($sessionId,$rateKey)`. All call `init(true)` + `checkAuth()` and use the same validated-credential `debugRateKey()` as `debugSend`. Apply the limiter and the `max_sessions` cap to start/poll/stop. Return `Helper::showJson(0,'',$res)`.
 
 - [ ] **Step 6: Run the tests to verify they pass**
 
