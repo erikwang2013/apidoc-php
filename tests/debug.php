@@ -234,6 +234,8 @@ $mqtt = new MqttDriver();
 $connectHex = bin2hex($mqtt->encodeConnect(['clientId' => 'apidoc', 'keepalive' => 60]));
 check('mqtt connect packet starts with 0x10', substr($connectHex, 0, 2) === '10');
 check('mqtt connect client id encoded', strpos($mqtt->encodeConnect(['clientId' => 'apidoc']), 'apidoc') !== false);
+check('mqtt connect cleanSession=false clears flag', (ord($mqtt->encodeConnect(['clientId' => 'x', 'cleanSession' => false])[9]) & 0x02) === 0);
+check('mqtt connect cleanSession=true sets flag', (ord($mqtt->encodeConnect(['clientId' => 'x', 'cleanSession' => true])[9]) & 0x02) === 0x02);
 $mqttPublish = $mqtt->encodePublish('a/b', 0, 'hi');
 check('mqtt publish topic encoded', strpos($mqttPublish, 'a/b') !== false);
 check('mqtt publish qos0 fixed header', ord($mqttPublish[0]) === 0x30);
@@ -326,6 +328,22 @@ $stompPoll = $proxy->poll((string)($stompStart['sessionId'] ?? ''));
 check('stomp session poll receives broker message', strpos((string)json_encode($stompPoll['messages'] ?? []), 'hello') !== false);
 $stompStop = $proxy->stop((string)($stompStart['sessionId'] ?? ''));
 check('stomp session stop', ($stompStop['ok'] ?? false) === true);
+
+// 排队消息与 CONNACK 同一次写出:第一次 poll 建立持久订阅,第二次重连由 broker 随 CONNACK 下发
+$queuedStart = $proxy->start('api', MqttSubscribeFixture::class . '@subscribe', ['fields' => ['topic' => 'queued/hello']]);
+$proxy->poll((string)($queuedStart['sessionId'] ?? ''));
+$queuedPoll = $proxy->poll((string)($queuedStart['sessionId'] ?? ''));
+$queuedMessages = is_array($queuedPoll['messages'] ?? null) ? $queuedPoll['messages'] : [];
+check('mqtt poll keeps PUBLISH read with CONNACK', strpos((string)json_encode($queuedMessages), 'hello') !== false);
+check('mqtt poll deduplicates resent packet id', count($queuedMessages) === 1);
+$proxy->stop((string)($queuedStart['sessionId'] ?? ''));
+
+// PUBLISH 跨两次写出(第一次与 CONNACK 同批),剩余字节不能丢
+$splitStart = $proxy->start('api', MqttSubscribeFixture::class . '@subscribe', ['fields' => ['topic' => 'split/hello']]);
+$proxy->poll((string)($splitStart['sessionId'] ?? ''));
+$splitPoll = $proxy->poll((string)($splitStart['sessionId'] ?? ''));
+check('mqtt poll decodes PUBLISH split across reads', strpos((string)json_encode($splitPoll['messages'] ?? []), 'hello') !== false);
+$proxy->stop((string)($splitStart['sessionId'] ?? ''));
 
 // ---------- coap / modbus-tcp / iso8583 驱动 ----------
 check('debug registry has protocol drivers', DebugRegistry::driver('coap') instanceof CoapDriver

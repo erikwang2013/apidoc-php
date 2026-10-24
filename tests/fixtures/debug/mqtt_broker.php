@@ -1,6 +1,8 @@
 <?php
 /**
- * MQTT 3.1.1 测试 broker: CONNECT -> CONNACK, PUBLISH(QoS1) -> PUBACK, DISCONNECT -> close
+ * MQTT 3.1.1 测试 broker: CONNECT -> CONNACK, PUBLISH(QoS1) -> PUBACK, SUBSCRIBE -> SUBACK + hello, DISCONNECT -> close
+ * cleanSession=false 模拟:记住 clientId 的订阅,重连时把排队消息与 CONNACK 一起下发。
+ * topic 前缀 queued/ 触发同一次写出的排队消息(重复 packetId),split/ 触发跨两次写出的报文。
  * 用法: php mqtt_broker.php <host> <port>
  */
 $host = $argv[1] ?? '127.0.0.1';
@@ -71,16 +73,54 @@ function encodeRemainingLength(int $length): string
     return $encoded;
 }
 
+function buildPublish(string $topic, string $payload, int $qos = 0, int $packetId = 1): string
+{
+    $body = pack('n', strlen($topic)) . $topic;
+    if ($qos === 1) {
+        $body .= pack('n', $packetId & 0xFFFF);
+    }
+    $body .= $payload;
+    return chr(0x30 | ($qos === 1 ? 0x02 : 0x00)) . encodeRemainingLength(strlen($body)) . $body;
+}
+
+function connectClientId(string $body): string
+{
+    // body: 2+4 协议名,1 级别,1 flags,2 keepalive,2 clientId 长度,clientId
+    if (strlen($body) < 12) {
+        return '';
+    }
+    $length = unpack('n', substr($body, 10, 2))[1];
+    return (string)substr($body, 12, $length);
+}
+
+// 持久会话:clientId => 订阅 topic(模拟 cleanSession=false)
+$subscriptions = [];
+
 while (true) {
     $conn = @stream_socket_accept($server, -1);
     if (!$conn) {
         continue;
     }
     stream_set_timeout($conn, 5);
+    $clientId = '';
     while (($packet = readPacket($conn)) !== null) {
         if ($packet['type'] === 1) {
-            // CONNACK: session present=0, return code=0
-            writeAll($conn, "\x20\x02\x00\x00");
+            $clientId = connectClientId($packet['body']);
+            $connack = "\x20\x02\x00\x00";
+            $topic = $subscriptions[$clientId] ?? '';
+            if (strpos($topic, 'queued/') === 0) {
+                // CONNACK 与排队消息同一次写出;同一 packetId 发送两次,验证去重
+                writeAll($conn, $connack . buildPublish($topic, 'hello', 1, 7) . buildPublish($topic, 'hello', 1, 7));
+            } elseif (strpos($topic, 'split/') === 0) {
+                // CONNACK + 半个 PUBLISH,200ms 后补另一半
+                $publish = buildPublish($topic, 'hello', 1, 7);
+                $half = intdiv(strlen($publish), 2);
+                writeAll($conn, $connack . substr($publish, 0, $half));
+                usleep(200000);
+                writeAll($conn, substr($publish, $half));
+            } else {
+                writeAll($conn, $connack);
+            }
         } elseif ($packet['type'] === 3) {
             $qos = ($packet['flags'] >> 1) & 0x03;
             if ($qos === 1 && strlen($packet['body']) >= 4) {
@@ -90,14 +130,19 @@ while (true) {
                 writeAll($conn, "\x40\x02" . $packetId);
             }
         } elseif ($packet['type'] === 8) {
-            // SUBSCRIBE: packetId + topic + qos -> SUBACK + 一条 hello PUBLISH
+            // SUBSCRIBE: packetId + topic + qos -> SUBACK;首次订阅补一条 hello
             if (strlen($packet['body']) >= 4) {
                 $packetId = substr($packet['body'], 0, 2);
                 $topicLength = unpack('n', substr($packet['body'], 2, 2))[1];
                 $topic = substr($packet['body'], 4, $topicLength);
+                $already = $clientId !== '' && isset($subscriptions[$clientId]);
+                if ($clientId !== '') {
+                    $subscriptions[$clientId] = $topic;
+                }
                 writeAll($conn, "\x90\x03" . $packetId . "\x01");
-                $publishBody = pack('n', strlen($topic)) . $topic . 'hello';
-                writeAll($conn, "\x30" . encodeRemainingLength(strlen($publishBody)) . $publishBody);
+                if (!$already) {
+                    writeAll($conn, buildPublish($topic, 'hello'));
+                }
             }
         } elseif ($packet['type'] === 14) {
             break;

@@ -130,10 +130,22 @@ class MqttDriver implements StreamingDriverInterface
             if (!$this->writeAll($socket, $this->encodeConnect($connectOptions))) {
                 return ['ok' => false, 'error' => 'write failed'];
             }
-            $packets = $this->readPackets($socket, min($timeout, 5.0), $maxBytes, function (array $packets): bool {
-                return $this->findPacket($packets, 2) !== null;
-            });
-            $connack = $this->findPacket($packets, 2);
+            // 同一 buffer 贯穿 CONNACK/SUBSCRIBE:未完整报文和已处理位置都保留
+            $buffer = '';
+            $processed = 0;
+            $seenPacketIds = [];
+            $deadline = microtime(true) + min($timeout, 5.0);
+            $connack = null;
+            while (true) {
+                $packets = static::decodePackets($buffer);
+                $connack = $this->findPacket($packets, 2);
+                if ($connack !== null) {
+                    break;
+                }
+                if (!$this->readChunk($socket, $deadline, $maxBytes, $buffer)) {
+                    break;
+                }
+            }
             if ($connack === null) {
                 return ['ok' => false, 'error' => 'CONNACK timed out'];
             }
@@ -145,10 +157,17 @@ class MqttDriver implements StreamingDriverInterface
                 $name = isset(static::$connackCodes[$code]) ? static::$connackCodes[$code] : 'unknown return code';
                 return ['ok' => false, 'error' => 'CONNACK ' . $code . ': ' . $name];
             }
+            // 持久会话的排队消息可能与 CONNACK 同一批到达,先收下再 SUBSCRIBE
+            $messages = $this->collectPublishes($packets, $processed, $seenPacketIds, $socket, $maxMessages);
             if (!$this->writeAll($socket, $this->encodeSubscribe($topic, $qos, 1))) {
                 return ['ok' => false, 'error' => 'write failed'];
             }
-            $messages = $this->readMessages($socket, $timeout, $maxBytes, $maxMessages);
+            if (count($messages) < $maxMessages) {
+                $messages = array_merge(
+                    $messages,
+                    $this->readMessages($socket, $timeout, $maxBytes, $maxMessages - count($messages), $buffer, $processed, $seenPacketIds)
+                );
+            }
             $this->writeAll($socket, $this->encodeDisconnect());
             return ['ok' => true, 'messages' => $messages];
         } finally {
@@ -162,57 +181,86 @@ class MqttDriver implements StreamingDriverInterface
     }
 
     /**
-     * 读取 PUBLISH 报文,收到一批后最多再等 100ms 收尾
+     * 同一连接的读循环:buffer 与 processed 跨 READ 保留,收到一批后最多再等 100ms
      */
-    protected function readMessages($socket, float $timeout, int $maxBytes, int $maxMessages): array
+    protected function readMessages($socket, float $timeout, int $maxBytes, int $maxMessages, string &$buffer, int &$processed, array &$seenPacketIds): array
     {
         $deadline = microtime(true) + $timeout;
-        $buffer = '';
-        $processed = 0;
         $messages = [];
-        while (true) {
+        while (count($messages) < $maxMessages) {
             $packets = static::decodePackets($buffer);
-            for (; $processed < count($packets); $processed++) {
-                if ($packets[$processed]['type'] !== 3) {
-                    continue;
-                }
-                $publish = $this->decodePublish($packets[$processed]);
-                if ($publish === null) {
-                    continue;
-                }
-                if ($publish['qos'] === 1 && $publish['packetId'] !== null) {
-                    $this->writeAll($socket, "\x40\x02" . pack('n', $publish['packetId']));
-                }
-                $messages[] = $this->streamMessage('PUBLISH', $publish['payload']);
-            }
+            $messages = array_merge(
+                $messages,
+                $this->collectPublishes($packets, $processed, $seenPacketIds, $socket, $maxMessages - count($messages))
+            );
             if (count($messages) >= $maxMessages) {
                 break;
             }
-            $left = $deadline - microtime(true);
-            if ($left <= 0) {
-                break;
-            }
-            $wait = $messages === [] ? $left : min(0.1, $left);
-            $read = [$socket];
-            $write = null;
-            $except = null;
-            $ready = @stream_select($read, $write, $except, (int)$wait, (int)(($wait - (int)$wait) * 1000000));
-            if ($ready !== 1) {
-                break;
-            }
-            $chunk = @fread($socket, 8192);
-            if ($chunk === false || $chunk === '') {
-                if ($chunk === false || feof($socket)) {
-                    break;
-                }
-                continue;
-            }
-            $buffer .= $chunk;
-            if (strlen($buffer) >= $maxBytes) {
+            if (!$this->readChunk($socket, $deadline, $maxBytes, $buffer, $messages === [] ? 0.0 : 0.1)) {
                 break;
             }
         }
         return $messages;
+    }
+
+    /**
+     * 提取 PUBLISH;QoS1 回 PUBACK,重复 packetId 只保留第一条
+     */
+    protected function collectPublishes(array $packets, int &$processed, array &$seenPacketIds, $socket, int $maxMessages): array
+    {
+        $messages = [];
+        for (; $processed < count($packets); $processed++) {
+            if (count($messages) >= $maxMessages) {
+                break;
+            }
+            if ($packets[$processed]['type'] !== 3) {
+                continue;
+            }
+            $publish = $this->decodePublish($packets[$processed]);
+            if ($publish === null) {
+                continue;
+            }
+            if ($publish['qos'] > 0 && $publish['packetId'] !== null) {
+                if ($publish['qos'] === 1) {
+                    $this->writeAll($socket, "\x40\x02" . pack('n', $publish['packetId']));
+                }
+                if (isset($seenPacketIds[$publish['packetId']])) {
+                    continue;
+                }
+                $seenPacketIds[$publish['packetId']] = true;
+            }
+            $messages[] = $this->streamMessage('PUBLISH', $publish['payload']);
+        }
+        return $messages;
+    }
+
+    /**
+     * 读一块数据;idleAfterData > 0 时,已有数据后只等这么久
+     * @return bool 是否继续读
+     */
+    protected function readChunk($socket, float $deadline, int $maxBytes, string &$buffer, float $idleAfterData = 0.0): bool
+    {
+        $left = $deadline - microtime(true);
+        if ($left <= 0) {
+            return false;
+        }
+        $wait = $idleAfterData > 0 ? min($idleAfterData, $left) : $left;
+        $read = [$socket];
+        $write = null;
+        $except = null;
+        $ready = @stream_select($read, $write, $except, (int)$wait, (int)(($wait - (int)$wait) * 1000000));
+        if ($ready !== 1) {
+            return false;
+        }
+        $chunk = @fread($socket, 8192);
+        if ($chunk === false) {
+            return false;
+        }
+        if ($chunk === '') {
+            return !feof($socket);
+        }
+        $buffer .= $chunk;
+        return strlen($buffer) < $maxBytes;
     }
 
     protected function decodePublish(array $packet): ?array
