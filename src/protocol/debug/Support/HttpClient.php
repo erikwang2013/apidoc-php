@@ -11,7 +11,7 @@ namespace erikwang2013\apidoc\protocol\debug\Support;
 class HttpClient
 {
     /**
-     * @param array $options url, method, headers, body, timeout, maxBytes, httpVersion
+     * @param array $options url, method, headers, body, timeout, maxBytes, httpVersion, http2PriorKnowledge
      * @return array ['status','headers','body','trailers'] 或 ['error']
      */
     public static function request(array $options): array
@@ -34,6 +34,8 @@ class HttpClient
         $headers = static::normalizeHeaders($options['headers'] ?? []);
         $body = (string)($options['body'] ?? '');
         $httpVersion = (int)($options['httpVersion'] ?? 1);
+        $priorKnowledge = (bool)($options['http2PriorKnowledge'] ?? false);
+        $tls = strtolower((string)parse_url((string)($options['url'] ?? ''), PHP_URL_SCHEME)) === 'https';
 
         $status = 0;
         $responseHeaders = [];
@@ -52,7 +54,9 @@ class HttpClient
             CURLOPT_CONNECTTIMEOUT_MS => (int)round(min($timeout, 10) * 1000),
             CURLOPT_HTTPHEADER => $headers,
             CURLOPT_ENCODING => '',
-            CURLOPT_HTTP_VERSION => $httpVersion === 2 ? CURL_HTTP_VERSION_2_0 : CURL_HTTP_VERSION_1_1,
+            CURLOPT_HTTP_VERSION => $httpVersion === 2
+                ? static::versionOption($tls, $priorKnowledge)
+                : CURL_HTTP_VERSION_1_1,
             CURLOPT_HEADERFUNCTION => function ($ch, string $line) use (&$status, &$responseHeaders, &$trailers, &$bodyStarted): int {
                 $trimmed = trim($line);
                 if ($trimmed === '') {
@@ -113,6 +117,21 @@ class HttpClient
             'body' => $responseBody,
             'trailers' => $trailers,
         ];
+    }
+
+    /**
+     * HTTP/2 协商方式:明文用 h2c prior knowledge(gRPC 默认),TLS 用 ALPN
+     * @param bool $tls 目标是否 https
+     * @param bool $priorKnowledge 是否允许明文 prior knowledge
+     * @param bool|null $priorAvailable 仅测试用;false 模拟 curl 常量不可用
+     * @return int curl 的 CURLOPT_HTTP_VERSION 值
+     */
+    public static function versionOption(bool $tls, bool $priorKnowledge, ?bool $priorAvailable = null): int
+    {
+        if (!$tls && $priorKnowledge && $priorAvailable !== false && defined('CURL_HTTP_VERSION_2_PRIOR_KNOWLEDGE')) {
+            return CURL_HTTP_VERSION_2_PRIOR_KNOWLEDGE;
+        }
+        return CURL_HTTP_VERSION_2_0;
     }
 
     protected static function viaStream(array $options): array

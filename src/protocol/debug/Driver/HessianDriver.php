@@ -209,7 +209,7 @@ class HessianDriver implements DebugDriverInterface
 
     public function encodeString(string $value): string
     {
-        // shortcut: 字符串长度按 UTF-8 字符数;超过 65535 不切 R chunk
+        // shortcut: 字符串长度按 UTF-16 code unit 数;超过 65535 不切 R chunk
         $length = $this->charLength($value);
         if ($length <= 31) {
             return chr($length) . $value;
@@ -271,10 +271,17 @@ class HessianDriver implements DebugDriverInterface
 
     public function encodeBinary(string $value): string
     {
-        if (strlen($value) > 65535) {
+        $length = strlen($value);
+        if ($length <= 15) {
+            return chr(0x20 + $length) . $value;
+        }
+        if ($length <= 1023) {
+            return chr(0x34 + ($length >> 8)) . chr($length & 0xff) . $value;
+        }
+        if ($length > 65535) {
             throw new InvalidArgumentException('hessian binary 超过 65535 字节');
         }
-        return 'B' . pack('n', strlen($value)) . $value;
+        return 'B' . pack('n', $length) . $value;
     }
 
     /**
@@ -341,7 +348,7 @@ class HessianDriver implements DebugDriverInterface
         if ($code <= 0x1f || ($code >= 0x30 && $code <= 0x33) || $code === 0x53 || $code === 0x52) {
             return $this->readString($data, $offset);
         }
-        if (($code >= 0x20 && $code <= 0x2f) || $code === 0x42 || $code === 0x62) {
+        if (($code >= 0x20 && $code <= 0x2f) || ($code >= 0x34 && $code <= 0x37) || $code === 0x42 || $code === 0x62) {
             return $this->readBinary($data, $offset);
         }
         if (($code >= 0x5b && $code <= 0x5f) || $code === 0x44) {
@@ -390,6 +397,10 @@ class HessianDriver implements DebugDriverInterface
             $code = $this->readByte($data, $offset);
             if ($code >= 0x20 && $code <= 0x2f) {
                 return $value . $this->readBytes($data, $offset, $code - 0x20);
+            }
+            if ($code >= 0x34 && $code <= 0x37) {
+                $length = (($code - 0x34) << 8) + $this->readByte($data, $offset);
+                return $value . $this->readBytes($data, $offset, $length);
             }
             if ($code !== 0x42 && $code !== 0x62) {
                 throw new InvalidArgumentException('hessian binary 编码非法');
@@ -531,24 +542,67 @@ class HessianDriver implements DebugDriverInterface
         }
     }
 
+    /**
+     * 按 UTF-16 code unit 数读取 UTF-8 字节;BMP 1 unit,星平面 2 units
+     * @throws InvalidArgumentException
+     */
     protected function readChars(string $data, int &$offset, int $length): string
     {
-        if (function_exists('mb_substr')) {
-            $value = mb_substr(substr($data, $offset), 0, $length, 'UTF-8');
-            if (mb_strlen($value, 'UTF-8') < $length) {
+        $start = $offset;
+        $units = 0;
+        $total = strlen($data);
+        while ($units < $length) {
+            if ($offset >= $total) {
                 throw new InvalidArgumentException('hessian 字符串截断');
             }
-        } else {
-            $value = $this->readBytes($data, $offset, $length);
-            return $value;
+            $byte = ord($data[$offset]);
+            if ($byte < 0x80) {
+                $offset += 1;
+                $units += 1;
+            } elseif ($byte < 0xe0) {
+                $offset += 2;
+                $units += 1;
+            } elseif ($byte < 0xf0) {
+                $offset += 3;
+                $units += 1;
+            } else {
+                $offset += 4;
+                $units += 2;
+            }
+            if ($offset > $total) {
+                throw new InvalidArgumentException('hessian 字符串截断');
+            }
         }
-        $offset += strlen($value);
-        return $value;
+        if ($units !== $length) {
+            throw new InvalidArgumentException('hessian 字符串长度非法');
+        }
+        return substr($data, $start, $offset - $start);
     }
 
+    /**
+     * UTF-16 code unit 数(不依赖 mbstring);输入为合法 UTF-8
+     */
     protected function charLength(string $value): int
     {
-        return function_exists('mb_strlen') ? mb_strlen($value, 'UTF-8') : strlen($value);
+        $units = 0;
+        $total = strlen($value);
+        for ($i = 0; $i < $total;) {
+            $byte = ord($value[$i]);
+            if ($byte < 0x80) {
+                $i += 1;
+                $units += 1;
+            } elseif ($byte < 0xe0) {
+                $i += 2;
+                $units += 1;
+            } elseif ($byte < 0xf0) {
+                $i += 3;
+                $units += 1;
+            } else {
+                $i += 4;
+                $units += 2;
+            }
+        }
+        return $units;
     }
 
     protected function signed(int $value, int $bits): int

@@ -154,6 +154,7 @@ class GrpcDriver implements DebugDriverInterface
             'timeout' => (float)($context['timeout'] ?? 5),
             'maxBytes' => $maxBytes,
             'httpVersion' => 2,
+            'http2PriorKnowledge' => true,
         ]);
         if (isset($result['error'])) {
             return ['ok' => false, 'error' => $result['error']];

@@ -471,12 +471,15 @@ check('protobuf truncated length throws', $pbThrew);
 $grpc = new GrpcDriver();
 check('grpc frame prefix', bin2hex($grpc->frame("\x0a\x02hi")) === '00000000040a026869');
 check('grpc frame big endian length', substr($grpc->frame(str_repeat('a', 300)), 1, 4) === "\x00\x00\x01\x2c");
+check('http2 option: plaintext prior knowledge', HttpClient::versionOption(false, true) === CURL_HTTP_VERSION_2_PRIOR_KNOWLEDGE);
+check('http2 option: tls alpn', HttpClient::versionOption(true, true) === CURL_HTTP_VERSION_2_0);
+check('http2 option: prior knowledge unavailable fallback', HttpClient::versionOption(false, true, false) === CURL_HTTP_VERSION_2_0);
 $grpcRes = $grpc->send(
     ['service' => 'demo.Greeter', 'method' => 'SayHello', 'payload' => '{"1":{"type":"string","value":"hi"}}'],
     ['target' => '127.0.0.1:19005', 'timeout' => 2]
 );
 check('grpc non-grpc endpoint fails cleanly', ($grpcRes['ok'] ?? true) === false
-    && strpos((string)($grpcRes['error'] ?? ''), 'grpc-status') !== false);
+    && (string)($grpcRes['error'] ?? '') !== '');
 check('grpc rejects tcp scheme target', ($grpc->send(['service' => 'a', 'method' => 'b'], ['target' => 'tcp://127.0.0.1:19005'])['ok'] ?? true) === false);
 check('grpc rejects missing service', ($grpc->send(['method' => 'SayHello'], ['target' => '127.0.0.1:19005'])['ok'] ?? true) === false);
 check('grpc rejects invalid payload json', ($grpc->send(['service' => 'a', 'method' => 'b', 'payload' => 'nope'], ['target' => '127.0.0.1:19005'])['ok'] ?? true) === false);
@@ -502,6 +505,21 @@ check('hessian compact double byte', $hessian->decode("\x5d\x80") === -128.0);
 check('hessian compact double short', $hessian->decode("\x5e\x80\x00") === -32768.0);
 check('hessian compact double float', $hessian->decode("\x5f\x3f\x80\x00\x00") === 1.0);
 check('hessian compact binary', $hessian->decode("\x23abc") === 'abc');
+check('hessian compact binary extension vector', $hessian->decode("\x34\x10" . str_repeat('A', 16)) === str_repeat('A', 16));
+check('hessian binary compact marker 15', $hessian->encodeBinary(str_repeat('A', 15))[0] === "\x2f");
+check('hessian binary compact marker 16', substr($hessian->encodeBinary(str_repeat('A', 16)), 0, 2) === "\x34\x10");
+check('hessian binary compact marker 1023', substr($hessian->encodeBinary(str_repeat('A', 1023)), 0, 2) === "\x37\xff");
+check('hessian binary 1024 uses B', $hessian->encodeBinary(str_repeat('A', 1024))[0] === 'B');
+foreach ([0, 1, 15, 16, 255, 1023] as $binaryLength) {
+    $binaryRaw = str_repeat('A', $binaryLength);
+    check('hessian binary roundtrip ' . $binaryLength, $hessian->decode($hessian->encodeBinary($binaryRaw)) === $binaryRaw);
+}
+check('hessian string utf16 emoji length', bin2hex($hessian->encodeString("\xf0\x9f\x98\x80")) === '02f09f9880');
+check('hessian string utf16 cjk length', bin2hex($hessian->encodeString("\xe4\xbd\xa0\xe5\xa5\xbd")) === '02e4bda0e5a5bd');
+check('hessian string utf16 mixed length', bin2hex($hessian->encodeString("a\xf0\x9f\x98\x80b")) === '0461f09f988062');
+check('hessian string utf16 mixed roundtrip', $hessian->decode($hessian->encodeString("a\xf0\x9f\x98\x80b")) === "a\xf0\x9f\x98\x80b");
+check('hessian string utf16 16-unit marker', bin2hex($hessian->encodeString(str_repeat("\xf0\x9f\x98\x80", 8))) === '10' . str_repeat('f09f9880', 8));
+check('hessian string utf16 32-unit marker', bin2hex($hessian->encodeString(str_repeat("\xf0\x9f\x98\x80", 16))) === '3020' . str_repeat('f09f9880', 16));
 check('hessian string chunk', $hessian->decode("\x52\x00\x05hello\x05world") === 'helloworld');
 check('hessian compact untyped list', $hessian->decode("\x7a\x91\x92") === [1, 2]);
 check('hessian compact typed list', $hessian->decode("\x72\x04[int\x90\x91") === [0, 1]);
