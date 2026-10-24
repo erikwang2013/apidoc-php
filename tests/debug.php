@@ -12,9 +12,12 @@ use erikwang2013\apidoc\parses\ParseProtocol;
 use erikwang2013\apidoc\protocol\debug\DebugProxy;
 use erikwang2013\apidoc\protocol\debug\DebugRegistry;
 use erikwang2013\apidoc\protocol\debug\Driver\CoapDriver;
+use erikwang2013\apidoc\protocol\debug\Driver\HlsDriver;
 use erikwang2013\apidoc\protocol\debug\Driver\Iso8583Driver;
 use erikwang2013\apidoc\protocol\debug\Driver\ModbusTcpDriver;
 use erikwang2013\apidoc\protocol\debug\Driver\MqttDriver;
+use erikwang2013\apidoc\protocol\debug\Driver\RtspDriver;
+use erikwang2013\apidoc\protocol\debug\Driver\SipDriver;
 use erikwang2013\apidoc\protocol\debug\Driver\StompDriver;
 use erikwang2013\apidoc\protocol\debug\Support\HttpClient;
 use erikwang2013\apidoc\providers\BaseService;
@@ -145,9 +148,13 @@ startFixture([PHP_BINARY, $root . '/tests/fixtures/debug/stomp_server.php', '127
 startFixture([PHP_BINARY, $root . '/tests/fixtures/debug/coap_server.php', '127.0.0.1', '19006'], $logDir . '/apidoc-debug-coap.log');
 startFixture([PHP_BINARY, $root . '/tests/fixtures/debug/modbus_server.php', '127.0.0.1', '19007'], $logDir . '/apidoc-debug-modbus.log');
 startFixture([PHP_BINARY, $root . '/tests/fixtures/debug/iso8583_server.php', '127.0.0.1', '19008'], $logDir . '/apidoc-debug-iso8583.log');
+startFixture([PHP_BINARY, $root . '/tests/fixtures/debug/rtsp_server.php', '127.0.0.1', '19009'], $logDir . '/apidoc-debug-rtsp.log');
+startFixture([PHP_BINARY, $root . '/tests/fixtures/debug/sip_server.php', '127.0.0.1', '19010'], $logDir . '/apidoc-debug-sip.log');
+startFixture([PHP_BINARY, '-S', '127.0.0.1:19012', '-t', $root . '/tests/fixtures/debug/http'], $logDir . '/apidoc-debug-hls.log');
 usleep(100000);
 if (!waitPort('127.0.0.1', 19011) || !waitPort('127.0.0.1', 19005) || !waitPort('127.0.0.1', 19003) || !waitPort('127.0.0.1', 19004)
-    || !waitPort('127.0.0.1', 19007) || !waitPort('127.0.0.1', 19008)) {
+    || !waitPort('127.0.0.1', 19007) || !waitPort('127.0.0.1', 19008) || !waitPort('127.0.0.1', 19009)
+    || !waitPort('127.0.0.1', 19012)) {
     echo "FAIL  fixture 服务未就绪\n";
     exit(1);
 }
@@ -337,6 +344,78 @@ $isoFieldsRes = $proxy->send('api', Iso8583ProxyFixture::class . '@send', ['fiel
 check('iso8583 fields bag via proxy ok', ($isoFieldsRes['ok'] ?? false) === true
     && strpos((string)($isoFieldsRes['body'] ?? ''), bin2hex('0810')) !== false
     && strpos((string)($isoFieldsRes['body'] ?? ''), $isoFieldBlob) !== false);
+
+// ---------- rtsp / sip / hls 驱动 ----------
+check('debug registry has stream drivers', DebugRegistry::driver('rtsp') instanceof RtspDriver
+    && DebugRegistry::driver('sip') instanceof SipDriver
+    && DebugRegistry::driver('hls') instanceof HlsDriver);
+check('rtsp fields registered', !array_diff(['method', 'url', 'cseq', 'headers'], array_column(DebugRegistry::driverFields('rtsp'), 'name')));
+check('sip fields registered', !array_diff(['method', 'uri', 'from', 'to', 'callId', 'cseq', 'headers', 'body'], array_column(DebugRegistry::driverFields('sip'), 'name')));
+check('hls fields registered', !array_diff(['fetchSegment'], array_column(DebugRegistry::driverFields('hls'), 'name')));
+check('hls mode is relay unary', (new HlsDriver())->mode() === 'relay-unary');
+
+$rtsp = new RtspDriver();
+$req = $rtsp->encodeRequest('DESCRIBE', 'rtsp://host/stream', 1);
+check('rtsp start line', strpos($req, "DESCRIBE rtsp://host/stream RTSP/1.0\r\n") === 0);
+check('rtsp cseq', strpos($req, "CSeq: 1\r\n") !== false);
+check('rtsp user agent', strpos($req, "User-Agent: apidoc-debug\r\n") !== false);
+$rtspHeaders = $rtsp->encodeRequest('OPTIONS', '*', 2, ['X-Test' => '1']);
+check('rtsp extra headers', strpos($rtspHeaders, "X-Test: 1\r\n") !== false);
+$rtspRes = $rtsp->send(['method' => 'DESCRIBE', 'url' => 'rtsp://127.0.0.1:19009/stream', 'cseq' => 7], ['target' => 'tcp://127.0.0.1:19009', 'timeout' => 2]);
+check('rtsp send ok', ($rtspRes['ok'] ?? false) === true);
+check('rtsp send raw response', strpos((string)($rtspRes['body'] ?? ''), "RTSP/1.0 200 OK\r\n") === 0);
+check('rtsp send cseq echoed', strpos((string)($rtspRes['body'] ?? ''), "CSeq: 7\r\n") !== false);
+check('rtsp send public header', strpos((string)($rtspRes['body'] ?? ''), 'Public:') !== false);
+check('rtsp send status meta', ($rtspRes['meta']['status'] ?? 0) === 200);
+check('rtsp rejects bad method', ($rtsp->send(['method' => 'GET', 'url' => 'rtsp://host/x'], ['target' => 'tcp://127.0.0.1:19009'])['ok'] ?? true) === false);
+check('rtsp rejects non-tcp target', ($rtsp->send([], ['target' => 'udp://127.0.0.1:19009'])['ok'] ?? true) === false);
+check('rtsp rejects invalid headers json', ($rtsp->send(['headers' => 'nope'], ['target' => 'tcp://127.0.0.1:19009'])['ok'] ?? true) === false);
+check('rtsp rejects header injection', ($rtsp->send(['headers' => '{"X-Test":"a\r\nInjected: 1"}'], ['target' => 'tcp://127.0.0.1:19009'])['ok'] ?? true) === false);
+
+$sip = new SipDriver();
+$msg = $sip->encodeRequest('OPTIONS', 'sip:host', 'from@test', 'to@test', 1);
+check('sip start line', strpos($msg, "OPTIONS sip:host SIP/2.0\r\n") === 0);
+check('sip via header', strpos($msg, 'Via: SIP/2.0/UDP apidoc-debug;branch=z9hG4bK') !== false);
+check('sip max forwards', strpos($msg, "Max-Forwards: 70\r\n") !== false);
+check('sip from header', strpos($msg, 'From: <sip:from@test>') !== false);
+check('sip to header', strpos($msg, 'To: <sip:to@test>') !== false);
+check('sip call id', preg_match('/^Call-ID: \S+\r$/m', $msg) === 1);
+check('sip cseq header', strpos($msg, "CSeq: 1 OPTIONS\r\n") !== false);
+check('sip content length', strpos($msg, "Content-Length: 0\r\n\r\n") !== false);
+check('sip tcp via transport', strpos($sip->encodeRequest('OPTIONS', 'sip:host', 'a@b', 'c@d', 2, 'call-1', [], '', 'TCP'), 'Via: SIP/2.0/TCP ') !== false);
+check('sip body content length', strpos($sip->encodeRequest('MESSAGE', 'sip:host', 'a@b', 'c@d', 2, 'call-1', [], 'hello'), "Content-Length: 5\r\n\r\nhello") !== false);
+$sipRes = $sip->send(['method' => 'OPTIONS', 'callId' => 'test-call', 'cseq' => 5], ['target' => 'udp://127.0.0.1:19010', 'timeout' => 2]);
+check('sip send ok', ($sipRes['ok'] ?? false) === true);
+check('sip send response line', strpos((string)($sipRes['body'] ?? ''), "SIP/2.0 200 OK\r\n") === 0);
+check('sip send call id echoed', strpos((string)($sipRes['body'] ?? ''), "Call-ID: test-call\r\n") !== false);
+check('sip send cseq echoed', strpos((string)($sipRes['body'] ?? ''), "CSeq: 5 OPTIONS\r\n") !== false);
+check('sip send content length', strpos((string)($sipRes['body'] ?? ''), 'Content-Length: 0') !== false);
+check('sip send status meta', ($sipRes['meta']['status'] ?? 0) === 200);
+check('sip rejects bad method', ($sip->send(['method' => 'INVITE'], ['target' => 'udp://127.0.0.1:19010'])['ok'] ?? true) === false);
+check('sip rejects http target', ($sip->send([], ['target' => 'http://127.0.0.1:19010'])['ok'] ?? true) === false);
+
+$hls = new HlsDriver();
+$parsed = $hls->parsePlaylist("#EXTM3U\n#EXTINF:10,\nseg1.ts\n#EXT-X-ENDLIST\n");
+check('hls segment parsed', ($parsed['segments'][0] ?? '') === 'seg1.ts');
+check('hls is media playlist', ($parsed['master'] ?? true) === false);
+check('hls endlist parsed', ($parsed['endlist'] ?? false) === true);
+check('hls segment duration', ($parsed['durations'][0] ?? null) === 10.0);
+$masterParsed = $hls->parsePlaylist("#EXTM3U\n#EXT-X-STREAM-INF:BANDWIDTH=1280000,RESOLUTION=640x360\nlow.m3u8\n#EXT-X-STREAM-INF:BANDWIDTH=2560000,RESOLUTION=1280x720,CODECS=\"avc1,mp4a\"\nhigh.m3u8\n");
+check('hls master detected', ($masterParsed['master'] ?? false) === true);
+check('hls variants parsed', count($masterParsed['variants']) === 2
+    && ($masterParsed['variants'][0]['bandwidth'] ?? 0) === 1280000
+    && ($masterParsed['variants'][1]['resolution'] ?? '') === '1280x720'
+    && ($masterParsed['variants'][1]['uri'] ?? '') === 'high.m3u8');
+$hlsRes = $hls->send([], ['target' => 'http://127.0.0.1:19012/playlist.m3u8', 'timeout' => 2]);
+check('hls send ok', ($hlsRes['ok'] ?? false) === true);
+$hlsJson = json_decode((string)($hlsRes['body'] ?? ''), true);
+check('hls send returns parsed playlist', is_array($hlsJson) && ($hlsJson['segments'][0] ?? '') === 'seg1.ts' && ($hlsJson['endlist'] ?? false) === true);
+$hlsFetch = $hls->send(['fetchSegment' => true], ['target' => 'http://127.0.0.1:19012/playlist.m3u8', 'timeout' => 2]);
+check('hls fetch segment returns size and hash', ($hlsFetch['ok'] ?? false) === true
+    && ($hlsFetch['meta']['segment']['bytes'] ?? 0) === strlen('HLS-SEGMENT-1')
+    && strlen((string)($hlsFetch['meta']['segment']['sha256'] ?? '')) === 64);
+check('hls fetch segment omits media bytes', strpos((string)($hlsFetch['body'] ?? ''), 'HLS-SEGMENT-1') === false);
+check('hls rejects non-http target', ($hls->send([], ['target' => 'tcp://127.0.0.1:19012'])['ok'] ?? true) === false);
 
 // ---------- 控制器端点 ----------
 $controllerConfig = $config;
