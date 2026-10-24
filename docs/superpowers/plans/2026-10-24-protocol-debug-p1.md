@@ -1088,6 +1088,63 @@ git commit -m "docs(debug): document protocol debug panel and relay security"
 
 ---
 
+### Task 14: P2 Protocol Debug Fallbacks and Coverage Docs
+
+**Files:**
+- Modify: `src/protocol/ProtocolCatalog.php`
+- Modify: `tests/protocol.php`
+- Modify: `tests/fixtures/protocol/AnnotationFixtures.php`
+- Modify: `docs/ATTRIBUTES.md`
+- Modify: `README.md`
+
+**Interfaces:**
+- Consumes: `ProtocolCatalog::get()`, `ParseProtocol::metadata()`.
+- Produces: every catalog id has a `label`, `defaultDriver`, `defaultMode`; P2 protocols without a dedicated driver fall back to `raw`, `http-relay`, `websocket`, `stomp`, or stay `''` with a clear P2 reason.
+
+- [ ] **Step 1: Set P2 fallbacks in `ProtocolCatalog`**
+
+For these entries set `defaultDriver`/`defaultMode`:
+- `thrift`, `dubbo`, `amqp`, `kafka`, `xmpp`, `rtmp`, `opc-ua`, `dnp3`, `iec-104`, `lwm2m` -> `raw` / `relay-unary`
+- `rtp`, `rtcp`, `bacnet-ip` -> `raw` / `relay-unary`
+- `binary-body` -> `http-relay` / `relay-unary`
+- `websocket-binary` -> `websocket` / `browser-websocket`
+- `socket.io` -> `websocket` / `browser-websocket` (raw WS fallback; dedicated Engine.IO driver stays P2)
+- `stomp-binary` -> `stomp` / `relay-stream` (publish/send still resolves to relay-unary via the action rule)
+- `http2`, `http3` -> `http` / `browser-http`
+- `webrtc`, `webrtc-datachannel` -> `''` / `''` with `debugReason` "WebRTC 需要手动 SDP/信令（P2）"
+
+`ProtocolCatalog::get()` must use the entry's `debugReason` when present. Add `ProtocolCatalog::ids(): array` if not already present.
+
+- [ ] **Step 2: Add tests**
+
+In `tests/protocol.php`:
+- `amqp` -> `defaultDriver='raw'`, `defaultMode='relay-unary'`;
+- `binary-body` -> `http-relay`/`relay-unary`;
+- `websocket-binary` -> `websocket`/`browser-websocket`;
+- `stomp-binary` -> `stomp`/`relay-stream`;
+- `webrtc` -> empty driver and a `P2` reason;
+- iterate `ProtocolCatalog::ids()` and assert every id returns a non-empty label and a non-empty `defaultMode` unless it is a documented no-driver protocol (`webrtc`, `webrtc-datachannel`).
+Add fixtures:
+- `P2RawFixture` (`#[Protocol('amqp')]`, `#[Channel('tcp://broker:5672')]`, `#[Debug(target: 'tcp://broker:5672')]`) -> metadata `debug.driver='raw'`, `debug.mode='relay-unary'`, fields include `payload`.
+- `P2NoDriverFixture` (`#[Protocol('webrtc')]`) -> metadata `debug.debuggable=false`, reason contains `P2`.
+
+- [ ] **Step 3: Document the coverage**
+
+In `docs/ATTRIBUTES.md` and `README.md`, add a table: protocol id, P1 dedicated driver, P2 generic fallback (raw/browser/http-relay), and a one-line note that raw panels send text/hex/base64 and do not implement protocol semantics. Include every id from the catalog.
+
+- [ ] **Step 4: Run tests**
+
+`php tests/smoke.php && php tests/protocol.php && php tests/debug.php` -> all pass.
+
+- [ ] **Step 5: Commit**
+
+```bash
+git add src/protocol/ProtocolCatalog.php tests/protocol.php tests/fixtures/protocol/AnnotationFixtures.php docs/ATTRIBUTES.md README.md
+git commit -m "feat(protocol): add P2 raw/browser debug fallbacks"
+```
+
+---
+
 ## Self-Review Checklist
 
 - Spec coverage: annotations/catalog/metadata (Tasks 1-3), debug contract/registry (Task 2), relay + security (Task 4), raw/http-relay (Task 4), MQTT/STOMP (Tasks 5, 9), CoAP/Modbus/ISO 8583 (Task 6), RTSP/SIP/HLS (Task 7), gRPC/Hessian (Task 8), UI types/badge/menu (Task 10), browser panel (Task 11), relay panel (Task 12), config/docs/regression (Task 13).
