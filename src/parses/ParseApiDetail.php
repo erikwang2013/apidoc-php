@@ -443,15 +443,16 @@ class ParseApiDetail
         if (!empty($methodInfo['tag'])){
             $methodInfo['tag'] = static::handleTags($methodInfo['tag']);
         }
-        if (!empty($protocolMeta['protocol'])) {
-            $methodInfo['protocolKey'] = $protocolMeta['protocol']['name'];
+        $protocolName = $protocolMeta['protocol']['name'] ?? '';
+        if ($protocolName !== '') {
+            $methodInfo['protocolKey'] = $protocolName;
             $methodInfo['protocolLabel'] = $protocolMeta['protocol']['label'];
             $methodInfo['channelAddress'] = !empty($protocolMeta['channel']['address']) ? $protocolMeta['channel']['address'] : '';
         }
         // 无url,自动生成;非 HTTP 协议优先用通道地址(不补前导 /)
         if (empty($methodInfo['url'])) {
             $channelAddress = !empty($protocolMeta['channel']['address']) ? $protocolMeta['channel']['address'] : '';
-            if (!empty($protocolMeta['protocol']) && empty($protocolMeta['protocol']['http']) && $channelAddress !== '') {
+            if ($protocolName !== '' && empty($protocolMeta['protocol']['http']) && $channelAddress !== '') {
                 $methodInfo['url'] = $channelAddress;
             } else {
                 $methodInfo['url'] = static::autoCreateUrl($className,$methodName,$config);

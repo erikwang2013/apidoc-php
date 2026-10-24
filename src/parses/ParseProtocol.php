@@ -133,7 +133,12 @@ class ParseProtocol
             'hints' => isset($meta['hints']) ? $meta['hints'] : '',
         ];
 
-        return ['protocol' => $protocol, 'channel' => $channel, 'debug' => $debug];
+        $result = ['channel' => $channel, 'debug' => $debug];
+        if ($name !== '') {
+            // 仅声明 Channel/Debug 时无协议名,不输出空协议对象
+            $result = ['protocol' => $protocol] + $result;
+        }
+        return $result;
     }
 
     /**

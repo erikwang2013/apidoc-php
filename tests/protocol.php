@@ -241,5 +241,23 @@ $controller = $menus->parseController(\Tests\Fixtures\Protocol\MqttFixture::clas
 check('menu has protocol key', ($controller['children'][0]['protocolKey'] ?? '') === 'mqtt');
 check('menu has no internal fields', !array_key_exists('_definitionFingerprints', $controller['children'][0]));
 
+$debugOnlyRef = new ReflectionClass(\Tests\Fixtures\Protocol\DebugOnlyFixture::class);
+$debugOnlyMeta = $parser->metadata($debugOnlyRef, $debugOnlyRef->getMethod('ping'));
+check('debug-only metadata has no protocol key', !array_key_exists('protocol', $debugOnlyMeta));
+check('debug-only metadata has debug', ($debugOnlyMeta['debug']['driver'] ?? '') === 'http');
+$debugOnlyDetail = (new erikwang2013\apidoc\parses\ParseApiDetail($config))->renderApiDetail('api', 'Tests\\Fixtures\\Protocol\\DebugOnlyFixture@ping');
+check('debug-only detail has no protocolKey', !array_key_exists('protocolKey', $debugOnlyDetail));
+check('debug-only detail has no protocolLabel', !array_key_exists('protocolLabel', $debugOnlyDetail));
+$debugOnlyController = $menus->parseController(\Tests\Fixtures\Protocol\DebugOnlyFixture::class, false, 'api');
+$debugOnlyChild = $debugOnlyController['children'][0];
+check('debug-only menu lacks protocol keys', !array_key_exists('protocolKey', $debugOnlyChild) && !array_key_exists('protocolLabel', $debugOnlyChild) && !array_key_exists('channelAddress', $debugOnlyChild));
+
+$plainController = $menus->parseController(\Tests\Fixtures\Protocol\PlainHttpFixture::class, false, 'api');
+$plainKeys = array_keys($plainController['children'][0]);
+sort($plainKeys);
+check('plain http menu keys unchanged', $plainKeys === ['appKey', 'author', 'menuKey', 'method', 'name', 'tag', 'title', 'url']);
+$grpcDetail = (new erikwang2013\apidoc\parses\ParseApiDetail($config))->renderApiDetail('api', 'Tests\\Fixtures\\Protocol\\GrpcFixture@sayHello');
+check('grpc detail url is channel address', ($grpcDetail['url'] ?? '') === 'helloworld.Greeter/SayHello');
+
 echo "\n{$pass} passed, {$fail} failed\n";
 exit($fail > 0 ? 1 : 0);

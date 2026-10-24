@@ -265,7 +265,7 @@ class ParseApiMenus
         $methodInfo = ParseApiDetail::handleApiBaseInfo($methodAnnotation,$refClass->name,$refMethod->name,$textAnnotations,$config,$protocolMeta);
         $methodInfo['appKey'] = !empty($this->currentApp['appKey'])?$this->currentApp['appKey']:"";
         $keys = ['title','method','url','author','tag','name','menuKey','appKey'];
-        if (!empty($protocolMeta['protocol'])) {
+        if (($protocolMeta['protocol']['name'] ?? '') !== '') {
             // 仅有协议注解时才输出,保持纯 HTTP 菜单 JSON 不变
             $keys = array_merge($keys, ['protocolKey','protocolLabel','channelAddress']);
         }

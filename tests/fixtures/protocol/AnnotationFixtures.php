@@ -43,3 +43,10 @@ class PlainHttpFixture
     #[Method('GET')] #[Url('/plain')] #[Title('Plain')]
     public function plain() {}
 }
+
+class DebugOnlyFixture
+{
+    #[Method('GET')] #[Url('/ping')] #[Title('Ping')]
+    #[Debug(driver: 'http', target: 'https://api.example.com/ping')]
+    public function ping() {}
+}
