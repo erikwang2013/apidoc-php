@@ -223,6 +223,7 @@ git commit -m "feat(protocol): add protocol/debug annotations and debug contract
 - Create: `src/protocol/debug/StreamingDriverInterface.php`
 - Create: `src/protocol/debug/DebugRegistry.php`
 - Create: `src/protocol/debug/DebugTarget.php`
+- Create: `src/protocol/debug/Driver/RawDriver.php` (minimal stub in this task; Task 4 implements `send()`)
 - Modify: `src/parses/ParseProtocol.php`
 - Modify: `tests/protocol.php`
 
@@ -256,7 +257,7 @@ Allowed schemes: `tcp`, `udp`, `unix`, `http`, `https`, `ws`, `wss`. Parse `sche
 
 - [ ] **Step 4: Implement the interfaces and registry**
 
-`DebugRegistry` maps driver names to classes; for this task only `raw` exists (`Driver/RawDriver.php` is created in Task 4; use `class_exists` guard so early tests pass with a stub). `driverFields('raw')` returns:
+`DebugRegistry` maps driver names to classes; for this task create a minimal `RawDriver` stub (`name()='raw'`, `mode()='relay-unary'`, `fields()` returns the field list below, `send()` returns `['ok'=>false,'error'=>'raw driver not implemented yet']`). Task 4 replaces the stub's `send()`. `driverFields('raw')` returns:
 ```php
 [
   ['name'=>'target','in'=>'target','type'=>'string','require'=>true,'desc'=>'tcp://host:port, udp://host:port, or unix:///path'],
