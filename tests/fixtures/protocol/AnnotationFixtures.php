@@ -30,3 +30,10 @@ class PositionalDebugFixture
     #[Debug('raw')]
     public function send() {}
 }
+
+#[Protocol('mqtt')]
+class DefaultDriverFixture
+{
+    #[Debug(target: 'tcp://broker:1883')]
+    public function publish() {}
+}

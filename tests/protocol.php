@@ -64,6 +64,14 @@ $posRef = new ReflectionClass(\Tests\Fixtures\Protocol\PositionalDebugFixture::c
 $pos = $parser->metadata($posRef, $posRef->getMethod('send'));
 check('positional Debug lands on driver', ($pos['debug']['driver'] ?? '') === 'raw');
 check('debug target falls back to channel address', ($pos['debug']['defaults']['target'] ?? '') === 'tcp://127.0.0.1:9000');
+$defRef = new ReflectionClass(\Tests\Fixtures\Protocol\DefaultDriverFixture::class);
+$def = $parser->metadata($defRef, $defRef->getMethod('publish'));
+check('empty Debug.driver falls back to catalog driver', ($def['debug']['driver'] ?? '') === 'mqtt');
+check('catalog driver fallback is debuggable with relay enabled', ($def['debug']['debuggable'] ?? false) === true);
+$relayOffConfig = $config;
+$relayOffConfig['protocols']['debug']['relay_enable'] = false;
+$defOff = (new ParseProtocol($relayOffConfig))->metadata($defRef, $defRef->getMethod('publish'));
+check('catalog driver fallback not debuggable with relay disabled', ($defOff['debug']['debuggable'] ?? true) === false);
 check('unknown protocol falls back', ProtocolCatalog::get('nope')['label'] === 'NOPE');
 
 // 目录条目必须携带 defaultFormat，供定义解析计划消费

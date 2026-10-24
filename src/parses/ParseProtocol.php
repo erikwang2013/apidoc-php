@@ -62,7 +62,7 @@ class ParseProtocol
         if ($driver === '') {
             $driver = isset($debugAnn['name']) ? (string)$debugAnn['name'] : '';
         }
-        if ($driver === 'auto') {
+        if ($driver === '' || $driver === 'auto') {
             $driver = $protocol['defaultDriver'];
         }
         $meta = !empty($debugAnn['meta']) && is_array($debugAnn['meta']) ? $debugAnn['meta'] : [];
