@@ -395,5 +395,42 @@ try {
 check('empty app path rejects api', $emptyScopeThrew);
 ConfigProvider::set($config);
 
+// ---------- 定义文件路径/上下文/注册表 ----------
+$root = realpath(dirname(__DIR__));
+$paths = new erikwang2013\apidoc\protocol\ProtocolPaths([
+    'allowed_roots' => [$root],
+    'max_file_bytes' => 16,
+    'max_imports' => 2,
+    'max_depth' => 2,
+]);
+check('relative path resolves', ($paths->resolve('tests/fixtures/protocol/AnnotationFixtures.php')['realpath'] ?? '') === $root . '/tests/fixtures/protocol/AnnotationFixtures.php');
+check('traversal rejected', $paths->resolve('../../etc/passwd') === null);
+check('absolute path rejected', $paths->resolve('/etc/passwd') === null);
+check('missing file rejected', $paths->resolve('tests/fixtures/protocol/missing.proto') === null);
+
+$tmp = tempnam(sys_get_temp_dir(), 'apidoc-proto-');
+file_put_contents($tmp, 'abcdefghijklmnopq');
+$ctx = new erikwang2013\apidoc\protocol\ProtocolContext($tmp, ['strict' => true], ['max_file_bytes' => 5, 'max_imports' => 2, 'max_depth' => 2], [$root]);
+check('oversized read rejected', $ctx->read() === null);
+check('oversized read records error', count($ctx->errors()) === 1);
+check('registry detects proto', erikwang2013\apidoc\protocol\ProtocolRegistry::detect('a.proto') === 'proto');
+check('registry detects openapi yaml', erikwang2013\apidoc\protocol\ProtocolRegistry::detect('a.yaml', "openapi: 3.0.3\n") === 'openapi');
+check('registry detects asyncapi', erikwang2013\apidoc\protocol\ProtocolRegistry::detect('a.yaml', "asyncapi: 2.6.0\n") === 'asyncapi');
+check('registry detects edmx', erikwang2013\apidoc\protocol\ProtocolRegistry::detect('a.xml', '<edmx:Edmx xmlns:edmx="x"></edmx:Edmx>') === 'edmx');
+check('unknown format returns empty', erikwang2013\apidoc\protocol\ProtocolRegistry::detect('a.bin') === '');
+check('unimplemented adapter returns null', erikwang2013\apidoc\protocol\ProtocolRegistry::adapter('proto') === null);
+check('registry lists formats', in_array('openapi', erikwang2013\apidoc\protocol\ProtocolRegistry::formats(), true));
+
+$ctxFile = $root . '/tests/fixtures/protocol/AnnotationFixtures.php';
+$importCtx = new erikwang2013\apidoc\protocol\ProtocolContext($ctxFile, [], ['max_imports' => 1, 'max_depth' => 1], [$root]);
+check('import resolves within root', $importCtx->resolve('AnnotationFixtures.php') === $ctxFile);
+check('import traversal rejected', $importCtx->resolve('../../../../etc/passwd') === null);
+check('import cycle skipped', $importCtx->push($ctxFile) === false && count($importCtx->warnings()) === 1);
+$importFile = $root . '/src/protocol/ProtocolPaths.php';
+check('push switches file', $importCtx->push($importFile) === true && $importCtx->file() === $importFile && $importCtx->imports() === [$importFile]);
+$importCtx->pop();
+check('pop restores file', $importCtx->file() === $ctxFile);
+check('max_imports enforced', $importCtx->push($root . '/src/protocol/ProtocolContext.php') === false && count($importCtx->errors()) === 1);
+
 echo "\n{$pass} passed, {$fail} failed\n";
 exit($fail > 0 ? 1 : 0);
