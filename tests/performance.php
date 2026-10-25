@@ -3,7 +3,8 @@ declare(strict_types = 1);
 
 /**
  * 响应性能回归: 文档接口缓存命中 + 协议定义解析/渲染
- * 预算: P95 < 10ms(本机处理时间; 不含框架/HTTP 服务器/外部网络耗时)
+ * 预算: CPU P95 < 10ms(本机处理; 不含框架/HTTP 服务器/外部网络耗时)
+ * 墙钟 P50/P95/max 仅报告(宿主 IO/调度会放大墙钟尾部, 不作为门禁)
  * 运行: php tests/performance.php
  */
 
@@ -46,18 +47,18 @@ function configure(array $params): void
     ConfigProvider::set($config);
 }
 
+function cpuMs(): float
+{
+    $usage = getrusage();
+    return ($usage['ru_utime.tv_sec'] + $usage['ru_stime.tv_sec']) * 1000
+        + ($usage['ru_utime.tv_usec'] + $usage['ru_stime.tv_usec']) / 1000;
+}
+
 /**
  * @return array ['p50'=>float,'p95'=>float,'p99'=>float,'max'=>float]
  */
-function measure(callable $fn, int $runs = RUNS): array
+function stats(array $times): array
 {
-    $fn();
-    $times = [];
-    for ($i = 0; $i < $runs; $i++) {
-        $started = hrtime(true);
-        $fn();
-        $times[] = (hrtime(true) - $started) / 1e6;
-    }
     sort($times);
     $count = count($times);
     return [
@@ -68,17 +69,36 @@ function measure(callable $fn, int $runs = RUNS): array
     ];
 }
 
+/**
+ * 同时记录 CPU 与墙钟; CPU 不受宿主 IO/调度抖动影响, 用于硬门禁
+ * @return array ['cpu'=>array,'wall'=>array]
+ */
+function measure(callable $fn, int $runs = RUNS): array
+{
+    $fn();
+    $cpu = [];
+    $wall = [];
+    for ($i = 0; $i < $runs; $i++) {
+        $cpuStarted = cpuMs();
+        $wallStarted = hrtime(true);
+        $fn();
+        $wall[] = (hrtime(true) - $wallStarted) / 1e6;
+        $cpu[] = cpuMs() - $cpuStarted;
+    }
+    return ['cpu' => stats($cpu), 'wall' => stats($wall)];
+}
+
 $results = [];
 $check = function (string $name, array $stats) use (&$results): void {
     $results[$name] = $stats;
-    $flag = $stats['p95'] >= BUDGET_MS ? ' FAIL' : '';
+    $flag = $stats['cpu']['p95'] >= BUDGET_MS ? ' FAIL' : '';
     printf(
-        "%-34s p50=%6.2fms p95=%6.2fms p99=%6.2fms max=%7.2fms%s\n",
+        "%-34s cpu p95=%6.2fms | wall p50=%6.2fms p95=%6.2fms max=%7.2fms%s\n",
         $name,
-        $stats['p50'],
-        $stats['p95'],
-        $stats['p99'],
-        $stats['max'],
+        $stats['cpu']['p95'],
+        $stats['wall']['p50'],
+        $stats['wall']['p95'],
+        $stats['wall']['max'],
         $flag
     );
 };
@@ -143,7 +163,7 @@ foreach ($cases as $name => $case) {
 
 printf("\n%d endpoints measured, budget P95 < %.0f ms\n", count($results), BUDGET_MS);
 $failed = array_filter($results, static function (array $stats): bool {
-    return $stats['p95'] >= BUDGET_MS;
+    return $stats['cpu']['p95'] >= BUDGET_MS;
 });
 if ($failed !== []) {
     echo "FAIL: " . implode(', ', array_keys($failed)) . " exceeded the budget\n";
