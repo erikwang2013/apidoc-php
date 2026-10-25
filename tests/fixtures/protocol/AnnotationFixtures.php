@@ -188,3 +188,31 @@ class JsonSchemaFixture
     #[Title('User from file')]
     public function userFile() {}
 }
+
+#[Protocol('webhooks')]
+class JsonSchemaRefsFixture
+{
+    #[Definition(file: 'tests/fixtures/protocol/json-schema/recursive.json')]
+    #[Title('Recursive')]
+    public function recursive() {}
+
+    #[Definition(file: 'tests/fixtures/protocol/json-schema/multi.json')]
+    #[Title('Multi')]
+    public function multi() {}
+
+    #[Definition(file: 'tests/fixtures/protocol/json-schema/chain.json', sample: '{"name":"a"}')]
+    #[Title('Chain')]
+    public function chain() {}
+
+    #[Definition(file: 'tests/fixtures/protocol/json-schema/chain.json', sample: '{"name":5}')]
+    #[Title('Chain invalid sample')]
+    public function chainBad() {}
+}
+
+#[Protocol('webhooks')]
+#[Definition(file: 'tests/fixtures/protocol/json-schema/user.json')]
+class ClassDefinitionFixture
+{
+    #[Title('Inherited definition')]
+    public function inherited() {}
+}

@@ -17,8 +17,13 @@ class SchemaMapper
      * @param callable $resolveRef string $ref => array|null
      * @return array
      */
-    public static function fields(array $schema, ProtocolContext $ctx, callable $resolveRef): array
+    public static function fields(array $schema, ProtocolContext $ctx, callable $resolveRef, int $depth = 0): array
     {
+        if ($depth > 32) {
+            // 防御: 未展开的递归 schema 不能无限嵌套
+            $ctx->warning('schema nesting limit reached');
+            return [];
+        }
         $schema = self::flatten($schema, $ctx, $resolveRef);
         if (empty($schema['properties']) || !is_array($schema['properties'])) {
             return [];
@@ -47,12 +52,12 @@ class SchemaMapper
             }
             if ($field['type'] === 'array') {
                 $items = isset($prop['items']) && is_array($prop['items']) ? $prop['items'] : [];
-                $children = self::fields($items, $ctx, $resolveRef);
+                $children = self::fields($items, $ctx, $resolveRef, $depth + 1);
                 if (!empty($children)) {
                     $field['children'] = $children;
                 }
             } elseif ($field['type'] === 'object') {
-                $children = self::fields($prop, $ctx, $resolveRef);
+                $children = self::fields($prop, $ctx, $resolveRef, $depth + 1);
                 if (!empty($children)) {
                     $field['children'] = $children;
                 }
@@ -101,22 +106,31 @@ class SchemaMapper
      * @param callable $resolveRef
      * @return array
      */
-    protected static function flatten(array $schema, ProtocolContext $ctx, callable $resolveRef): array
+    protected static function flatten(array $schema, ProtocolContext $ctx, callable $resolveRef, array $seen = [], int $depth = 0): array
     {
-        if (isset($schema['$ref'])) {
-            $resolved = $resolveRef((string)$schema['$ref']);
+        // 链式 $ref(A->B->C)必须逐层解析; 环/超深时停止并告警
+        while (isset($schema['$ref']) && is_string($schema['$ref'])) {
+            $ref = $schema['$ref'];
+            if (isset($seen[$ref]) || $depth >= 32) {
+                $ctx->warning('$ref cycle or depth limit detected: ' . $ref);
+                return [];
+            }
+            $seen[$ref] = true;
+            $resolved = $resolveRef($ref);
             if (!is_array($resolved)) {
                 return [];
             }
-            $schema = array_merge($schema, $resolved);
-            unset($schema['$ref']);
+            $siblings = $schema;
+            unset($siblings['$ref']);
+            $schema = array_merge($siblings, $resolved);
+            $depth++;
         }
         if (!empty($schema['allOf']) && is_array($schema['allOf'])) {
             foreach ($schema['allOf'] as $branch) {
                 if (!is_array($branch)) {
                     continue;
                 }
-                $branch = self::flatten($branch, $ctx, $resolveRef);
+                $branch = self::flatten($branch, $ctx, $resolveRef, $seen, $depth);
                 if (!empty($branch['properties']) && is_array($branch['properties'])) {
                     $schema['properties'] = array_merge($schema['properties'] ?? [], $branch['properties']);
                 }
@@ -134,14 +148,9 @@ class SchemaMapper
             $ctx->warning($keyword . ' is not fully supported; using the first branch');
             $branch = isset($schema[$keyword][0]) && is_array($schema[$keyword][0]) ? $schema[$keyword][0] : [];
             unset($schema[$keyword]);
-            $schema = array_merge($schema, $branch);
+            $schema = array_merge($schema, self::flatten($branch, $ctx, $resolveRef, $seen, $depth));
             if (isset($schema['$ref'])) {
-                $resolved = $resolveRef((string)$schema['$ref']);
-                if (!is_array($resolved)) {
-                    return [];
-                }
-                $schema = array_merge($schema, $resolved);
-                unset($schema['$ref']);
+                $schema = self::flatten($schema, $ctx, $resolveRef, $seen, $depth);
             }
         }
         return $schema;

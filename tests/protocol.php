@@ -455,6 +455,30 @@ $hook = $renderer->render($brokenRef, $brokenRef->getMethod('hook'), (new ParseA
 check('webhook signature metadata recorded', ($hook['definitions'][0]['meta']['header'] ?? '') === 'X-Signature');
 $fromFile = $renderer->render($brokenRef, $brokenRef->getMethod('userFile'), (new ParseApiDetail($config))->parseApiMethod($brokenRef, $brokenRef->getMethod('userFile')));
 check('sampleFile is validated', ($fromFile['definitions'][0]['messages'][0]['sampleValidation']['ok'] ?? false) === true);
+check('sampleFile is fingerprinted', isset($fromFile['_definitionFingerprints'][realpath('tests/fixtures/protocol/json-schema/user-sample.json')]));
+
+// ---------- 递归 / 多文件 / 链式 $ref ----------
+$refsRef = new ReflectionClass(\Tests\Fixtures\Protocol\JsonSchemaRefsFixture::class);
+$renderRefs = function (string $method) use ($renderer, $refsRef, $config) {
+    return $renderer->render($refsRef, $refsRef->getMethod($method), (new ParseApiDetail($config))->parseApiMethod($refsRef, $refsRef->getMethod($method)));
+};
+$recursive = $renderRefs('recursive');
+check('recursive ref produces a definition', ($recursive['definitions'][0]['messages'][0]['fields'][0]['name'] ?? '') === 'next');
+check('recursive ref records a warning', count($recursive['definitions'][0]['validation']['warnings'] ?? []) > 0);
+$multi = $renderRefs('multi');
+check('local ref inside external doc resolves', ($multi['definitions'][0]['messages'][0]['fields'][0]['children'][0]['children'][0]['name'] ?? '') === 'label');
+check('relative ref resolves against external dir', ($multi['definitions'][0]['messages'][0]['fields'][0]['children'][1]['children'][0]['name'] ?? '') === 'sku');
+check('multi-file imports are fingerprinted', count($multi['_definitionFingerprints'] ?? []) === 3);
+$chain = $renderRefs('chain');
+check('chained ref fields resolve to the last schema', ($chain['definitions'][0]['messages'][0]['fields'][0]['name'] ?? '') === 'name');
+check('chained ref sample validates', ($chain['definitions'][0]['messages'][0]['sampleValidation']['ok'] ?? false) === true);
+$chainBad = $renderRefs('chainBad');
+check('chained ref rejects invalid sample', ($chainBad['definitions'][0]['messages'][0]['sampleValidation']['ok'] ?? true) === false);
+check('chained ref invalid sample path', ($chainBad['definitions'][0]['messages'][0]['sampleValidation']['errors'][0]['path'] ?? '') === '$.name');
+$classDefRef = new ReflectionClass(\Tests\Fixtures\Protocol\ClassDefinitionFixture::class);
+$classDef = $renderer->render($classDefRef, $classDefRef->getMethod('inherited'), (new ParseApiDetail($config))->parseApiMethod($classDefRef, $classDefRef->getMethod('inherited')));
+check('class-level definition inherited', ($classDef['definitions'][0]['source'] ?? '') === 'tests/fixtures/protocol/json-schema/user.json');
+check('class-level definition parsed', ($classDef['definitions'][0]['messages'][0]['fields'][0]['name'] ?? '') === 'id');
 
 echo "\n{$pass} passed, {$fail} failed\n";
 exit($fail > 0 ? 1 : 0);

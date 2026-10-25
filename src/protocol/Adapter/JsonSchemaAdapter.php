@@ -40,12 +40,15 @@ class JsonSchemaAdapter implements AdapterInterface
                 $ctx->error('message not found: ' . $message);
             }
         }
-        $resolveRef = function (string $ref) use ($root, $ctx): ?array {
-            return RefResolver::resolve($ref, $root, $ctx, function (string $loaded): ?array {
-                $data = json_decode($loaded, true);
-                return is_array($data) ? $data : null;
-            });
+        $load = function (string $loaded): ?array {
+            $data = json_decode($loaded, true);
+            return is_array($data) ? $data : null;
         };
+        $resolveRef = function (string $ref) use ($root, $ctx, $load): ?array {
+            return RefResolver::resolve($ref, $root, $ctx, $load);
+        };
+        // 先展开 $ref(含外部文件/链式引用), 字段映射与样例校验都基于展开结果
+        $expanded = RefResolver::expand($schema, $root, $ctx, $load);
         $name = $message !== '' ? $message : (isset($schema['title']) ? (string)$schema['title'] : 'Body');
         $direction = (string)$ctx->option('direction', '');
         if ($direction === '') {
@@ -57,9 +60,9 @@ class JsonSchemaAdapter implements AdapterInterface
             'messages' => [[
                 'name' => $name,
                 'direction' => $direction,
-                'fields' => SchemaMapper::fields($schema, $ctx, $resolveRef),
+                'fields' => SchemaMapper::fields($expanded, $ctx, $resolveRef),
                 'sample' => $sample,
-                'sampleValidation' => $this->validateSample($sample, $schema, $resolveRef),
+                'sampleValidation' => $this->validateSample($sample, $expanded, $resolveRef),
             ]],
             'meta' => isset($schema['x-webhook-signature']) && is_array($schema['x-webhook-signature']) ? $schema['x-webhook-signature'] : [],
         ];

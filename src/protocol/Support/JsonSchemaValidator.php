@@ -13,30 +13,44 @@ class JsonSchemaValidator
      * @param mixed $data 已 json_decode 的样例
      * @param callable $resolveRef string $ref => array|null
      * @param string $path
+     * @param int $depth 递归深度上限, 防止未展开的递归 schema 无限展开
      * @return array [['path'=>'$.x','message'=>'...'], ...]
      */
-    public static function validate(array $schema, $data, callable $resolveRef, string $path = '$'): array
+    public static function validate(array $schema, $data, callable $resolveRef, string $path = '$', int $depth = 0): array
     {
-        if (isset($schema['$ref'])) {
-            $resolved = $resolveRef((string)$schema['$ref']);
-            if (!is_array($resolved)) {
-                return [];
-            }
-            $schema = array_merge($schema, $resolved);
-            unset($schema['$ref']);
+        if ($depth > 32) {
+            return [];
         }
         $errors = [];
+        // 链式 $ref(A->B->C)必须逐层解析; 环时停止解析, 避免吞掉后置约束
+        $seen = [];
+        $refDepth = 0;
+        while (isset($schema['$ref']) && is_string($schema['$ref'])) {
+            $ref = $schema['$ref'];
+            if (isset($seen[$ref]) || $refDepth >= 32) {
+                break;
+            }
+            $seen[$ref] = true;
+            $resolved = $resolveRef($ref);
+            if (!is_array($resolved)) {
+                return $errors;
+            }
+            $siblings = $schema;
+            unset($siblings['$ref']);
+            $schema = array_merge($siblings, $resolved);
+            $refDepth++;
+        }
         if (!empty($schema['allOf']) && is_array($schema['allOf'])) {
             foreach ($schema['allOf'] as $branch) {
                 if (is_array($branch)) {
-                    $errors = array_merge($errors, self::validate($branch, $data, $resolveRef, $path));
+                    $errors = array_merge($errors, self::validate($branch, $data, $resolveRef, $path, $depth + 1));
                 }
             }
         }
         if (!empty($schema['anyOf']) && is_array($schema['anyOf'])) {
             $matched = false;
             foreach ($schema['anyOf'] as $branch) {
-                if (is_array($branch) && self::validate($branch, $data, $resolveRef, $path) === []) {
+                if (is_array($branch) && self::validate($branch, $data, $resolveRef, $path, $depth + 1) === []) {
                     $matched = true;
                     break;
                 }
@@ -48,7 +62,7 @@ class JsonSchemaValidator
         if (!empty($schema['oneOf']) && is_array($schema['oneOf'])) {
             $matches = 0;
             foreach ($schema['oneOf'] as $branch) {
-                if (is_array($branch) && self::validate($branch, $data, $resolveRef, $path) === []) {
+                if (is_array($branch) && self::validate($branch, $data, $resolveRef, $path, $depth + 1) === []) {
                     $matches++;
                 }
             }
@@ -81,13 +95,13 @@ class JsonSchemaValidator
         if ($isObject && !empty($schema['properties']) && is_array($schema['properties'])) {
             foreach ($schema['properties'] as $name => $prop) {
                 if (is_array($prop) && array_key_exists($name, $data)) {
-                    $errors = array_merge($errors, self::validate($prop, $data[$name], $resolveRef, self::childPath($path, (string)$name)));
+                    $errors = array_merge($errors, self::validate($prop, $data[$name], $resolveRef, self::childPath($path, (string)$name), $depth + 1));
                 }
             }
         }
         if (isset($schema['items']) && is_array($schema['items']) && self::isList($data)) {
             foreach (array_values($data) as $index => $item) {
-                $errors = array_merge($errors, self::validate($schema['items'], $item, $resolveRef, $path . '[' . $index . ']'));
+                $errors = array_merge($errors, self::validate($schema['items'], $item, $resolveRef, $path . '[' . $index . ']', $depth + 1));
             }
         }
         return $errors;

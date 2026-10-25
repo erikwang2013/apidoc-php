@@ -177,6 +177,13 @@ class ParseProtocol
 
     /**
      * 解析协议定义(文件/内联)并校验样例
+     *
+     * 双契约:
+     * - 4 参调用: 使用传入的 $protocolMeta(ParseApiDetail 内部路径);
+     * - 3 参调用: $protocolMeta 为空时从 $methodAnnotations 中提取
+     *   protocol/channel/debug(直接传入 parseApiMethod 结果的场景)。
+     * 两者都取不到协议元数据时返回 []。
+     *
      * @param ReflectionClass $refClass
      * @param ReflectionMethod $refMethod
      * @param array $methodAnnotations 已处理的注解
@@ -294,6 +301,8 @@ class ParseProtocol
             if ($sampleResolved === null) {
                 $sampleErrors[] = $this->diagnostic('error', 'sample file not found or outside allowed roots');
             } else {
+                // 样例文件变更同样需要让 Task 5 的定义缓存失效
+                $fingerprints[$sampleResolved['realpath']] = ['mtime' => filemtime($sampleResolved['realpath']), 'size' => filesize($sampleResolved['realpath'])];
                 // 样例文件与定义文件走同一套路径/大小约束
                 $sampleCtx = new ProtocolContext($sampleResolved['realpath'], [], $limits, $roots);
                 $sampleContent = $sampleCtx->read();
