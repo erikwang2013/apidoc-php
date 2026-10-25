@@ -55,6 +55,15 @@ try {
 }
 check('UIC plaintext wrong password throws', $wrongThrew);
 
+// Share links store md5(plaintext); ApiShare::checkShareAuth passes that digest
+// to checkToken. A token minted from the plaintext never verifies for a share.
+$sharePlain = 'share-pw';
+$shareDigest = md5($sharePlain);
+$shareToken = $auth->createToken($shareDigest);
+check('UIC share token from stored digest verifies', $auth->checkToken($shareToken, $shareDigest) === true);
+$plaintextToken = $auth->createToken($sharePlain);
+check('UIC share token from plaintext rejected', $auth->checkToken($plaintextToken, $shareDigest) === false);
+
 check(
     'UIC controller methods exist',
     method_exists(Controller::class, 'uiCapabilities')

@@ -723,7 +723,9 @@ class Controller
             if (!hash_equals((string)$shareData['password'], md5($password))) {
                 throw new ErrorException("password error");
             }
-            $token = (new Auth($this->config))->createToken($password);
+            // 缓存里已是 md5(明文),后续 ApiShare::checkShareAuth 也用它校验,
+            // 因此 token 必须用摘要生成,不能用提交的明文。
+            $token = (new Auth($this->config))->createToken((string)$shareData['password']);
         } else {
             $token = (new Auth($this->config))->verifyPlain($password, $appKey);
         }
