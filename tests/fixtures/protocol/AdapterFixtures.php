@@ -31,3 +31,19 @@ class GraphqlFixture
     #[Title('User')]
     public function user() {}
 }
+
+#[Protocol('grpc')]
+class ProtoFixture
+{
+    #[Definition(file: 'tests/fixtures/protocol/proto/helloworld.proto', operation: 'helloworld.Greeter/SayHello')]
+    #[Title('SayHello')]
+    public function sayHello() {}
+}
+
+#[Protocol('grpc')]
+class ProtoBadFixture
+{
+    #[Definition(file: 'tests/fixtures/protocol/proto/unsupported.proto')]
+    #[Title('Bad')]
+    public function bad() {}
+}

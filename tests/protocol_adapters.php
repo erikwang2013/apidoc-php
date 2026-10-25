@@ -82,5 +82,20 @@ check('graphql response id', ($detail['definitions'][0]['messages'][1]['fields']
 check('graphql list type', ($detail['definitions'][0]['messages'][1]['fields'][2]['type'] ?? '') === 'array');
 check('graphql import fingerprinted', count($detail['_definitionFingerprints'] ?? []) === 2);
 
+// ---------- Proto ----------
+$detail = renderFixture(\Tests\Fixtures\Protocol\ProtoFixture::class, 'sayHello');
+check('proto operation', ($detail['definitions'][0]['operation'] ?? '') === 'helloworld.Greeter/SayHello');
+$req = $detail['definitions'][0]['messages'][0];
+$res = $detail['definitions'][0]['messages'][1];
+check('proto request name field', ($req['fields'][0]['name'] ?? '') === 'name');
+check('proto request field number', ($req['fields'][0]['fieldNumber'] ?? 0) === 1);
+check('proto repeated is array', ($req['fields'][2]['type'] ?? '') === 'array');
+check('proto imported message resolves', ($req['fields'][1]['children'][0]['name'] ?? '') === 'trace_id');
+check('proto import fingerprinted', count($detail['_definitionFingerprints'] ?? []) === 2);
+check('proto response message field', ($res['fields'][0]['name'] ?? '') === 'message');
+$bad = renderFixture(\Tests\Fixtures\Protocol\ProtoBadFixture::class, 'bad');
+check('proto unsupported construct reported', ($bad['definitions'][0]['validation']['ok'] ?? true) === false);
+check('proto error has line', ($bad['definitions'][0]['validation']['errors'][0]['line'] ?? 0) > 0);
+
 echo "\n{$pass} passed, {$fail} failed\n";
 exit($fail > 0 ? 1 : 0);
