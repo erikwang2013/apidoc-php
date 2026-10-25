@@ -507,5 +507,19 @@ $cacheSecond = (new ParseApiDetail($config))->renderApiDetail('api', 'Tests\\Fix
 check('adapter cache invalidates on file change', ($cacheSecond['definitions'][0]['messages'][0]['fields'][0]['name'] ?? '') === 'b');
 @unlink($cacheFile);
 
+// ---------- YAML 子集 ----------
+$yaml = erikwang2013\apidoc\protocol\Support\Yaml::parse("title: T\nservers:\n  - url: a\n  - url: b\ninline: [a, b]\n");
+check('yaml mapping', ($yaml['title'] ?? '') === 'T');
+check('yaml sequence of maps', ($yaml['servers'][1]['url'] ?? '') === 'b');
+check('yaml inline list', ($yaml['inline'] ?? []) === ['a', 'b']);
+$threw = false;
+try {
+    erikwang2013\apidoc\protocol\Support\Yaml::parse("a: &x 1\nb: *x\n");
+} catch (erikwang2013\apidoc\protocol\ProtocolParseException $e) {
+    $threw = true;
+    check('yaml anchor error line', $e->line() > 0);
+}
+check('yaml rejects anchors', $threw === true);
+
 echo "\n{$pass} passed, {$fail} failed\n";
 exit($fail > 0 ? 1 : 0);
