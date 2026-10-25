@@ -60,6 +60,32 @@ class Auth
     }
 
     /**
+     * UIC-1: verify a plaintext password (HTTPS required) and issue a token.
+     * Legacy verifyAuth keeps the md5 transport for compatibility.
+     */
+    public function verifyPlain(string $password, string $appKey = ''): string
+    {
+        $authConfig = $this->authConfig;
+        if ($appKey !== '') {
+            $currentAppConfig = Helper::getCurrentAppConfig($appKey);
+            $currentApp = $currentAppConfig['appConfig'] ?? [];
+            if (!empty($currentApp['password'])) {
+                if (hash_equals((string)$currentApp['password'], $password)) {
+                    return $this->createToken($password);
+                }
+                throw new ErrorException("password error");
+            }
+        }
+        if (!empty($authConfig['enable'])) {
+            if (hash_equals((string)$authConfig['password'], $password)) {
+                return $this->createToken($password);
+            }
+            throw new ErrorException("password error");
+        }
+        throw new ErrorException("password error");
+    }
+
+    /**
      * 验证token是否可用
      * @param $request
      * @return bool

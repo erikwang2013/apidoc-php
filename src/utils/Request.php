@@ -31,6 +31,22 @@ class Request
         return Helper::objectToArray($inputObj);
     }
 
+    public function header(string $name): string
+    {
+        $key = 'HTTP_' . strtoupper(str_replace('-', '_', $name));
+        if (!empty($_SERVER[$key])) {
+            return (string)$_SERVER[$key];
+        }
+        if (function_exists('getallheaders')) {
+            foreach ((array)getallheaders() as $headerName => $value) {
+                if (strcasecmp((string)$headerName, $name) === 0) {
+                    return (string)$value;
+                }
+            }
+        }
+        return '';
+    }
+
     public function param(){
         $config = ConfigProvider::get();
         if (!empty($config['request_params'])){

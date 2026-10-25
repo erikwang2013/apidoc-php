@@ -18,11 +18,11 @@
             "browser": ["http", "websocket", "sse"],
             "relay": [
               "raw",
-              "http",
+              "http-relay",
               "mqtt",
               "stomp",
               "coap",
-              "modbus",
+              "modbus-tcp",
               "iso8583",
               "rtsp",
               "sip",

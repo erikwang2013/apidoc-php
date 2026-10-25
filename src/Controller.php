@@ -17,6 +17,7 @@ use erikwang2013\apidoc\utils\DirAndFile;
 use erikwang2013\apidoc\utils\Helper;
 use erikwang2013\apidoc\utils\Lang;
 use erikwang2013\apidoc\utils\Request;
+use erikwang2013\apidoc\ui\UiCapabilities;
 use erikwang2013\apidoc\exception\ErrorException;
 
 class Controller
@@ -38,6 +39,12 @@ class Controller
             $this->requestParams = $this->config['request_params'];
         } else {
             $this->requestParams = (new Request())->param();
+        }
+        if (empty($this->requestParams['token'])) {
+            $authorization = (new Request())->header('Authorization');
+            if (stripos($authorization, 'Bearer ') === 0) {
+                $this->requestParams['token'] = trim(substr($authorization, 7));
+            }
         }
         if (!empty($this->requestParams['lang']) && !empty($this->config['lang_register_function'])) {
             $this->lang = $this->requestParams['lang'];
@@ -637,6 +644,90 @@ class Controller
             }
         }
         return $tokenValidated ? 'token:' . $token : 'anonymous';
+    }
+
+    // ---------- UIC-1 aliases ----------
+
+    public function uiCapabilities()
+    {
+        $this->init(false);
+        return Helper::showJson(0, "", UiCapabilities::fromConfig($this->config));
+    }
+
+    public function uiConfig()
+    {
+        return $this->getConfig();
+    }
+
+    public function uiMenus()
+    {
+        return $this->getApiMenus();
+    }
+
+    public function uiDetail()
+    {
+        return $this->getApiDetail();
+    }
+
+    public function uiDocMenus()
+    {
+        return $this->getMdMenus();
+    }
+
+    public function uiDocDetail()
+    {
+        return $this->getMdDetail();
+    }
+
+    public function uiDebugSend()
+    {
+        return $this->debugSend();
+    }
+
+    public function uiDebugStart()
+    {
+        return $this->debugStart();
+    }
+
+    public function uiDebugPoll()
+    {
+        return $this->debugPoll();
+    }
+
+    public function uiDebugStop()
+    {
+        return $this->debugStop();
+    }
+
+    /**
+     * UIC-1 password login: plaintext over HTTPS, Bearer token afterwards.
+     */
+    public function uiVerifyAuth()
+    {
+        $this->init();
+        $params = $this->requestParams;
+        $password = (string)($params['password'] ?? '');
+        if ($password === '') {
+            throw new ErrorException("password not found");
+        }
+        $appKey = (string)($params['appKey'] ?? '');
+        if (!empty($params['shareKey'])) {
+            $shareData = (new ApiShare())->getShareDetailByKey((string)$params['shareKey']);
+            if (empty($shareData)) {
+                throw new ErrorException("share not exists");
+            }
+            if (empty($shareData['password'])) {
+                throw new ErrorException("password error");
+            }
+            // Share passwords are stored as md5(plaintext) for legacy compatibility.
+            if (!hash_equals((string)$shareData['password'], md5($password))) {
+                throw new ErrorException("password error");
+            }
+            $token = (new Auth($this->config))->createToken($password);
+        } else {
+            $token = (new Auth($this->config))->verifyPlain($password, $appKey);
+        }
+        return Helper::showJson(0, "", ['token' => $token]);
     }
 
 }

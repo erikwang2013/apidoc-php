@@ -31,6 +31,18 @@ trait BaseService
         ['rule'=>'debugStart','route'=>'debugStart'],
         ['rule'=>'debugPoll','route'=>'debugPoll'],
         ['rule'=>'debugStop','route'=>'debugStop'],
+        // UIC-1: shared contract used by apidoc-ui; legacy routes above stay unchanged.
+        ['rule'=>'ui/v1/capabilities','route'=>'uiCapabilities'],
+        ['rule'=>'ui/v1/config','route'=>'uiConfig'],
+        ['rule'=>'ui/v1/menus','route'=>'uiMenus'],
+        ['rule'=>'ui/v1/detail','route'=>'uiDetail'],
+        ['rule'=>'ui/v1/docMenus','route'=>'uiDocMenus'],
+        ['rule'=>'ui/v1/docDetail','route'=>'uiDocDetail'],
+        ['rule'=>'ui/v1/verifyAuth','route'=>'uiVerifyAuth'],
+        ['rule'=>'ui/v1/debugSend','route'=>'uiDebugSend'],
+        ['rule'=>'ui/v1/debugStart','route'=>'uiDebugStart'],
+        ['rule'=>'ui/v1/debugPoll','route'=>'uiDebugPoll'],
+        ['rule'=>'ui/v1/debugStop','route'=>'uiDebugStop'],
         // 注:原 exportSwagger 路由已移除(ExportSwagger 类从未实现);
         // 各 provider 中 export_config 的读取为预留配置(当前无消费者),暂留以兼容旧配置
     ];
