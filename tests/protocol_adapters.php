@@ -113,5 +113,22 @@ check('edmx id required', ($detail['definitions'][0]['messages'][0]['fields'][0]
 check('edmx price type', ($detail['definitions'][0]['messages'][0]['fields'][2]['type'] ?? '') === 'number');
 check('edmx valid', ($detail['definitions'][0]['validation']['ok'] ?? false) === true);
 
+// ---------- JSON-RPC ----------
+$detail = renderFixture(\Tests\Fixtures\Protocol\JsonRpcFixture::class, 'getUser');
+check('json-rpc operation', ($detail['definitions'][0]['operation'] ?? '') === 'user.get');
+check('json-rpc params id', ($detail['definitions'][0]['messages'][0]['fields'][0]['name'] ?? '') === 'id');
+check('json-rpc result name', ($detail['definitions'][0]['messages'][1]['fields'][1]['name'] ?? '') === 'name');
+check('json-rpc valid', ($detail['definitions'][0]['validation']['ok'] ?? false) === true);
+check('json-rpc sample valid', ($detail['definitions'][0]['messages'][0]['sampleValidation']['ok'] ?? false) === true);
+$bad = renderFixture(\Tests\Fixtures\Protocol\JsonRpcFixture::class, 'getUserBad');
+check('json-rpc bad sample rejected', ($bad['definitions'][0]['messages'][0]['sampleValidation']['ok'] ?? true) === false);
+
+// ---------- XML-RPC ----------
+$detail = renderFixture(\Tests\Fixtures\Protocol\XmlRpcFixture::class, 'add');
+check('xml-rpc operation', ($detail['definitions'][0]['operation'] ?? '') === 'add');
+check('xml-rpc param a', ($detail['definitions'][0]['messages'][0]['fields'][0]['name'] ?? '') === 'a');
+check('xml-rpc result type', ($detail['definitions'][0]['messages'][1]['fields'][0]['type'] ?? '') === 'integer');
+check('xml-rpc valid', ($detail['definitions'][0]['validation']['ok'] ?? false) === true);
+
 echo "\n{$pass} passed, {$fail} failed\n";
 exit($fail > 0 ? 1 : 0);

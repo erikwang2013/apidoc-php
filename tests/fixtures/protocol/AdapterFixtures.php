@@ -63,3 +63,23 @@ class EdmxFixture
     #[Title('Products')]
     public function products() {}
 }
+
+#[Protocol('json-rpc')]
+class JsonRpcFixture
+{
+    #[Definition(file: 'tests/fixtures/protocol/json-rpc/methods.json', operation: 'user.get', sample: '{"jsonrpc":"2.0","method":"user.get","params":{"id":1},"id":1}')]
+    #[Title('Get user')]
+    public function getUser() {}
+
+    #[Definition(file: 'tests/fixtures/protocol/json-rpc/methods.json', operation: 'user.get', sample: '{"jsonrpc":"2.0","method":"user.get","params":{},"id":1}')]
+    #[Title('Get user bad')]
+    public function getUserBad() {}
+}
+
+#[Protocol('xml-rpc')]
+class XmlRpcFixture
+{
+    #[Definition(file: 'tests/fixtures/protocol/xml-rpc/methods.xml', operation: 'add')]
+    #[Title('Add')]
+    public function add() {}
+}
