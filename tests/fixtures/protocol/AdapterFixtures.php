@@ -47,3 +47,11 @@ class ProtoBadFixture
     #[Title('Bad')]
     public function bad() {}
 }
+
+#[Protocol('soap')]
+class WsdlFixture
+{
+    #[Definition(file: 'tests/fixtures/protocol/wsdl/calculator.wsdl', operation: 'CalculatorService/CalculatorPort/Add')]
+    #[Title('Add')]
+    public function add() {}
+}

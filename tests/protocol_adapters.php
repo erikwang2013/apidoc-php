@@ -97,5 +97,14 @@ $bad = renderFixture(\Tests\Fixtures\Protocol\ProtoBadFixture::class, 'bad');
 check('proto unsupported construct reported', ($bad['definitions'][0]['validation']['ok'] ?? true) === false);
 check('proto error has line', ($bad['definitions'][0]['validation']['errors'][0]['line'] ?? 0) > 0);
 
+// ---------- WSDL ----------
+$detail = renderFixture(\Tests\Fixtures\Protocol\WsdlFixture::class, 'add');
+check('wsdl operation', ($detail['definitions'][0]['operation'] ?? '') === 'CalculatorService/CalculatorPort/Add');
+check('wsdl request a', ($detail['definitions'][0]['messages'][0]['fields'][0]['name'] ?? '') === 'a');
+check('wsdl request b', ($detail['definitions'][0]['messages'][0]['fields'][1]['name'] ?? '') === 'b');
+check('wsdl response result', ($detail['definitions'][0]['messages'][1]['fields'][0]['name'] ?? '') === 'result');
+check('wsdl xsd import fingerprinted', count($detail['_definitionFingerprints'] ?? []) === 2);
+check('wsdl valid', ($detail['definitions'][0]['validation']['ok'] ?? false) === true);
+
 echo "\n{$pass} passed, {$fail} failed\n";
 exit($fail > 0 ? 1 : 0);
