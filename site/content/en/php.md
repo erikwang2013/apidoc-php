@@ -287,7 +287,7 @@ The relay is off by default. When enabled it requires a token or shareKey, takes
 
 `#[Definition]` parses local `.proto`, WSDL/XSD, GraphQL SDL, OpenAPI/AsyncAPI, JSON Schema, JSON-RPC/XML-RPC and OData EDMX files, showing message fields and validation errors. Local imports and `$ref` are supported; no network requests are made, paths stay under `protocols.allowed_roots`, and symlinks escaping the root are rejected. Detail caches are invalidated by mtime + size fingerprints when a definition changes.
 
-With a cache hit, document read endpoints and definition parsing/rendering target **P95 < 10 ms** of local processing. Run `php tests/performance.php` to verify. The budget excludes framework startup, the HTTP server and external network time.
+With a cache hit, document read endpoints and definition parsing/rendering target **P95 < 10 ms** of local CPU processing; wall time also depends on host I/O and scheduling. Run `php tests/performance.php` to verify. The budget excludes framework startup, the HTTP server and external network time.
 
 ## Auth, caching and security
 

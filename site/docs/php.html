@@ -491,7 +491,7 @@
 </ul>
 <p>中继默认关闭；开启后要求 token 或 shareKey，目标只来自接口注解，并受速率、超时、字节与会话数限制。完整覆盖表与配置见 <a href="https://github.com/erikwang2013/apidoc-php/blob/main/docs/ATTRIBUTES.md" target="_blank" rel="noopener">Attributes 文档</a>。</p>
 <p><code>#[Definition]</code> 可解析本地 <code>.proto</code>、WSDL/XSD、GraphQL SDL、OpenAPI/AsyncAPI、JSON Schema、JSON-RPC/XML-RPC、OData EDMX，展示消息字段与校验错误；支持本地 import 与 <code>$ref</code>，不发起网络请求，路径限制在 <code>protocols.allowed_roots</code> 内，软链逃逸会被拒绝。修改定义文件后，详情缓存会按 mtime + size 指纹自动失效。</p>
-<p>缓存命中时，文档读接口与定义解析/渲染的本机处理目标为 <strong>P95 &lt; 10ms</strong>；运行 <code>php tests/performance.php</code> 验证。预算不含框架启动、HTTP 服务器与外部网络。</p>
+<p>缓存命中时，文档读接口与定义解析/渲染的本机 CPU 处理目标为 <strong>P95 &lt; 10ms</strong>（墙钟受宿主 IO/调度影响）；运行 <code>php tests/performance.php</code> 验证。预算不含框架启动、HTTP 服务器与外部网络。</p>
 <h2 id="sec-13">鉴权、缓存与安全</h2>
 <pre class="highlight"><code class="language-php"><span class="s1">&#39;auth&#39;</span> <span class="o">=&gt;</span> <span class="p">[</span>
     <span class="s1">&#39;enable&#39;</span> <span class="o">=&gt;</span> <span class="k">true</span><span class="p">,</span>

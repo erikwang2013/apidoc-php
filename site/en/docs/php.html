@@ -491,7 +491,7 @@
 </ul>
 <p>The relay is off by default. When enabled it requires a token or shareKey, takes the target only from annotations, and enforces rate, timeout, byte and session limits. See the <a href="https://github.com/erikwang2013/apidoc-php/blob/main/docs/ATTRIBUTES.md" target="_blank" rel="noopener">Attributes reference</a> for the full coverage table and config.</p>
 <p><code>#[Definition]</code> parses local <code>.proto</code>, WSDL/XSD, GraphQL SDL, OpenAPI/AsyncAPI, JSON Schema, JSON-RPC/XML-RPC and OData EDMX files, showing message fields and validation errors. Local imports and <code>$ref</code> are supported; no network requests are made, paths stay under <code>protocols.allowed_roots</code>, and symlinks escaping the root are rejected. Detail caches are invalidated by mtime + size fingerprints when a definition changes.</p>
-<p>With a cache hit, document read endpoints and definition parsing/rendering target <strong>P95 &lt; 10 ms</strong> of local processing. Run <code>php tests/performance.php</code> to verify. The budget excludes framework startup, the HTTP server and external network time.</p>
+<p>With a cache hit, document read endpoints and definition parsing/rendering target <strong>P95 &lt; 10 ms</strong> of local CPU processing; wall time also depends on host I/O and scheduling. Run <code>php tests/performance.php</code> to verify. The budget excludes framework startup, the HTTP server and external network time.</p>
 <h2 id="sec-13">Auth, caching and security</h2>
 <pre class="highlight"><code class="language-php"><span class="s1">&#39;auth&#39;</span> <span class="o">=&gt;</span> <span class="p">[</span>
     <span class="s1">&#39;enable&#39;</span> <span class="o">=&gt;</span> <span class="k">true</span><span class="p">,</span>

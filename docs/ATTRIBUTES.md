@@ -897,4 +897,4 @@ public function sayHello() {}
 
 ### 6、性能
 
-缓存命中时，文档读接口与协议定义解析/渲染的本机处理预算为 P95 < 10ms；运行 `php tests/performance.php` 验证。预算不含 PHP-FPM/框架启动、HTTP 服务器与外部网络耗时；生产环境建议开启 `cache.enable` 并预热。
+缓存命中时，文档读接口与协议定义解析/渲染的本机 CPU 处理预算为 P95 < 10ms（墙钟受宿主 IO/调度影响）；运行 `php tests/performance.php` 验证。预算不含 PHP-FPM/框架启动、HTTP 服务器与外部网络耗时；生产环境建议开启 `cache.enable` 并预热。

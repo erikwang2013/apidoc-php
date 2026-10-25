@@ -287,7 +287,7 @@ public function publishTemperature() {}
 
 `#[Definition]` 可解析本地 `.proto`、WSDL/XSD、GraphQL SDL、OpenAPI/AsyncAPI、JSON Schema、JSON-RPC/XML-RPC、OData EDMX，展示消息字段与校验错误；支持本地 import 与 `$ref`，不发起网络请求，路径限制在 `protocols.allowed_roots` 内，软链逃逸会被拒绝。修改定义文件后，详情缓存会按 mtime + size 指纹自动失效。
 
-缓存命中时，文档读接口与定义解析/渲染的本机处理目标为 **P95 < 10ms**；运行 `php tests/performance.php` 验证。预算不含框架启动、HTTP 服务器与外部网络。
+缓存命中时，文档读接口与定义解析/渲染的本机 CPU 处理目标为 **P95 < 10ms**（墙钟受宿主 IO/调度影响）；运行 `php tests/performance.php` 验证。预算不含框架启动、HTTP 服务器与外部网络。
 
 ## 鉴权、缓存与安全
 
