@@ -183,7 +183,7 @@ class Yaml
     protected static function looksLikeKey(string $content): bool
     {
         $pos = self::findTopLevelColon($content);
-        return $pos !== false;
+        return $pos !== null;
     }
 
     /**
@@ -192,7 +192,7 @@ class Yaml
     protected static function splitKey(string $content, int $line): array
     {
         $pos = self::findTopLevelColon($content);
-        if ($pos === false) {
+        if ($pos === null) {
             throw self::error('expected "key: value"', $line);
         }
         $key = trim(substr($content, 0, $pos));
