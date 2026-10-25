@@ -814,3 +814,79 @@ P1 已有专用驱动的协议使用专用面板；其余协议在 P2 专用驱�
 ```
 
 依赖提示：`ext-dom` 用于后续 WSDL/XSD/EDMX 定义解析，`ext-curl` 用于 gRPC 与部分驱动的 HTTP 中继；缺少 `ext-curl` 或 curl 未启用 HTTP/2 时，gRPC 面板会标记为不可调试并给出原因。
+
+## 十二、协议定义解析（Definition）
+
+`#[Definition]` 用于把外部协议定义文件（或注解内联字段）解析成文档中的消息结构，并与 `#[Protocol]` / `#[Channel]` 一起生成接口文档与调试入口。
+
+```php
+use erikwang2013\apidoc\annotation\{Protocol, Channel, Definition};
+
+#[Protocol('grpc')]
+#[Channel('helloworld.Greeter/SayHello', action: 'call')]
+#[Definition(
+    file: 'proto/helloworld.proto',
+    operation: 'helloworld.Greeter/SayHello',
+    strict: true
+)]
+public function sayHello() {}
+```
+
+### 1、参数
+
+| 参数 | 说明 |
+| --- | --- |
+| `file` | 定义文件路径（相对 `protocols.allowed_roots`，禁止绝对路径与 `..`）；省略时使用内联 `Param`/`Returned` |
+| `format` | `auto`（默认，按扩展名与内容识别）或 `proto`/`wsdl`/`graphql`/`openapi`/`asyncapi`/`json-schema`/`json-rpc`/`xml-rpc`/`edmx` |
+| `operation` | 选择服务/方法/操作；多操作定义文件必须指定 |
+| `message` | 选择消息/ schema 子项 |
+| `direction` | 消息方向提示：`request`/`response`/`event` |
+| `sample` / `sampleFile` | 样例内容或样例文件，用于结构校验 |
+| `sampleEncoding` | 二进制样例编码：`hex`/`base64`/`text` |
+| `strict` | `true`（默认）把不支持的语法记为 error；`false` 降级为 warning 并返回已解析部分 |
+
+### 2、支持的格式（P1）
+
+| 格式 | 典型文件 | 说明 |
+| --- | --- | --- |
+| `proto` | `.proto` | proto2/proto3 子集；message/enum/service/rpc、repeated/map/oneof、本地 import |
+| `wsdl` | `.wsdl` + `.xsd` | WSDL 1.1 + XSD 子集；本地 import/include |
+| `graphql` | `.graphql` | SDL 子集；`#import`、type/input/interface/enum/union/schema |
+| `openapi` | OpenAPI 3.x / Swagger 2.x（JSON/YAML） | paths/parameters/requestBody/responses、本地 `$ref` |
+| `asyncapi` | AsyncAPI 2.x/3.x（JSON/YAML） | channels/operations/messages、本地 `$ref` |
+| `json-schema` | `.json` | draft-07 子集；properties/required/items/enum/oneOf/anyOf/allOf、本地 `$ref` |
+| `json-rpc` | `.json` | 自定义 `methods` map；params/result |
+| `xml-rpc` | `.xml` | `<xmlrpc><method>` 定义；param/result |
+| `edmx` | `$metadata.xml` | OData EntityType/EntitySet/FunctionImport |
+
+### 3、输出与校验
+
+详情接口新增：
+
+- `definitions[]`：`format`、`source`、`operation`、`meta`、`messages[]`、`validation`
+- `messages[]`：`name`、`direction`、`fields[]`、`sample`、`sampleValidation`
+- 顶层 `validation`：聚合所有定义错误
+
+定义语法/语义错误、样例校验错误都只进入 `validation`/`sampleValidation`，不会让文档接口 500 或阻塞渲染。
+
+### 4、import 与安全
+
+- 只解析本地文件；`proto import`、`thrift include`（P2）、OpenAPI/AsyncAPI/JSON Schema `$ref`、WSDL/XSD import/include、GraphQL `#import` 均受 `allowed_roots` 限制。
+- 默认只允许 `APIDOC_ROOT_PATH`；不会发起网络请求。
+- 文件大小、行数、递归深度、import 数量均有上限；循环引用会截断并给出 warning。
+- 详情缓存会记录定义文件及 import 图的 `realpath + mtime + size` 指纹；修改定义文件后下一次请求自动重新解析。
+
+### 5、配置示例
+
+```php
+'protocols' => [
+    // 允许的定义文件根目录; 空数组 = 仅 APIDOC_ROOT_PATH
+    'allowed_roots' => [],
+    'max_file_bytes' => 2 * 1024 * 1024,
+    'max_depth' => 32,
+    'max_lines' => 50000,
+    'max_imports' => 64,
+],
+```
+
+`thrift`、`dubbo` 等格式的专用解析器在 P2；当前可用 `raw` 调试面板与 `Definition` 元数据展示。

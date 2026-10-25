@@ -120,6 +120,19 @@ P1 已有专用驱动的协议使用专用面板，其余协议回退到通用�
 
 注解参数、调试模式与中继安全说明见 [Attributes 使用说明](docs/ATTRIBUTES.md) 的「任意协议调试」。
 
+### 协议定义解析
+
+`#[Definition]` 可读取本地 `.proto`、`.wsdl`、`.graphql`、OpenAPI/AsyncAPI（JSON/YAML）、JSON Schema、JSON-RPC/XML-RPC 定义和 OData `$metadata`，解析出操作、消息与字段，并在详情页展示定义校验/样例校验结果。支持本地 import 与 `$ref`，只读本地文件、不发起网络请求；文件大小、行数、递归深度和 import 数有上限。P1 未覆盖的 `thrift`/`dubbo` 等仍可用 raw 调试面板。
+
+```php
+#[Protocol('grpc')]
+#[Channel('helloworld.Greeter/SayHello', action: 'call')]
+#[Definition(file: 'proto/helloworld.proto', operation: 'helloworld.Greeter/SayHello')]
+public function sayHello() {}
+```
+
+支持的格式、参数、限制与配置见 [Attributes 使用说明](docs/ATTRIBUTES.md) 的「协议定义解析」。
+
 
 ## 📌兼容
 

@@ -117,8 +117,18 @@ return [
         // 自定义接口分享操作，二维数组，每个配置为一个按钮操作
         'actions'=>[]
     ],
-    // （选配）协议调试中继
+    // （选配）协议定义解析与调试中继
     'protocols'=>[
+        // 定义文件允许的根目录; 空数组表示仅允许 APIDOC_ROOT_PATH
+        'allowed_roots'=>[],
+        // 单个定义文件大小上限(字节)
+        'max_file_bytes'=>2*1024*1024,
+        // $ref/import 递归深度上限
+        'max_depth'=>32,
+        // 单个定义文件行数上限
+        'max_lines'=>50000,
+        // 单个定义最多允许的 import 数
+        'max_imports'=>64,
         'debug'=>[
             // 是否允许服务端中继调试请求
             'relay_enable'=>false,
