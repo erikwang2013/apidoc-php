@@ -418,7 +418,10 @@ check('registry detects openapi yaml', erikwang2013\apidoc\protocol\ProtocolRegi
 check('registry detects asyncapi', erikwang2013\apidoc\protocol\ProtocolRegistry::detect('a.yaml', "asyncapi: 2.6.0\n") === 'asyncapi');
 check('registry detects edmx', erikwang2013\apidoc\protocol\ProtocolRegistry::detect('a.xml', '<edmx:Edmx xmlns:edmx="x"></edmx:Edmx>') === 'edmx');
 check('unknown format returns empty', erikwang2013\apidoc\protocol\ProtocolRegistry::detect('a.bin') === '');
-check('unimplemented adapter returns null', erikwang2013\apidoc\protocol\ProtocolRegistry::adapter('proto') === null);
+check('unknown adapter returns null', erikwang2013\apidoc\protocol\ProtocolRegistry::adapter('nope') === null);
+check('registry detects json schema $schema', erikwang2013\apidoc\protocol\ProtocolRegistry::detect('a.json', '{"$schema":"http://json-schema.org/draft-07/schema#","$ref":"#/definitions/x"}') === 'json-schema');
+check('registry detects json schema $ref root', erikwang2013\apidoc\protocol\ProtocolRegistry::detect('a.json', '{"$ref":"#/definitions/x"}') === 'json-schema');
+check('registry detects yaml json schema', erikwang2013\apidoc\protocol\ProtocolRegistry::detect('a.yaml', "\$schema: 'http://json-schema.org/draft-07/schema#'\n") === 'json-schema');
 check('registry lists formats', in_array('openapi', erikwang2013\apidoc\protocol\ProtocolRegistry::formats(), true));
 
 $ctxFile = $root . '/tests/fixtures/protocol/AnnotationFixtures.php';

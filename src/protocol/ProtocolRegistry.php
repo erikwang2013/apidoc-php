@@ -86,7 +86,7 @@ class ProtocolRegistry
         if (preg_match('/["\']?methods["\']?\s*:/i', $content)) {
             return 'json-rpc';
         }
-        if (preg_match('/(\$schema|["\']?type["\']?|["\']?properties["\']?)\s*:/i', $content)) {
+        if (preg_match('/(\$schema["\']?|\$ref["\']?|["\']?type["\']?|["\']?properties["\']?)\s*:/i', $content)) {
             return 'json-schema';
         }
         return '';
