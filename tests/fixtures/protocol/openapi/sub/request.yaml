@@ -7,5 +7,5 @@ UserInput:
         type: object
         required: [id]
         properties:
-          id: {$ref: '#/Id'}
+          id: {$ref: './more.yaml#/Id'}
           name: {type: string}

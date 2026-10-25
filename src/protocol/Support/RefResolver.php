@@ -31,20 +31,23 @@ class RefResolver
      * @param ProtocolContext $ctx
      * @param callable $load string $content => array|null
      * @param array|null $resolvedRoot 输出: 引用目标所在的文档根
+     * @param string|null $resolvedFile 输出: 引用目标所在文件(realpath)
      * @return array|null
      */
-    public static function resolve(string $ref, array $root, ProtocolContext $ctx, callable $load, ?array &$resolvedRoot = null): ?array
+    public static function resolve(string $ref, array $root, ProtocolContext $ctx, callable $load, ?array &$resolvedRoot = null, ?string &$resolvedFile = null): ?array
     {
         list($file, $fragment) = self::split($ref, $ctx);
         if ($file === null) {
             return null;
         }
+        $resolvedFile = $ctx->file();
         if ($file !== '') {
             $realpath = $ctx->resolve($file);
             if ($realpath === null) {
                 $ctx->error('unable to resolve $ref: ' . $ref);
                 return null;
             }
+            $resolvedFile = $realpath;
             // 同一上下文重复引用同一文件不算环, 首次加载后复用文档
             $documents = self::documents($ctx);
             if (array_key_exists($realpath, $documents)) {
@@ -74,12 +77,23 @@ class RefResolver
      * @param array $root 当前文档根
      * @param ProtocolContext $ctx
      * @param callable $load string $content => array|null
+     * @param string|null $baseFile 外部节点所在文件, 用于解析其中的相对文件引用
      * @return array
      */
-    public static function expand(array $schema, array $root, ProtocolContext $ctx, callable $load): array
+    public static function expand(array $schema, array $root, ProtocolContext $ctx, callable $load, ?string $baseFile = null): array
     {
-        $state = ['refs' => 0, 'stack' => []];
-        return self::expandNode($schema, $root, $ctx, $load, $state, 0);
+        $entered = $baseFile !== null && $baseFile !== '' && $baseFile !== $ctx->file();
+        if ($entered) {
+            $ctx->enterFile($baseFile);
+        }
+        try {
+            $state = ['refs' => 0, 'stack' => []];
+            return self::expandNode($schema, $root, $ctx, $load, $state, 0);
+        } finally {
+            if ($entered) {
+                $ctx->leaveFile();
+            }
+        }
     }
 
     /**

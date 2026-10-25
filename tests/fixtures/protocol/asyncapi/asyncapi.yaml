@@ -4,4 +4,4 @@ channels:
   sensors/+/temp:
     publish:
       message:
-        $ref: './messages.yaml#/Temperature'
+        $ref: './sub/messages.yaml#/Temperature'

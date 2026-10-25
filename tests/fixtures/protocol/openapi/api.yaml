@@ -15,7 +15,7 @@ paths:
     post:
       operationId: createUser
       requestBody:
-        $ref: './request.yaml#/UserInput'
+        $ref: './sub/request.yaml#/UserInput'
       responses:
         "200":
           content:

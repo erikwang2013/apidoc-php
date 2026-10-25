@@ -187,6 +187,28 @@ class ProtocolContext
         }
     }
 
+    /**
+     * 临时进入文件上下文(不参与导入环检测), 用于展开外部节点内的相对引用
+     * @param string $file 已校验的 realpath
+     */
+    public function enterFile(string $file): void
+    {
+        $this->stack[] = ['file' => $this->file, 'depth' => $this->depth];
+        $this->file = $file;
+    }
+
+    /**
+     * 恢复 enterFile 前的文件上下文
+     */
+    public function leaveFile(): void
+    {
+        $previous = array_pop($this->stack);
+        if ($previous !== null) {
+            $this->file = $previous['file'];
+            $this->depth = $previous['depth'];
+        }
+    }
+
     public function error(string $message, int $line = 0, int $column = 0): void
     {
         $this->errors[] = $this->entry('error', $message, $line, $column);

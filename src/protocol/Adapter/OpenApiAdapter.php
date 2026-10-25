@@ -41,8 +41,8 @@ class OpenApiAdapter implements AdapterInterface
             return ['operation' => '', 'messages' => [], 'meta' => []];
         }
         $load = $this->loader();
-        $resolveRef = function (string $ref, ?array &$resolvedRoot = null) use ($document, $ctx, $load): ?array {
-            return RefResolver::resolve($ref, $document, $ctx, $load, $resolvedRoot);
+        $resolveRef = function (string $ref, ?array &$resolvedRoot = null, ?string &$resolvedFile = null) use ($document, $ctx, $load): ?array {
+            return RefResolver::resolve($ref, $document, $ctx, $load, $resolvedRoot, $resolvedFile);
         };
         $operations = $this->operations($paths, $document, $ctx, $load);
         if ($operations === []) {
@@ -55,6 +55,7 @@ class OpenApiAdapter implements AdapterInterface
         $path = $selected['path'];
         // pathItem 可能来自外部文档, 其内部的本地 $ref 必须按该文档解析
         $operationRoot = isset($selected['root']) && is_array($selected['root']) ? $selected['root'] : $document;
+        $operationFile = isset($selected['file']) && is_string($selected['file']) ? $selected['file'] : $ctx->file();
 
         $requestFields = [];
         $parameters = [];
@@ -69,24 +70,26 @@ class OpenApiAdapter implements AdapterInterface
                 continue;
             }
             $parameterRoot = $operationRoot;
+            $parameterFile = $operationFile;
             if (isset($parameter['$ref']) && is_string($parameter['$ref'])) {
-                $resolved = $resolveRef($parameter['$ref'], $parameterRoot);
+                $resolved = $resolveRef($parameter['$ref'], $parameterRoot, $parameterFile);
                 if (!is_array($resolved)) {
                     continue;
                 }
                 $parameter = $resolved;
             }
-            $fields = $this->parameterFields($parameter, $ctx, $parameterRoot, $load, $resolveRef);
+            $fields = $this->parameterFields($parameter, $ctx, $parameterRoot, $parameterFile, $load, $resolveRef);
             $requestFields = array_merge($requestFields, $fields);
         }
         if (isset($operation['requestBody'])) {
             $requestBody = $operation['requestBody'];
             $bodyRoot = $operationRoot;
+            $bodyFile = $operationFile;
             if (is_array($requestBody) && isset($requestBody['$ref']) && is_string($requestBody['$ref'])) {
-                $requestBody = $resolveRef($requestBody['$ref'], $bodyRoot);
+                $requestBody = $resolveRef($requestBody['$ref'], $bodyRoot, $bodyFile);
             }
             if (is_array($requestBody)) {
-                $requestFields = array_merge($requestFields, $this->bodyFields($requestBody, $ctx, $bodyRoot, $load, $resolveRef));
+                $requestFields = array_merge($requestFields, $this->bodyFields($requestBody, $ctx, $bodyRoot, $bodyFile, $load, $resolveRef));
             }
         }
 
@@ -100,8 +103,9 @@ class OpenApiAdapter implements AdapterInterface
             }
             $response = $responses[$code];
             $responseRoot = $operationRoot;
+            $responseFile = $operationFile;
             if (is_array($response) && isset($response['$ref']) && is_string($response['$ref'])) {
-                $response = $resolveRef($response['$ref'], $responseRoot);
+                $response = $resolveRef($response['$ref'], $responseRoot, $responseFile);
             }
             if (is_array($response)) {
                 $status = $code;
@@ -110,7 +114,7 @@ class OpenApiAdapter implements AdapterInterface
             }
         }
         if ($responseSchema !== []) {
-            $responseSchema = RefResolver::expand($responseSchema, $responseRoot ?? $operationRoot, $ctx, $load);
+            $responseSchema = RefResolver::expand($responseSchema, $responseRoot ?? $operationRoot, $ctx, $load, $responseFile ?? $operationFile);
         }
         $responseFields = SchemaMapper::fields($responseSchema, $ctx, $resolveRef);
         $messages = [
@@ -180,16 +184,17 @@ class OpenApiAdapter implements AdapterInterface
     protected function operations(array $paths, array $document, ProtocolContext $ctx, callable $load): array
     {
         $result = [];
-        $resolveRef = function (string $ref, ?array &$resolvedRoot = null) use ($document, $ctx, $load): ?array {
-            return RefResolver::resolve($ref, $document, $ctx, $load, $resolvedRoot);
+        $resolveRef = function (string $ref, ?array &$resolvedRoot = null, ?string &$resolvedFile = null) use ($document, $ctx, $load): ?array {
+            return RefResolver::resolve($ref, $document, $ctx, $load, $resolvedRoot, $resolvedFile);
         };
         foreach ($paths as $path => $pathItem) {
             if (!is_array($pathItem)) {
                 continue;
             }
             $pathItemRoot = $document;
+            $pathItemFile = $ctx->file();
             if (isset($pathItem['$ref']) && is_string($pathItem['$ref'])) {
-                $resolved = $resolveRef($pathItem['$ref'], $pathItemRoot);
+                $resolved = $resolveRef($pathItem['$ref'], $pathItemRoot, $pathItemFile);
                 if (is_array($resolved)) {
                     $pathItem = $resolved;
                 }
@@ -206,6 +211,7 @@ class OpenApiAdapter implements AdapterInterface
                     'operation' => $operation,
                     'pathItem' => $pathItem,
                     'root' => $pathItemRoot,
+                    'file' => $pathItemFile,
                 ];
             }
         }
@@ -242,7 +248,7 @@ class OpenApiAdapter implements AdapterInterface
         return implode(', ', $names);
     }
 
-    protected function parameterFields(array $parameter, ProtocolContext $ctx, array $root, callable $load, callable $resolveRef): array
+    protected function parameterFields(array $parameter, ProtocolContext $ctx, array $root, ?string $file, callable $load, callable $resolveRef): array
     {
         $name = isset($parameter['name']) ? (string)$parameter['name'] : '';
         $in = isset($parameter['in']) ? (string)$parameter['in'] : 'query';
@@ -250,7 +256,7 @@ class OpenApiAdapter implements AdapterInterface
             return [];
         }
         $schema = isset($parameter['schema']) && is_array($parameter['schema']) ? $parameter['schema'] : $parameter;
-        $schema = RefResolver::expand($schema, $root, $ctx, $load);
+        $schema = RefResolver::expand($schema, $root, $ctx, $load, $file);
         $field = [
             'name' => $name,
             'type' => SchemaMapper::typeOf($schema),
@@ -269,7 +275,7 @@ class OpenApiAdapter implements AdapterInterface
         return [$field];
     }
 
-    protected function bodyFields(array $requestBody, ProtocolContext $ctx, array $root, callable $load, callable $resolveRef): array
+    protected function bodyFields(array $requestBody, ProtocolContext $ctx, array $root, ?string $file, callable $load, callable $resolveRef): array
     {
         $content = isset($requestBody['content']) && is_array($requestBody['content']) ? $requestBody['content'] : [];
         $schema = [];
@@ -282,7 +288,7 @@ class OpenApiAdapter implements AdapterInterface
         if ($schema === []) {
             return [];
         }
-        $schema = RefResolver::expand($schema, $root, $ctx, $load);
+        $schema = RefResolver::expand($schema, $root, $ctx, $load, $file);
         $fields = SchemaMapper::fields($schema, $ctx, $resolveRef);
         foreach ($fields as &$field) {
             if (!isset($field['in'])) {
