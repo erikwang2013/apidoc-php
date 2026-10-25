@@ -14,3 +14,12 @@ class OpenApiFixture
     #[Title('Get user')]
     public function getUser() {}
 }
+
+#[Protocol('mqtt')]
+class AsyncApiFixture
+{
+    #[Channel('/sensors/+/temp', action: 'subscribe')]
+    #[Definition(file: 'tests/fixtures/protocol/asyncapi/asyncapi.yaml', operation: 'sensors/+/temp:publish')]
+    #[Title('Temperature')]
+    public function onTemp() {}
+}

@@ -1,0 +1,8 @@
+Temperature:
+  name: Temperature
+  payload:
+    type: object
+    required: [value]
+    properties:
+      value: {type: number}
+      unit: {type: string}

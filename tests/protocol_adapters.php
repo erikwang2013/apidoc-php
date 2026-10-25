@@ -66,5 +66,13 @@ check('openapi response name', ($response['fields'][1]['name'] ?? '') === 'name'
 check('openapi external import fingerprinted', count($detail['_definitionFingerprints'] ?? []) === 2);
 check('openapi valid', ($detail['definitions'][0]['validation']['ok'] ?? false) === true);
 
+// ---------- AsyncAPI ----------
+$detail = renderFixture(\Tests\Fixtures\Protocol\AsyncApiFixture::class, 'onTemp');
+check('asyncapi operation', ($detail['definitions'][0]['operation'] ?? '') === 'sensors/+/temp:publish');
+check('asyncapi message name', ($detail['definitions'][0]['messages'][0]['name'] ?? '') === 'Temperature');
+check('asyncapi direction event', ($detail['definitions'][0]['messages'][0]['direction'] ?? '') === 'event');
+check('asyncapi field value', ($detail['definitions'][0]['messages'][0]['fields'][0]['name'] ?? '') === 'value');
+check('asyncapi external import', count($detail['_definitionFingerprints'] ?? []) === 2);
+
 echo "\n{$pass} passed, {$fail} failed\n";
 exit($fail > 0 ? 1 : 0);
