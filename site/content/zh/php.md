@@ -264,6 +264,31 @@ class Definitions
 
 在线调试面板支持全局 Header/Query/Body 参数、Mock 预填、文件上传、`Before` / `After` 事件。跨域调试需要配置 `allowCrossDomain` 与 `cors_origins`；生产环境不要把 `cors_origins` 留成任意来源。
 
+## 任意协议与定义解析
+
+除 HTTP 外，还可以在控制器方法上用 `#[Protocol]` / `#[Channel]` / `#[Debug]` 声明 MQTT、STOMP、gRPC、TCP/UDP 等协议，详情页会生成对应调试面板。
+
+<figure class="doc-figure"><img src="{{root}}assets/img/php/protocol-debug.svg" alt="任意协议调试：浏览器直连、协议注解与服务端中继"><figcaption>HTTP/WebSocket/SSE 浏览器直连；其余协议经服务端受控中继。</figcaption></figure>
+
+```php
+#[Protocol('mqtt')]
+#[Channel('/sensors/+/temp', action: 'publish')]
+#[Debug(driver: 'mqtt', target: 'tcp://broker:1883', encoding: 'json', meta: ['qos' => 1])]
+#[Param(name: 'value', type: 'number', require: true)]
+public function publishTemperature() {}
+```
+
+- HTTP/REST/SOAP/GraphQL/JSON-RPC/XML-RPC/OData/Webhooks：浏览器直连，沿用原调试面板。
+- WebSocket/SSE：浏览器原生 WebSocket / EventSource。
+- MQTT/STOMP、gRPC、TCP/UDP、CoAP、Modbus、ISO 8583、RTSP、SIP、HLS、Hessian：服务端中继。
+- 没有专用驱动的协议回退到 `raw` / `http-relay` / 浏览器面板；WebRTC 面板只读并提示原因。
+
+中继默认关闭；开启后要求 token 或 shareKey，目标只来自接口注解，并受速率、超时、字节与会话数限制。完整覆盖表与配置见 [Attributes 文档](https://github.com/erikwang2013/apidoc-php/blob/main/docs/ATTRIBUTES.md)。
+
+`#[Definition]` 可解析本地 `.proto`、WSDL/XSD、GraphQL SDL、OpenAPI/AsyncAPI、JSON Schema、JSON-RPC/XML-RPC、OData EDMX，展示消息字段与校验错误；支持本地 import 与 `$ref`，不发起网络请求，路径限制在 `protocols.allowed_roots` 内，软链逃逸会被拒绝。修改定义文件后，详情缓存会按 mtime + size 指纹自动失效。
+
+缓存命中时，文档读接口与定义解析/渲染的本机处理目标为 **P95 < 10ms**；运行 `php tests/performance.php` 验证。预算不含框架启动、HTTP 服务器与外部网络。
+
 ## 鉴权、缓存与安全
 
 ```php

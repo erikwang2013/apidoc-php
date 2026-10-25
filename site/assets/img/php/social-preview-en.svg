@@ -75,5 +75,6 @@
 
   <text x="104" y="482" font-family="Noto Sans CJK SC, sans-serif" font-size="28" fill="#8B86AD">Laravel · ThinkPHP · Hyperf · Webman · Yii2 · Yii3</text>
 
+  <text x="104" y="528" font-family="Noto Sans CJK SC, sans-serif" font-size="24" fill="#6C5CE7">Protocol debugging · definition parsing · 10 ms budget</text>
   <text x="104" y="576" font-family="Source Han Mono, Noto Sans Mono CJK SC, monospace" font-size="24" fill="#A5A0C4">github.com/erikwang2013/apidoc-php</text>
 </svg>

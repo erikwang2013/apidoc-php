@@ -4,7 +4,7 @@
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <title>apidoc-ui 使用指南 · Vue 3 API 文档前端 · Apidoc</title>
-  <meta name="description" content="Vue 3 + TypeScript 的 API 文档加载与展示页面，支持多应用/版本、在线调试、接口分享、Swagger 导出、缓存管理与多语言，构建产物为纯静态文件。">
+  <meta name="description" content="Vue 3 + TypeScript 的 API 文档加载与展示页面，支持多应用/版本、在线调试、任意协议面板、协议定义展示、接口分享、Swagger 导出、缓存管理与多语言，构建产物为纯静态文件。">
   <meta name="theme-color" content="#f7f6fc">
   <link rel="icon" href="../assets/img/apidoc-pet.svg" type="image/svg+xml">
   <link rel="preload" href="../assets/img/apidoc-pet.svg" as="image">
@@ -27,7 +27,7 @@
   </noscript>
   <meta property="og:type" content="article">
   <meta property="og:title" content="apidoc-ui 使用指南 · Vue 3 API 文档前端 · Apidoc">
-  <meta property="og:description" content="Vue 3 + TypeScript 的 API 文档加载与展示页面，支持多应用/版本、在线调试、接口分享、Swagger 导出、缓存管理与多语言，构建产物为纯静态文件。">
+  <meta property="og:description" content="Vue 3 + TypeScript 的 API 文档加载与展示页面，支持多应用/版本、在线调试、任意协议面板、协议定义展示、接口分享、Swagger 导出、缓存管理与多语言，构建产物为纯静态文件。">
   <meta property="og:url" content="https://apidoc.erik.xyz/docs/ui.html">
   <meta property="og:image" content="https://apidoc.erik.xyz/assets/img/social-preview.png">
   <meta property="og:image:type" content="image/png">
@@ -39,10 +39,10 @@
   <meta property="og:locale:alternate" content="en_US">
   <meta name="twitter:card" content="summary_large_image">
   <meta name="twitter:title" content="apidoc-ui 使用指南 · Vue 3 API 文档前端 · Apidoc">
-  <meta name="twitter:description" content="Vue 3 + TypeScript 的 API 文档加载与展示页面，支持多应用/版本、在线调试、接口分享、Swagger 导出、缓存管理与多语言，构建产物为纯静态文件。">
+  <meta name="twitter:description" content="Vue 3 + TypeScript 的 API 文档加载与展示页面，支持多应用/版本、在线调试、任意协议面板、协议定义展示、接口分享、Swagger 导出、缓存管理与多语言，构建产物为纯静态文件。">
   <meta name="twitter:image" content="https://apidoc.erik.xyz/assets/img/social-preview.png">
   <meta name="twitter:image:alt" content="Apidoc：PHP、Go、Rust 通用 API 文档体系">
-  <script type="application/ld+json">{"@context":"https://schema.org","@graph":[{"@type":"Person","@id":"https://apidoc.erik.xyz/#person","name":"erik","url":"https://erik.xyz","sameAs":["https://github.com/erikwang2013"]},{"@type":"Organization","@id":"https://apidoc.erik.xyz/#organization","name":"Apidoc","url":"https://apidoc.erik.xyz/","description":"Open-source API documentation for PHP, Go and Rust.","logo":{"@type":"ImageObject","url":"https://apidoc.erik.xyz/assets/img/apidoc-pet.svg"},"sameAs":["https://github.com/erikwang2013"],"founder":{"@id":"https://apidoc.erik.xyz/#person"}},{"@type":"WebSite","@id":"https://apidoc.erik.xyz/#website","url":"https://apidoc.erik.xyz/","name":"Apidoc","description":"API documentation for PHP, Go and Rust.","inLanguage":["zh-CN","en"],"publisher":{"@id":"https://apidoc.erik.xyz/#organization"}},{"@type":"TechArticle","@id":"https://apidoc.erik.xyz/docs/ui.html#article","headline":"apidoc-ui API 文档前端使用指南","description":"Vue 3 + TypeScript 的文档加载与展示页面，支持应用/版本、在线调试、接口分享、Swagger 导出、缓存管理与多语言。构建产物为纯静态文件。","url":"https://apidoc.erik.xyz/docs/ui.html","mainEntityOfPage":{"@id":"https://apidoc.erik.xyz/docs/ui.html"},"inLanguage":"zh-CN","author":{"@id":"https://apidoc.erik.xyz/#person"},"publisher":{"@id":"https://apidoc.erik.xyz/#organization"},"isPartOf":{"@id":"https://apidoc.erik.xyz/docs/"},"about":"UI","articleSection":"UI","dateModified":"2026-10-21","image":"https://apidoc.erik.xyz/assets/img/social-preview.png","keywords":"apidoc-ui, Vue 3, TypeScript, API 文档前端, Swagger 导出"},{"@type":"BreadcrumbList","@id":"https://apidoc.erik.xyz/docs/ui.html#breadcrumb","itemListElement":[{"@type":"ListItem","position":1,"name":"首页","item":"https://apidoc.erik.xyz/"},{"@type":"ListItem","position":2,"name":"使用文档","item":"https://apidoc.erik.xyz/docs/"},{"@type":"ListItem","position":3,"name":"UI","item":"https://apidoc.erik.xyz/docs/ui.html"}]}]}</script><meta property="article:modified_time" content="2026-10-21"><meta property="article:section" content="UI">
+  <script type="application/ld+json">{"@context":"https://schema.org","@graph":[{"@type":"Person","@id":"https://apidoc.erik.xyz/#person","name":"erik","url":"https://erik.xyz","sameAs":["https://github.com/erikwang2013"]},{"@type":"Organization","@id":"https://apidoc.erik.xyz/#organization","name":"Apidoc","url":"https://apidoc.erik.xyz/","description":"Open-source API documentation for PHP, Go and Rust.","logo":{"@type":"ImageObject","url":"https://apidoc.erik.xyz/assets/img/apidoc-pet.svg"},"sameAs":["https://github.com/erikwang2013"],"founder":{"@id":"https://apidoc.erik.xyz/#person"}},{"@type":"WebSite","@id":"https://apidoc.erik.xyz/#website","url":"https://apidoc.erik.xyz/","name":"Apidoc","description":"API documentation for PHP, Go and Rust.","inLanguage":["zh-CN","en"],"publisher":{"@id":"https://apidoc.erik.xyz/#organization"}},{"@type":"TechArticle","@id":"https://apidoc.erik.xyz/docs/ui.html#article","headline":"apidoc-ui API 文档前端使用指南","description":"Vue 3 + TypeScript 的文档加载与展示页面，支持应用/版本、在线调试、任意协议面板、接口分享、Swagger 导出、缓存管理与多语言。构建产物为纯静态文件。","url":"https://apidoc.erik.xyz/docs/ui.html","mainEntityOfPage":{"@id":"https://apidoc.erik.xyz/docs/ui.html"},"inLanguage":"zh-CN","author":{"@id":"https://apidoc.erik.xyz/#person"},"publisher":{"@id":"https://apidoc.erik.xyz/#organization"},"isPartOf":{"@id":"https://apidoc.erik.xyz/docs/"},"about":"UI","articleSection":"UI","dateModified":"2026-10-25","image":"https://apidoc.erik.xyz/assets/img/social-preview.png","keywords":"apidoc-ui, Vue 3, TypeScript, API 文档前端, Swagger 导出, 协议调试"},{"@type":"BreadcrumbList","@id":"https://apidoc.erik.xyz/docs/ui.html#breadcrumb","itemListElement":[{"@type":"ListItem","position":1,"name":"首页","item":"https://apidoc.erik.xyz/"},{"@type":"ListItem","position":2,"name":"使用文档","item":"https://apidoc.erik.xyz/docs/"},{"@type":"ListItem","position":3,"name":"UI","item":"https://apidoc.erik.xyz/docs/ui.html"}]}]}</script><meta property="article:modified_time" content="2026-10-25"><meta property="article:section" content="UI">
 </head>
 <body data-copy-label="复制" data-copied-label="已复制" data-menu-open="打开菜单" data-menu-close="关闭菜单">
   <a class="skip-link" href="#main">跳到主要内容</a>
@@ -95,19 +95,19 @@
     <p class="docs-breadcrumb"><a href="../index.html">首页</a><span>/</span><a href="index.html">使用文档</a><span>/</span>UI</p>
     <div class="docs-badges"><span class="lang-badge">UI</span><span class="version-pill">Vue 3.5</span></div>
     <h1>apidoc-ui API 文档前端使用指南</h1>
-    <p>Vue 3 + TypeScript 的文档加载与展示页面，支持应用/版本、在线调试、接口分享、Swagger 导出、缓存管理与多语言。构建产物为纯静态文件。</p>
+    <p>Vue 3 + TypeScript 的文档加载与展示页面，支持应用/版本、在线调试、任意协议面板、接口分享、Swagger 导出、缓存管理与多语言。构建产物为纯静态文件。</p>
     <div class="docs-actions"><a class="text-link" href="https://github.com/erikwang2013/apidoc-ui" target="_blank" rel="noopener">GitHub <svg class="icon icon-xs" aria-hidden="true"><use href="#i-external"></use></svg></a><a class="text-link" href="https://github.com/erikwang2013/apidoc-ui/blob/main/README.md" target="_blank" rel="noopener">查看源文档 <svg class="icon icon-xs" aria-hidden="true"><use href="#i-external"></use></svg></a></div>
     <p class="docs-meta">版本 Vue 3.5 / 完整参考：apidoc-ui README</p>
   </div>
 </section><div class="wrap docs-layout">
   <aside class="docs-sidebar">
     <p class="docs-sidebar-title">本页目录</p>
-    <ul class="docs-toc"><li><a href="#sec-1">适用场景</a></li><li><a href="#sec-2">构建与部署</a></li><li><a href="#sec-3">运行时配置</a></li><li><a href="#sec-4">多应用、多 Host 与 appKey</a></li><li><a href="#sec-5">鉴权</a></li><li><a href="#sec-6">在线调试与全局参数</a></li><li><a href="#sec-7">接口分享、导出与缓存</a></li><li><a href="#sec-8">典型部署场景</a></li><li class="is-sub"><a href="#sec-9">同源部署</a></li><li class="is-sub"><a href="#sec-10">跨域部署</a></li><li class="is-sub"><a href="#sec-11">多后端切换</a></li><li class="is-sub"><a href="#sec-12">子路径部署</a></li><li><a href="#sec-13">规则与排错</a></li><li><a href="#sec-14">参考</a></li></ul>
+    <ul class="docs-toc"><li><a href="#sec-1">适用场景</a></li><li><a href="#sec-2">构建与部署</a></li><li><a href="#sec-3">运行时配置</a></li><li><a href="#sec-4">多应用、多 Host 与 appKey</a></li><li><a href="#sec-5">鉴权</a></li><li><a href="#sec-6">在线调试与全局参数</a></li><li class="is-sub"><a href="#sec-7">任意协议面板</a></li><li><a href="#sec-8">接口分享、导出与缓存</a></li><li><a href="#sec-9">典型部署场景</a></li><li class="is-sub"><a href="#sec-10">同源部署</a></li><li class="is-sub"><a href="#sec-11">跨域部署</a></li><li class="is-sub"><a href="#sec-12">多后端切换</a></li><li class="is-sub"><a href="#sec-13">子路径部署</a></li><li><a href="#sec-14">规则与排错</a></li><li><a href="#sec-15">参考</a></li></ul>
     <a class="docs-edit" href="https://github.com/erikwang2013/apidoc-ui/blob/main/README.md" target="_blank" rel="noopener">查看源文档 <svg class="icon icon-xs" aria-hidden="true"><use href="#i-external"></use></svg></a>
   </aside>
   <article class="docs-article">
-    <details class="docs-toc-mobile"><summary>本页目录</summary><ul class="docs-toc"><li><a href="#sec-1">适用场景</a></li><li><a href="#sec-2">构建与部署</a></li><li><a href="#sec-3">运行时配置</a></li><li><a href="#sec-4">多应用、多 Host 与 appKey</a></li><li><a href="#sec-5">鉴权</a></li><li><a href="#sec-6">在线调试与全局参数</a></li><li><a href="#sec-7">接口分享、导出与缓存</a></li><li><a href="#sec-8">典型部署场景</a></li><li class="is-sub"><a href="#sec-9">同源部署</a></li><li class="is-sub"><a href="#sec-10">跨域部署</a></li><li class="is-sub"><a href="#sec-11">多后端切换</a></li><li class="is-sub"><a href="#sec-12">子路径部署</a></li><li><a href="#sec-13">规则与排错</a></li><li><a href="#sec-14">参考</a></li></ul></details>
-    <p>apidoc-ui 是 PHP、Go、Rust 三套后端共用的文档前端。它负责拉取接口配置与文档数据，以应用/版本/分组展示接口，并提供在线调试、分享、Swagger 导出、缓存管理等能力。构建产物是纯静态文件，不依赖任何后端运行环境。</p>
+    <details class="docs-toc-mobile"><summary>本页目录</summary><ul class="docs-toc"><li><a href="#sec-1">适用场景</a></li><li><a href="#sec-2">构建与部署</a></li><li><a href="#sec-3">运行时配置</a></li><li><a href="#sec-4">多应用、多 Host 与 appKey</a></li><li><a href="#sec-5">鉴权</a></li><li><a href="#sec-6">在线调试与全局参数</a></li><li class="is-sub"><a href="#sec-7">任意协议面板</a></li><li><a href="#sec-8">接口分享、导出与缓存</a></li><li><a href="#sec-9">典型部署场景</a></li><li class="is-sub"><a href="#sec-10">同源部署</a></li><li class="is-sub"><a href="#sec-11">跨域部署</a></li><li class="is-sub"><a href="#sec-12">多后端切换</a></li><li class="is-sub"><a href="#sec-13">子路径部署</a></li><li><a href="#sec-14">规则与排错</a></li><li><a href="#sec-15">参考</a></li></ul></details>
+    <p>apidoc-ui 是 PHP、Go、Rust 三套后端共用的文档前端。它负责拉取接口配置与文档数据，以应用/版本/分组展示接口，并提供在线调试、任意协议面板、分享、Swagger 导出、缓存管理等能力。构建产物是纯静态文件，不依赖任何后端运行环境。</p>
 <figure class="doc-figure"><img fetchpriority="high" loading="eager" src="../assets/img/ui/social-preview.svg" alt="apidoc-ui documentation front-end" width="1280" height="640" decoding="async"><figcaption>apidoc-ui：同一套静态文档界面，服务于 PHP、Go、Rust 后端。</figcaption></figure>
 
 <h2 id="sec-1">适用场景</h2>
@@ -155,7 +155,7 @@ npm<span class="w"> </span>run<span class="w"> </span>build<span class="w">    <
 <span class="w">    </span><span class="nx">DELETE</span><span class="o">:</span><span class="w"> </span><span class="s2">&quot;#ff4d4f&quot;</span><span class="p">,</span>
 <span class="w">    </span><span class="nx">PATCH</span><span class="o">:</span><span class="w"> </span><span class="s2">&quot;#802feb&quot;</span><span class="p">,</span>
 <span class="w">  </span><span class="p">},</span>
-<span class="w">  </span><span class="nx">API_DETAIL_TABS</span><span class="o">:</span><span class="w"> </span><span class="p">[</span><span class="s2">&quot;table&quot;</span><span class="p">,</span><span class="w"> </span><span class="s2">&quot;json&quot;</span><span class="p">,</span><span class="w"> </span><span class="s2">&quot;ts&quot;</span><span class="p">,</span><span class="w"> </span><span class="s2">&quot;debug&quot;</span><span class="p">],</span>
+<span class="w">  </span><span class="nx">API_DETAIL_TABS</span><span class="o">:</span><span class="w"> </span><span class="p">[</span><span class="s2">&quot;table&quot;</span><span class="p">,</span><span class="w"> </span><span class="s2">&quot;json&quot;</span><span class="p">,</span><span class="w"> </span><span class="s2">&quot;ts&quot;</span><span class="p">,</span><span class="w"> </span><span class="s2">&quot;protocol&quot;</span><span class="p">,</span><span class="w"> </span><span class="s2">&quot;debug&quot;</span><span class="p">],</span>
 <span class="w">  </span><span class="nx">LOAD_SCRIPTS</span><span class="o">:</span><span class="w"> </span><span class="p">[</span><span class="s2">&quot;./utils/md5.js&quot;</span><span class="p">],</span>
 <span class="p">};</span>
 </code></pre>
@@ -210,7 +210,7 @@ npm<span class="w"> </span>run<span class="w"> </span>build<span class="w">    <
 </tr>
 <tr>
 <td><code>API_DETAIL_TABS</code></td>
-<td>详情页标签顺序：<code>table</code>、<code>json</code>、<code>ts</code>、<code>debug</code>。</td>
+<td>详情页标签顺序：<code>table</code>、<code>json</code>、<code>ts</code>、<code>protocol</code>、<code>debug</code>；无协议或不可调试时会自动隐藏对应标签。</td>
 </tr>
 <tr>
 <td><code>LOAD_SCRIPTS</code></td>
@@ -270,23 +270,32 @@ npm<span class="w"> </span>run<span class="w"> </span>build<span class="w">    <
 <span class="p">};</span>
 </code></pre>
 
-<h2 id="sec-7">接口分享、导出与缓存</h2>
+<h3 id="sec-7">任意协议面板</h3>
+<p>后端用 <code>#[Protocol]</code> / <code>#[Channel]</code> / <code>#[Debug]</code> 声明的接口会在详情页显示协议徽标与「协议」标签：</p>
+<ul>
+<li>协议标签展示协议名称、通道地址，以及 <code>#[Definition]</code> 解析出的消息字段、样例校验和语法错误；定义错误不会阻断页面。</li>
+<li>HTTP/REST/SOAP/GraphQL 等继续使用 Debug 标签；WebSocket/SSE 由浏览器直连；MQTT、STOMP、gRPC、TCP/UDP 等由后端中继执行。</li>
+<li>后端返回 <code>debuggable: false</code> 时，调试标签自动隐藏并展示原因；中继未启用时面板显示 <code>relayEnabled</code> 提示。</li>
+<li>Markdown / 打印导出会包含协议、通道和定义文件解析出的消息结构。</li>
+</ul>
+<p>协议能力由后端决定；UI 只按 <code>protocol</code> / <code>channel</code> / <code>debug</code> / <code>definitions</code> 渲染，不解释协议语义。</p>
+<h2 id="sec-8">接口分享、导出与缓存</h2>
 <ul>
 <li>接口分享：生成指定应用/接口的链接，必要时附带 token。</li>
 <li>导出：Swagger/OpenAPI JSON、Markdown、Postman JSON、PDF（打印）。</li>
 <li>缓存管理：生成或清除接口缓存；后端开启缓存后，这里可以主动刷新。</li>
 <li>JSON / TypeScript 视图：直接复制请求/响应示例与类型定义给前端。</li>
 </ul>
-<h2 id="sec-8">典型部署场景</h2>
-<h3 id="sec-9">同源部署</h3>
+<h2 id="sec-9">典型部署场景</h2>
+<h3 id="sec-10">同源部署</h3>
 <p>后端与 UI 在同一个域名下，<code>HOSTS: []</code>、<code>API_PREFIX: "/apidoc"</code> 即可。把 UI 产物放到后端 public 目录的 <code>/apidoc-ui/</code>，或把后端 docs 前缀反代到 UI 所需路径。</p>
-<h3 id="sec-10">跨域部署</h3>
+<h3 id="sec-11">跨域部署</h3>
 <p>把 UI 放到静态站点，<code>HOSTS: ["https://api.example.com"]</code>，后端配置 CORS 白名单。需要携带 Cookie 时设置 <code>WITHCREDENTIALS: true</code>，并让后端回显具体 Origin。</p>
-<h3 id="sec-11">多后端切换</h3>
+<h3 id="sec-12">多后端切换</h3>
 <p><code>HOSTS</code> 配置多个地址，适合测试/预发/生产或多套微服务。每个 Host 的 token、应用选择独立管理。</p>
-<h3 id="sec-12">子路径部署</h3>
+<h3 id="sec-13">子路径部署</h3>
 <p>UI 使用相对路径构建，放到 <code>/docs/</code> 等子目录也可以工作；确保 <code>config.js</code> 与 <code>index.html</code> 同目录，并按部署路径调整 <code>API_PREFIX</code> 或 <code>HOSTS</code>。</p>
-<h2 id="sec-13">规则与排错</h2>
+<h2 id="sec-14">规则与排错</h2>
 <div class="table-scroll"><table>
 <thead>
 <tr>
@@ -327,9 +336,17 @@ npm<span class="w"> </span>run<span class="w"> </span>build<span class="w">    <
 <td>调试结果异常</td>
 <td>检查全局 Header/Query/Body、前置脚本与目标接口 CORS。</td>
 </tr>
+<tr>
+<td>协议标签不显示</td>
+<td>后端是否为该接口返回 <code>protocol</code>；非 HTTP 注解是否至少带一个方法级注解。</td>
+</tr>
+<tr>
+<td>协议面板无法发送</td>
+<td>后端 <code>protocols.debug.relay_enable</code> 是否开启、是否要求 token/shareKey；查看 <code>debuggable</code> 与 <code>debugReason</code>。</td>
+</tr>
 </tbody>
 </table></div>
-<h2 id="sec-14">参考</h2>
+<h2 id="sec-15">参考</h2>
 <ul>
 <li><a href="https://github.com/erikwang2013/apidoc-ui" target="_blank" rel="noopener">apidoc-ui README</a></li>
 <li><a href="https://github.com/erikwang2013/apidoc-ui" target="_blank" rel="noopener">apidoc-ui 仓库</a></li>

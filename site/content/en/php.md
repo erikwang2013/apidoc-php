@@ -264,6 +264,31 @@ The `mock` argument generates values in the debugger:
 
 The debug panel supports global Header/Query/Body params, Mock prefill, file upload and `Before` / `After` events. Cross-origin debugging needs `allowCrossDomain` and `cors_origins`; do not leave the allowlist open in production.
 
+## Arbitrary protocols and definition parsing
+
+Beyond HTTP, declare MQTT, STOMP, gRPC, TCP/UDP and other protocols on controller methods with `#[Protocol]` / `#[Channel]` / `#[Debug]`; the detail page renders a matching debug panel.
+
+<figure class="doc-figure"><img src="{{root}}assets/img/php/protocol-debug.svg" alt="Arbitrary protocol debugging: browser-direct, protocol annotations and server relay"><figcaption>HTTP, WebSocket and SSE connect from the browser; other protocols use a controlled server relay.</figcaption></figure>
+
+```php
+#[Protocol('mqtt')]
+#[Channel('/sensors/+/temp', action: 'publish')]
+#[Debug(driver: 'mqtt', target: 'tcp://broker:1883', encoding: 'json', meta: ['qos' => 1])]
+#[Param(name: 'value', type: 'number', require: true)]
+public function publishTemperature() {}
+```
+
+- HTTP/REST/SOAP/GraphQL/JSON-RPC/XML-RPC/OData/Webhooks: direct from the browser, using the existing debug panel.
+- WebSocket/SSE: native browser WebSocket / EventSource.
+- MQTT/STOMP, gRPC, TCP/UDP, CoAP, Modbus, ISO 8583, RTSP, SIP, HLS, Hessian: server-side relay.
+- Protocols without a dedicated driver fall back to `raw` / `http-relay` / browser panels. WebRTC is read-only and states the reason.
+
+The relay is off by default. When enabled it requires a token or shareKey, takes the target only from annotations, and enforces rate, timeout, byte and session limits. See the [Attributes reference](https://github.com/erikwang2013/apidoc-php/blob/main/docs/ATTRIBUTES.md) for the full coverage table and config.
+
+`#[Definition]` parses local `.proto`, WSDL/XSD, GraphQL SDL, OpenAPI/AsyncAPI, JSON Schema, JSON-RPC/XML-RPC and OData EDMX files, showing message fields and validation errors. Local imports and `$ref` are supported; no network requests are made, paths stay under `protocols.allowed_roots`, and symlinks escaping the root are rejected. Detail caches are invalidated by mtime + size fingerprints when a definition changes.
+
+With a cache hit, document read endpoints and definition parsing/rendering target **P95 < 10 ms** of local processing. Run `php tests/performance.php` to verify. The budget excludes framework startup, the HTTP server and external network time.
+
 ## Auth, caching and security
 
 ```php

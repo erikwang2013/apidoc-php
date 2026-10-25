@@ -4,7 +4,7 @@
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <title>apidoc-ui Guide · Vue 3 API Documentation Front-end · Apidoc</title>
-  <meta name="description" content="A Vue 3 + TypeScript front-end for loading and displaying API docs, with apps/versions, live debugging, sharing, Swagger export, cache management and i18n.">
+  <meta name="description" content="Vue 3 + TypeScript API docs front-end with apps/versions, live debug, protocol panels, definitions, sharing, Swagger export, cache and i18n.">
   <meta name="theme-color" content="#f7f6fc">
   <link rel="icon" href="../../assets/img/apidoc-pet.svg" type="image/svg+xml">
   <link rel="preload" href="../../assets/img/apidoc-pet.svg" as="image">
@@ -27,7 +27,7 @@
   </noscript>
   <meta property="og:type" content="article">
   <meta property="og:title" content="apidoc-ui Guide · Vue 3 API Documentation Front-end · Apidoc">
-  <meta property="og:description" content="A Vue 3 + TypeScript front-end for loading and displaying API docs, with apps/versions, live debugging, sharing, Swagger export, cache management and i18n.">
+  <meta property="og:description" content="Vue 3 + TypeScript API docs front-end with apps/versions, live debug, protocol panels, definitions, sharing, Swagger export, cache and i18n.">
   <meta property="og:url" content="https://apidoc.erik.xyz/en/docs/ui.html">
   <meta property="og:image" content="https://apidoc.erik.xyz/assets/img/php/social-preview-en.png">
   <meta property="og:image:type" content="image/png">
@@ -39,10 +39,10 @@
   <meta property="og:locale:alternate" content="zh_CN">
   <meta name="twitter:card" content="summary_large_image">
   <meta name="twitter:title" content="apidoc-ui Guide · Vue 3 API Documentation Front-end · Apidoc">
-  <meta name="twitter:description" content="A Vue 3 + TypeScript front-end for loading and displaying API docs, with apps/versions, live debugging, sharing, Swagger export, cache management and i18n.">
+  <meta name="twitter:description" content="Vue 3 + TypeScript API docs front-end with apps/versions, live debug, protocol panels, definitions, sharing, Swagger export, cache and i18n.">
   <meta name="twitter:image" content="https://apidoc.erik.xyz/assets/img/php/social-preview-en.png">
   <meta name="twitter:image:alt" content="Apidoc: API documentation for PHP, Go and Rust">
-  <script type="application/ld+json">{"@context":"https://schema.org","@graph":[{"@type":"Person","@id":"https://apidoc.erik.xyz/#person","name":"erik","url":"https://erik.xyz","sameAs":["https://github.com/erikwang2013"]},{"@type":"Organization","@id":"https://apidoc.erik.xyz/#organization","name":"Apidoc","url":"https://apidoc.erik.xyz/","description":"Open-source API documentation for PHP, Go and Rust.","logo":{"@type":"ImageObject","url":"https://apidoc.erik.xyz/assets/img/apidoc-pet.svg"},"sameAs":["https://github.com/erikwang2013"],"founder":{"@id":"https://apidoc.erik.xyz/#person"}},{"@type":"WebSite","@id":"https://apidoc.erik.xyz/#website","url":"https://apidoc.erik.xyz/","name":"Apidoc","description":"API documentation for PHP, Go and Rust.","inLanguage":["zh-CN","en"],"publisher":{"@id":"https://apidoc.erik.xyz/#organization"}},{"@type":"TechArticle","@id":"https://apidoc.erik.xyz/en/docs/ui.html#article","headline":"apidoc-ui API Documentation Front-end Guide","description":"A Vue 3 + TypeScript documentation front-end with apps/versions, live debugging, sharing, Swagger export, cache management and i18n. The build output is fully static.","url":"https://apidoc.erik.xyz/en/docs/ui.html","mainEntityOfPage":{"@id":"https://apidoc.erik.xyz/en/docs/ui.html"},"inLanguage":"en","author":{"@id":"https://apidoc.erik.xyz/#person"},"publisher":{"@id":"https://apidoc.erik.xyz/#organization"},"isPartOf":{"@id":"https://apidoc.erik.xyz/en/docs/"},"about":"UI","articleSection":"UI","dateModified":"2026-10-21","image":"https://apidoc.erik.xyz/assets/img/social-preview.png","keywords":"apidoc-ui, Vue 3, TypeScript, API documentation UI, Swagger export"},{"@type":"BreadcrumbList","@id":"https://apidoc.erik.xyz/en/docs/ui.html#breadcrumb","itemListElement":[{"@type":"ListItem","position":1,"name":"Home","item":"https://apidoc.erik.xyz/en/"},{"@type":"ListItem","position":2,"name":"Usage guides","item":"https://apidoc.erik.xyz/en/docs/"},{"@type":"ListItem","position":3,"name":"UI","item":"https://apidoc.erik.xyz/en/docs/ui.html"}]}]}</script><meta property="article:modified_time" content="2026-10-21"><meta property="article:section" content="UI">
+  <script type="application/ld+json">{"@context":"https://schema.org","@graph":[{"@type":"Person","@id":"https://apidoc.erik.xyz/#person","name":"erik","url":"https://erik.xyz","sameAs":["https://github.com/erikwang2013"]},{"@type":"Organization","@id":"https://apidoc.erik.xyz/#organization","name":"Apidoc","url":"https://apidoc.erik.xyz/","description":"Open-source API documentation for PHP, Go and Rust.","logo":{"@type":"ImageObject","url":"https://apidoc.erik.xyz/assets/img/apidoc-pet.svg"},"sameAs":["https://github.com/erikwang2013"],"founder":{"@id":"https://apidoc.erik.xyz/#person"}},{"@type":"WebSite","@id":"https://apidoc.erik.xyz/#website","url":"https://apidoc.erik.xyz/","name":"Apidoc","description":"API documentation for PHP, Go and Rust.","inLanguage":["zh-CN","en"],"publisher":{"@id":"https://apidoc.erik.xyz/#organization"}},{"@type":"TechArticle","@id":"https://apidoc.erik.xyz/en/docs/ui.html#article","headline":"apidoc-ui API Documentation Front-end Guide","description":"A Vue 3 + TypeScript documentation front-end with apps/versions, live debugging, arbitrary protocol panels, sharing, Swagger export, cache management and i18n. The build output is fully static.","url":"https://apidoc.erik.xyz/en/docs/ui.html","mainEntityOfPage":{"@id":"https://apidoc.erik.xyz/en/docs/ui.html"},"inLanguage":"en","author":{"@id":"https://apidoc.erik.xyz/#person"},"publisher":{"@id":"https://apidoc.erik.xyz/#organization"},"isPartOf":{"@id":"https://apidoc.erik.xyz/en/docs/"},"about":"UI","articleSection":"UI","dateModified":"2026-10-25","image":"https://apidoc.erik.xyz/assets/img/social-preview.png","keywords":"apidoc-ui, Vue 3, TypeScript, API documentation UI, Swagger export, protocol debugging"},{"@type":"BreadcrumbList","@id":"https://apidoc.erik.xyz/en/docs/ui.html#breadcrumb","itemListElement":[{"@type":"ListItem","position":1,"name":"Home","item":"https://apidoc.erik.xyz/en/"},{"@type":"ListItem","position":2,"name":"Usage guides","item":"https://apidoc.erik.xyz/en/docs/"},{"@type":"ListItem","position":3,"name":"UI","item":"https://apidoc.erik.xyz/en/docs/ui.html"}]}]}</script><meta property="article:modified_time" content="2026-10-25"><meta property="article:section" content="UI">
 </head>
 <body data-copy-label="Copy" data-copied-label="Copied" data-menu-open="Open menu" data-menu-close="Close menu">
   <a class="skip-link" href="#main">Skip to main content</a>
@@ -95,19 +95,19 @@
     <p class="docs-breadcrumb"><a href="../index.html">Home</a><span>/</span><a href="index.html">Usage guides</a><span>/</span>UI</p>
     <div class="docs-badges"><span class="lang-badge">UI</span><span class="version-pill">Vue 3.5</span></div>
     <h1>apidoc-ui API Documentation Front-end Guide</h1>
-    <p>A Vue 3 + TypeScript documentation front-end with apps/versions, live debugging, sharing, Swagger export, cache management and i18n. The build output is fully static.</p>
+    <p>A Vue 3 + TypeScript documentation front-end with apps/versions, live debugging, arbitrary protocol panels, sharing, Swagger export, cache management and i18n. The build output is fully static.</p>
     <div class="docs-actions"><a class="text-link" href="https://github.com/erikwang2013/apidoc-ui" target="_blank" rel="noopener">GitHub <svg class="icon icon-xs" aria-hidden="true"><use href="#i-external"></use></svg></a><a class="text-link" href="https://github.com/erikwang2013/apidoc-ui/blob/main/README.md" target="_blank" rel="noopener">View source <svg class="icon icon-xs" aria-hidden="true"><use href="#i-external"></use></svg></a></div>
     <p class="docs-meta">Version Vue 3.5 / Full reference: apidoc-ui README</p>
   </div>
 </section><div class="wrap docs-layout">
   <aside class="docs-sidebar">
     <p class="docs-sidebar-title">On this page</p>
-    <ul class="docs-toc"><li><a href="#sec-1">When to use it</a></li><li><a href="#sec-2">Build and deploy</a></li><li><a href="#sec-3">Runtime config</a></li><li><a href="#sec-4">Multi-host, apps and appKey</a></li><li><a href="#sec-5">Auth</a></li><li><a href="#sec-6">Live debugging and global params</a></li><li><a href="#sec-7">Sharing, exports and caching</a></li><li><a href="#sec-8">Common deployments</a></li><li class="is-sub"><a href="#sec-9">Same origin</a></li><li class="is-sub"><a href="#sec-10">Cross origin</a></li><li class="is-sub"><a href="#sec-11">Multiple backends</a></li><li class="is-sub"><a href="#sec-12">Subpath deployment</a></li><li><a href="#sec-13">Rules and troubleshooting</a></li><li><a href="#sec-14">Reference</a></li></ul>
+    <ul class="docs-toc"><li><a href="#sec-1">When to use it</a></li><li><a href="#sec-2">Build and deploy</a></li><li><a href="#sec-3">Runtime config</a></li><li><a href="#sec-4">Multi-host, apps and appKey</a></li><li><a href="#sec-5">Auth</a></li><li><a href="#sec-6">Live debugging and global params</a></li><li class="is-sub"><a href="#sec-7">Arbitrary protocol panels</a></li><li><a href="#sec-8">Sharing, exports and caching</a></li><li><a href="#sec-9">Common deployments</a></li><li class="is-sub"><a href="#sec-10">Same origin</a></li><li class="is-sub"><a href="#sec-11">Cross origin</a></li><li class="is-sub"><a href="#sec-12">Multiple backends</a></li><li class="is-sub"><a href="#sec-13">Subpath deployment</a></li><li><a href="#sec-14">Rules and troubleshooting</a></li><li><a href="#sec-15">Reference</a></li></ul>
     <a class="docs-edit" href="https://github.com/erikwang2013/apidoc-ui/blob/main/README.md" target="_blank" rel="noopener">View source <svg class="icon icon-xs" aria-hidden="true"><use href="#i-external"></use></svg></a>
   </aside>
   <article class="docs-article">
-    <details class="docs-toc-mobile"><summary>On this page</summary><ul class="docs-toc"><li><a href="#sec-1">When to use it</a></li><li><a href="#sec-2">Build and deploy</a></li><li><a href="#sec-3">Runtime config</a></li><li><a href="#sec-4">Multi-host, apps and appKey</a></li><li><a href="#sec-5">Auth</a></li><li><a href="#sec-6">Live debugging and global params</a></li><li><a href="#sec-7">Sharing, exports and caching</a></li><li><a href="#sec-8">Common deployments</a></li><li class="is-sub"><a href="#sec-9">Same origin</a></li><li class="is-sub"><a href="#sec-10">Cross origin</a></li><li class="is-sub"><a href="#sec-11">Multiple backends</a></li><li class="is-sub"><a href="#sec-12">Subpath deployment</a></li><li><a href="#sec-13">Rules and troubleshooting</a></li><li><a href="#sec-14">Reference</a></li></ul></details>
-    <p>apidoc-ui is the shared documentation front-end for PHP, Go and Rust backends. It fetches app config and document data, renders endpoints by app/version/group, and provides live debugging, sharing, Swagger export and cache management. The build output is fully static and has no server runtime dependency.</p>
+    <details class="docs-toc-mobile"><summary>On this page</summary><ul class="docs-toc"><li><a href="#sec-1">When to use it</a></li><li><a href="#sec-2">Build and deploy</a></li><li><a href="#sec-3">Runtime config</a></li><li><a href="#sec-4">Multi-host, apps and appKey</a></li><li><a href="#sec-5">Auth</a></li><li><a href="#sec-6">Live debugging and global params</a></li><li class="is-sub"><a href="#sec-7">Arbitrary protocol panels</a></li><li><a href="#sec-8">Sharing, exports and caching</a></li><li><a href="#sec-9">Common deployments</a></li><li class="is-sub"><a href="#sec-10">Same origin</a></li><li class="is-sub"><a href="#sec-11">Cross origin</a></li><li class="is-sub"><a href="#sec-12">Multiple backends</a></li><li class="is-sub"><a href="#sec-13">Subpath deployment</a></li><li><a href="#sec-14">Rules and troubleshooting</a></li><li><a href="#sec-15">Reference</a></li></ul></details>
+    <p>apidoc-ui is the shared documentation front-end for PHP, Go and Rust backends. It fetches app config and document data, renders endpoints by app/version/group, and provides live debugging, arbitrary protocol panels, sharing, Swagger export and cache management. The build output is fully static and has no server runtime dependency.</p>
 <figure class="doc-figure"><img fetchpriority="high" loading="eager" src="../../assets/img/ui/social-preview.svg" alt="apidoc-ui documentation front-end" width="1280" height="640" decoding="async"><figcaption>apidoc-ui: one static documentation interface for PHP, Go and Rust backends.</figcaption></figure>
 
 <h2 id="sec-1">When to use it</h2>
@@ -155,7 +155,7 @@ npm<span class="w"> </span>run<span class="w"> </span>build<span class="w">    <
 <span class="w">    </span><span class="nx">DELETE</span><span class="o">:</span><span class="w"> </span><span class="s2">&quot;#ff4d4f&quot;</span><span class="p">,</span>
 <span class="w">    </span><span class="nx">PATCH</span><span class="o">:</span><span class="w"> </span><span class="s2">&quot;#802feb&quot;</span><span class="p">,</span>
 <span class="w">  </span><span class="p">},</span>
-<span class="w">  </span><span class="nx">API_DETAIL_TABS</span><span class="o">:</span><span class="w"> </span><span class="p">[</span><span class="s2">&quot;table&quot;</span><span class="p">,</span><span class="w"> </span><span class="s2">&quot;json&quot;</span><span class="p">,</span><span class="w"> </span><span class="s2">&quot;ts&quot;</span><span class="p">,</span><span class="w"> </span><span class="s2">&quot;debug&quot;</span><span class="p">],</span>
+<span class="w">  </span><span class="nx">API_DETAIL_TABS</span><span class="o">:</span><span class="w"> </span><span class="p">[</span><span class="s2">&quot;table&quot;</span><span class="p">,</span><span class="w"> </span><span class="s2">&quot;json&quot;</span><span class="p">,</span><span class="w"> </span><span class="s2">&quot;ts&quot;</span><span class="p">,</span><span class="w"> </span><span class="s2">&quot;protocol&quot;</span><span class="p">,</span><span class="w"> </span><span class="s2">&quot;debug&quot;</span><span class="p">],</span>
 <span class="w">  </span><span class="nx">LOAD_SCRIPTS</span><span class="o">:</span><span class="w"> </span><span class="p">[</span><span class="s2">&quot;./utils/md5.js&quot;</span><span class="p">],</span>
 <span class="p">};</span>
 </code></pre>
@@ -210,7 +210,7 @@ npm<span class="w"> </span>run<span class="w"> </span>build<span class="w">    <
 </tr>
 <tr>
 <td><code>API_DETAIL_TABS</code></td>
-<td>Detail tab order: <code>table</code>, <code>json</code>, <code>ts</code>, <code>debug</code>.</td>
+<td>Detail tab order: <code>table</code>, <code>json</code>, <code>ts</code>, <code>protocol</code>, <code>debug</code>; tabs are hidden automatically when no protocol or debugging is unavailable.</td>
 </tr>
 <tr>
 <td><code>LOAD_SCRIPTS</code></td>
@@ -270,23 +270,32 @@ npm<span class="w"> </span>run<span class="w"> </span>build<span class="w">    <
 <span class="p">};</span>
 </code></pre>
 
-<h2 id="sec-7">Sharing, exports and caching</h2>
+<h3 id="sec-7">Arbitrary protocol panels</h3>
+<p>Endpoints declared with <code>#[Protocol]</code> / <code>#[Channel]</code> / <code>#[Debug]</code> get a protocol badge and a Protocol tab in the detail page:</p>
+<ul>
+<li>The Protocol tab shows the protocol, channel address, and the messages, sample validation and syntax errors parsed from <code>#[Definition]</code>. Definition errors never block the page.</li>
+<li>HTTP/REST/SOAP/GraphQL keep using the Debug tab; WebSocket/SSE connect from the browser; MQTT, STOMP, gRPC, TCP/UDP and others use the backend relay.</li>
+<li>When the backend returns <code>debuggable: false</code>, the Debug tab is hidden and the reason is shown. When the relay is disabled, the panel shows the <code>relayEnabled</code> hint.</li>
+<li>Markdown and print exports include the protocol, channel and parsed definition message structure.</li>
+</ul>
+<p>The backend owns protocol support; the UI only renders <code>protocol</code> / <code>channel</code> / <code>debug</code> / <code>definitions</code> and does not interpret protocol semantics.</p>
+<h2 id="sec-8">Sharing, exports and caching</h2>
 <ul>
 <li>Sharing: create a link for an app or endpoint, with a token when needed.</li>
 <li>Exports: Swagger/OpenAPI JSON, Markdown, Postman JSON and printable PDF.</li>
 <li>Cache management: generate or clear endpoint caches; refresh after backend cache changes.</li>
 <li>JSON / TypeScript views: copy request/response examples and type definitions for the front-end.</li>
 </ul>
-<h2 id="sec-8">Common deployments</h2>
-<h3 id="sec-9">Same origin</h3>
+<h2 id="sec-9">Common deployments</h2>
+<h3 id="sec-10">Same origin</h3>
 <p>When the backend and UI share a domain, use <code>HOSTS: []</code> and <code>API_PREFIX: "/apidoc"</code>. Put the UI build in the backend <code>public</code> directory, or proxy the docs prefix appropriately.</p>
-<h3 id="sec-10">Cross origin</h3>
+<h3 id="sec-11">Cross origin</h3>
 <p>Host the UI on a static site, set <code>HOSTS: ["https://api.example.com"]</code>, and add the UI origin to the backend CORS allowlist. If cookies are needed, set <code>WITHCREDENTIALS: true</code> and reflect a specific Origin on the backend.</p>
-<h3 id="sec-11">Multiple backends</h3>
+<h3 id="sec-12">Multiple backends</h3>
 <p>List multiple URLs in <code>HOSTS</code> for test/staging/production or multiple services. Tokens and app selection are kept per host/app.</p>
-<h3 id="sec-12">Subpath deployment</h3>
+<h3 id="sec-13">Subpath deployment</h3>
 <p>The build uses relative paths, so it can live under <code>/docs/</code> or another subpath. Keep <code>config.js</code> next to <code>index.html</code> and adjust <code>API_PREFIX</code> or <code>HOSTS</code> for the deployment path.</p>
-<h2 id="sec-13">Rules and troubleshooting</h2>
+<h2 id="sec-14">Rules and troubleshooting</h2>
 <div class="table-scroll"><table>
 <thead>
 <tr>
@@ -327,9 +336,17 @@ npm<span class="w"> </span>run<span class="w"> </span>build<span class="w">    <
 <td>Debug response is wrong</td>
 <td>Check global headers/query/body, before scripts and target CORS.</td>
 </tr>
+<tr>
+<td>Protocol tab is missing</td>
+<td>Does the backend return <code>protocol</code> for this endpoint? Does a non-HTTP annotation include at least one method-level annotation?</td>
+</tr>
+<tr>
+<td>Protocol panel cannot send</td>
+<td>Is <code>protocols.debug.relay_enable</code> on, and does it require a token/shareKey? Check <code>debuggable</code> and <code>debugReason</code>.</td>
+</tr>
 </tbody>
 </table></div>
-<h2 id="sec-14">Reference</h2>
+<h2 id="sec-15">Reference</h2>
 <ul>
 <li><a href="https://github.com/erikwang2013/apidoc-ui" target="_blank" rel="noopener">apidoc-ui README</a></li>
 <li><a href="https://github.com/erikwang2013/apidoc-ui" target="_blank" rel="noopener">apidoc-ui repository</a></li>

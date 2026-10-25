@@ -1,5 +1,7 @@
 Rust 版用过程宏在 handler 上声明文档，文档片段在编译期静态注册，运行期零成本聚合。它兼容 axum 与 actix-web，内置 Web UI、在线调试、Mock、鉴权、多应用版本、导出、分享与代码生成。适合希望文档严格跟随代码、并在编译期发现错误的 Rust 服务。
 
+> 本页聚焦 HTTP 文档；任意协议调试与协议定义解析见 [PHP 指南]({{root}}{{docsbase}}php.html)。
+
 <figure class="doc-figure"><img src="{{root}}assets/img/rust/social-preview.svg" alt="apidoc-rust social preview"><figcaption>apidoc-rust：过程宏驱动的 API 文档，兼容 axum 与 actix-web。</figcaption></figure>
 
 ## 适用场景
@@ -370,7 +372,6 @@ Rust 侧不连数据库：在 `ApidocConfig.tables` 里配置表和字段，再�
 | 鉴权 token 重启失效 | 显式配置固定 `secret_key`。 |
 | 调试跨域失败 | 是否挂 `cors_layer`；`allow_origins` 是否包含页面来源。 |
 | 页面旧数据 | 文档产物在路由构建时物化；重启服务或重新构建。 |
-
 
 ## 参考
 

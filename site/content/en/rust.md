@@ -1,5 +1,6 @@
 The Rust edition declares documentation with proc macros on handlers. Fragments are statically registered at compile time and aggregated at zero runtime cost. It supports axum and actix-web and ships a web UI, live debugging, Mock, auth, apps/versions, exports, sharing and code generation. It fits Rust services that want docs to stay strict with the code and fail early at compile time.
 
+> This guide focuses on HTTP documentation. For arbitrary protocol debugging and definition parsing, see the [PHP guide]({{root}}{{docsbase}}php.html).
 <figure class="doc-figure"><img src="{{root}}assets/img/rust/social-preview.svg" alt="apidoc-rust social preview"><figcaption>apidoc-rust: proc-macro API docs for axum and actix-web.</figcaption></figure>
 
 ## When to use it
@@ -370,7 +371,6 @@ Rust does not connect to the database. Define tables and fields in `ApidocConfig
 | Tokens die after restart | Set a fixed `secret_key`. |
 | Debug CORS fails | Is `cors_layer` mounted? Does `allow_origins` include the page origin? |
 | Page is stale | Doc artifacts are materialized when the router is built; restart or rebuild. |
-
 
 ## Reference
 

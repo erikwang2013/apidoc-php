@@ -1,5 +1,7 @@
 Go 版把接口文档声明成类型化结构体，并和路由注册放在一起。文档与路由同生，内嵌 Web UI 提供浏览、在线调试、Mock、鉴权、缓存与导出。它适合已经使用 Go HTTP 框架、希望文档跟着路由走的项目。
 
+> 本页聚焦 HTTP 文档；任意协议调试与协议定义解析见 [PHP 指南]({{root}}{{docsbase}}php.html)。
+
 <figure class="doc-figure"><img src="{{root}}assets/img/go/{{imglang}}/architecture.svg" alt="apidoc-go architecture"><figcaption>apidoc-go 架构：路由注册、文档存储、JSON API 与内嵌 UI。</figcaption></figure>
 
 ## 适用场景

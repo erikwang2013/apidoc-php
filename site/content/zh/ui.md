@@ -1,4 +1,4 @@
-apidoc-ui 是 PHP、Go、Rust 三套后端共用的文档前端。它负责拉取接口配置与文档数据，以应用/版本/分组展示接口，并提供在线调试、分享、Swagger 导出、缓存管理等能力。构建产物是纯静态文件，不依赖任何后端运行环境。
+apidoc-ui 是 PHP、Go、Rust 三套后端共用的文档前端。它负责拉取接口配置与文档数据，以应用/版本/分组展示接口，并提供在线调试、任意协议面板、分享、Swagger 导出、缓存管理等能力。构建产物是纯静态文件，不依赖任何后端运行环境。
 
 <figure class="doc-figure"><img src="{{root}}assets/img/ui/social-preview.svg" alt="apidoc-ui documentation front-end"><figcaption>apidoc-ui：同一套静态文档界面，服务于 PHP、Go、Rust 后端。</figcaption></figure>
 
@@ -53,7 +53,7 @@ window.apidocFeConfig = {
     DELETE: "#ff4d4f",
     PATCH: "#802feb",
   },
-  API_DETAIL_TABS: ["table", "json", "ts", "debug"],
+  API_DETAIL_TABS: ["table", "json", "ts", "protocol", "debug"],
   LOAD_SCRIPTS: ["./utils/md5.js"],
 };
 ```
@@ -70,7 +70,7 @@ window.apidocFeConfig = {
 | `AUTH.ERROR_STATUS` / `ERROR_CODE_FIELD` | 鉴权失败的状态码与响应字段。 |
 | `MENU.SHOWURL` | 菜单是否显示接口 URL。 |
 | `METHOD_COLOR` | 各请求类型的颜色。 |
-| `API_DETAIL_TABS` | 详情页标签顺序：`table`、`json`、`ts`、`debug`。 |
+| `API_DETAIL_TABS` | 详情页标签顺序：`table`、`json`、`ts`、`protocol`、`debug`；无协议或不可调试时会自动隐藏对应标签。 |
 | `LOAD_SCRIPTS` | 额外加载的脚本，例如 md5。 |
 | `DEBUG_EVENTS` | 调试事件扩展，见下文。 |
 | `MOCK_EXTENDS` | 自定义 Mock 规则。 |
@@ -117,6 +117,17 @@ window.apidocFeConfig.DEBUG_EVENTS = {
 };
 ```
 
+### 任意协议面板
+
+后端用 `#[Protocol]` / `#[Channel]` / `#[Debug]` 声明的接口会在详情页显示协议徽标与「协议」标签：
+
+- 协议标签展示协议名称、通道地址，以及 `#[Definition]` 解析出的消息字段、样例校验和语法错误；定义错误不会阻断页面。
+- HTTP/REST/SOAP/GraphQL 等继续使用 Debug 标签；WebSocket/SSE 由浏览器直连；MQTT、STOMP、gRPC、TCP/UDP 等由后端中继执行。
+- 后端返回 `debuggable: false` 时，调试标签自动隐藏并展示原因；中继未启用时面板显示 `relayEnabled` 提示。
+- Markdown / 打印导出会包含协议、通道和定义文件解析出的消息结构。
+
+协议能力由后端决定；UI 只按 `protocol` / `channel` / `debug` / `definitions` 渲染，不解释协议语义。
+
 ## 接口分享、导出与缓存
 
 - 接口分享：生成指定应用/接口的链接，必要时附带 token。
@@ -154,6 +165,8 @@ UI 使用相对路径构建，放到 `/docs/` 等子目录也可以工作；确�
 | 鉴权反复失败 | 检查密码、应用密码、token 过期时间与 appKey。 |
 | 分享链接打不开 | 检查链接是否带正确 Host、appKey 与 token。 |
 | 调试结果异常 | 检查全局 Header/Query/Body、前置脚本与目标接口 CORS。 |
+| 协议标签不显示 | 后端是否为该接口返回 `protocol`；非 HTTP 注解是否至少带一个方法级注解。 |
+| 协议面板无法发送 | 后端 `protocols.debug.relay_enable` 是否开启、是否要求 token/shareKey；查看 `debuggable` 与 `debugReason`。 |
 
 ## 参考
 

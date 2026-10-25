@@ -1,5 +1,6 @@
 The Go edition declares API docs as typed structs next to route registration. Docs and routes live together, and the built-in web UI adds browsing, live debugging, Mock, auth, caching and exports. It fits Go HTTP services that want documentation to travel with the router.
 
+> This guide focuses on HTTP documentation. For arbitrary protocol debugging and definition parsing, see the [PHP guide]({{root}}{{docsbase}}php.html).
 <figure class="doc-figure"><img src="{{root}}assets/img/go/{{imglang}}/architecture.svg" alt="apidoc-go architecture"><figcaption>apidoc-go architecture: route registration, document store, JSON API and built-in UI.</figcaption></figure>
 
 ## When to use it

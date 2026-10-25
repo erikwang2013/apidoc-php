@@ -698,6 +698,8 @@ class ApiDocTest
 
 HTTP 之外的接口（MQTT、STOMP、gRPC、TCP/UDP 等）也可以用注解声明协议身份，详情页会按同一套字段表生成调试面板。方法仍需至少一个方法级注解（如 `Title`/`Param`/`Method`）才会被收录；类级 `Protocol`/`Channel`/`Debug`/`Definition` 只被已收录的方法继承，方法级非空字段覆盖类级同名字段。
 
+![任意协议调试：浏览器直连、协议注解与服务端中继](../assets/protocol-debug.svg)
+
 ```php
 use erikwang2013\apidoc\annotation\{Protocol, Channel, Debug, Param, Title};
 
@@ -738,7 +740,7 @@ class GreeterController
 | | `timeout` | 超时秒数，默认 5，受配置 `max_timeout` 上限约束 |
 | | `meta` | 驱动专属默认值（`qos`、`unitId`、`service`/`method`、`headers`、`responseEncoding`、`hints` 等） |
 | | `fields` | 追加驱动字段定义，形状同 `Param` |
-| `Definition` | `file`/`format`/`operation`/`message`/`direction`/`sample`/`sampleFile`/`sampleEncoding`/`strict` | 定义文件声明，供后续的定义解析计划消费；P1 不解析定义文件，调试字段来自驱动字段与 `Param`/`Header`/`Query` |
+| `Definition` | `file`/`format`/`operation`/`message`/`direction`/`sample`/`sampleFile`/`sampleEncoding`/`strict` | 定义文件声明；由 `ParseProtocol` 解析为 `definitions` 消息/字段与校验结果，也可用 `Param`/`Header`/`Query` 补充内联字段 |
 
 ### 调试模式：浏览器直连 vs 服务端中继
 
@@ -813,7 +815,7 @@ P1 已有专用驱动的协议使用专用面板；其余协议在 P2 专用驱�
 ],
 ```
 
-依赖提示：`ext-dom` 用于后续 WSDL/XSD/EDMX 定义解析，`ext-curl` 用于 gRPC 与部分驱动的 HTTP 中继；缺少 `ext-curl` 或 curl 未启用 HTTP/2 时，gRPC 面板会标记为不可调试并给出原因。
+依赖提示：`ext-dom` 用于 WSDL/XSD/EDMX 定义解析，`ext-curl` 用于 gRPC 与部分驱动的 HTTP 中继；缺少 `ext-curl` 或 curl 未启用 HTTP/2 时，gRPC 面板会标记为不可调试并给出原因。
 
 ## 十二、协议定义解析（Definition）
 
@@ -873,6 +875,8 @@ public function sayHello() {}
 
 - 只解析本地文件；`proto import`、`thrift include`（P2）、OpenAPI/AsyncAPI/JSON Schema `$ref`、WSDL/XSD import/include、GraphQL `#import` 均受 `allowed_roots` 限制。
 - 默认只允许 `APIDOC_ROOT_PATH`；不会发起网络请求。
+- 路径先做词法校验，再对 `realpath` 结果做根目录二次校验；指向根目录外的软链会被拒绝，不会读取目标内容。
+- 外部文档中的本地 `$ref`（`#/...`）按该外部文档解析；外部文档内的相对文件引用按该文档所在目录解析。
 - 文件大小、行数、递归深度、import 数量均有上限；循环引用会截断并给出 warning。
 - 详情缓存会记录定义文件及 import 图的 `realpath + mtime + size` 指纹；修改定义文件后下一次请求自动重新解析。
 
@@ -890,3 +894,7 @@ public function sayHello() {}
 ```
 
 `thrift`、`dubbo` 等格式的专用解析器在 P2；当前可用 `raw` 调试面板与 `Definition` 元数据展示。
+
+### 6、性能
+
+缓存命中时，文档读接口与协议定义解析/渲染的本机处理预算为 P95 < 10ms；运行 `php tests/performance.php` 验证。预算不含 PHP-FPM/框架启动、HTTP 服务器与外部网络耗时；生产环境建议开启 `cache.enable` 并预热。

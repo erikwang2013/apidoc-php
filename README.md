@@ -22,6 +22,7 @@ Apidoc 是一款通过解析 **PHP 8 attributes** 自动生成 API 接口文档�
 - **开箱即用**：无需繁杂配置，安装后按文档编写 attributes 即可自动生成 API 文档。
 - **轻松编写**：支持通用注释定义（definitions）、数据表字段的 `ref` / `table` 引用，几句注解即可完成完整字段定义。
 - **在线调试**：文档页内直接调试接口，支持全局参数带入、Mock 数据、前置/后置调试事件。
+- **任意协议**：用 `Protocol` / `Channel` / `Debug` 注解声明 MQTT、STOMP、gRPC、WebSocket、SSE、TCP/UDP 等协议，详情页生成对应调试面板；`Definition` 可解析 OpenAPI、protobuf、WSDL 等本地定义。
 - **多应用/多版本**：单应用、多应用、多版本项目均可配置，接口按应用/版本分组展示与切换。
 - **分组/Tag**：控制器与接口支持多级分组与 Tag 标记。
 - **Markdown 文档**：可将 `.md` 文件挂载为文档页。
@@ -74,6 +75,8 @@ class User
 ## 🔌任意协议调试
 
 除 HTTP 接口外，还可以用 `#[Protocol]` / `#[Channel]` / `#[Debug]` 注解为 MQTT、STOMP、gRPC、TCP/UDP 等任意协议生成调试面板：HTTP/WebSocket/SSE 由浏览器直连，其余协议经服务端调试中继执行。中继**默认关闭**，开启后要求鉴权，目标只能来自接口注解（客户端无法修改），并受超时、大小、速率与会话数限制。
+
+![任意协议调试：浏览器直连、协议注解与服务端中继](assets/protocol-debug.svg)
 
 ```php
 #[Apidoc\Protocol('mqtt')]

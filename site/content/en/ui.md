@@ -1,4 +1,4 @@
-apidoc-ui is the shared documentation front-end for PHP, Go and Rust backends. It fetches app config and document data, renders endpoints by app/version/group, and provides live debugging, sharing, Swagger export and cache management. The build output is fully static and has no server runtime dependency.
+apidoc-ui is the shared documentation front-end for PHP, Go and Rust backends. It fetches app config and document data, renders endpoints by app/version/group, and provides live debugging, arbitrary protocol panels, sharing, Swagger export and cache management. The build output is fully static and has no server runtime dependency.
 
 <figure class="doc-figure"><img src="{{root}}assets/img/ui/social-preview.svg" alt="apidoc-ui documentation front-end"><figcaption>apidoc-ui: one static documentation interface for PHP, Go and Rust backends.</figcaption></figure>
 
@@ -53,7 +53,7 @@ window.apidocFeConfig = {
     DELETE: "#ff4d4f",
     PATCH: "#802feb",
   },
-  API_DETAIL_TABS: ["table", "json", "ts", "debug"],
+  API_DETAIL_TABS: ["table", "json", "ts", "protocol", "debug"],
   LOAD_SCRIPTS: ["./utils/md5.js"],
 };
 ```
@@ -70,7 +70,7 @@ window.apidocFeConfig = {
 | `AUTH.ERROR_STATUS` / `ERROR_CODE_FIELD` | Auth failure status and response field. |
 | `MENU.SHOWURL` | Show endpoint URLs in the menu. |
 | `METHOD_COLOR` | Colors per HTTP method. |
-| `API_DETAIL_TABS` | Detail tab order: `table`, `json`, `ts`, `debug`. |
+| `API_DETAIL_TABS` | Detail tab order: `table`, `json`, `ts`, `protocol`, `debug`; tabs are hidden automatically when no protocol or debugging is unavailable. |
 | `LOAD_SCRIPTS` | Extra scripts, such as md5. |
 | `DEBUG_EVENTS` | Debug event extensions; see below. |
 | `MOCK_EXTENDS` | Custom Mock rules. |
@@ -117,6 +117,17 @@ window.apidocFeConfig.DEBUG_EVENTS = {
 };
 ```
 
+### Arbitrary protocol panels
+
+Endpoints declared with `#[Protocol]` / `#[Channel]` / `#[Debug]` get a protocol badge and a Protocol tab in the detail page:
+
+- The Protocol tab shows the protocol, channel address, and the messages, sample validation and syntax errors parsed from `#[Definition]`. Definition errors never block the page.
+- HTTP/REST/SOAP/GraphQL keep using the Debug tab; WebSocket/SSE connect from the browser; MQTT, STOMP, gRPC, TCP/UDP and others use the backend relay.
+- When the backend returns `debuggable: false`, the Debug tab is hidden and the reason is shown. When the relay is disabled, the panel shows the `relayEnabled` hint.
+- Markdown and print exports include the protocol, channel and parsed definition message structure.
+
+The backend owns protocol support; the UI only renders `protocol` / `channel` / `debug` / `definitions` and does not interpret protocol semantics.
+
 ## Sharing, exports and caching
 
 - Sharing: create a link for an app or endpoint, with a token when needed.
@@ -154,6 +165,8 @@ The build uses relative paths, so it can live under `/docs/` or another subpath.
 | Auth keeps failing | Check the password, app password, token expiry and appKey. |
 | Share link fails | Check the host, appKey and token in the link. |
 | Debug response is wrong | Check global headers/query/body, before scripts and target CORS. |
+| Protocol tab is missing | Does the backend return `protocol` for this endpoint? Does a non-HTTP annotation include at least one method-level annotation? |
+| Protocol panel cannot send | Is `protocols.debug.relay_enable` on, and does it require a token/shareKey? Check `debuggable` and `debugReason`. |
 
 ## Reference
 

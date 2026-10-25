@@ -78,28 +78,28 @@ DOCS = {
         "h1": {"zh": "PHP API 文档使用指南", "en": "PHP API Documentation Guide"},
         "tagline": {"zh": "PHP 8 attributes 驱动的 API 文档", "en": "Attribute-driven API docs for PHP 8"},
         "summary": {
-            "zh": "在 Laravel、ThinkPHP、Hyperf、Webman、Yii2、Yii3 中写 PHP 8 attributes，自动生成可浏览、可调试、可导出的接口文档。",
-            "en": "Write PHP 8 attributes in Laravel, ThinkPHP, Hyperf, Webman, Yii2 or Yii3 and get a browsable, debuggable, exportable API portal.",
+            "zh": "在 Laravel、ThinkPHP、Hyperf、Webman、Yii2、Yii3 中写 PHP 8 attributes，自动生成可浏览、可调试、可导出的接口文档；支持任意协议调试与协议定义解析。",
+            "en": "Write PHP 8 attributes in Laravel, ThinkPHP, Hyperf, Webman, Yii2 or Yii3 and get a browsable, debuggable, exportable API portal, with arbitrary protocol debugging and definition parsing.",
         },
         "seo_title": {
             "zh": "PHP API 文档生成指南 · Laravel / ThinkPHP / Hyperf · Apidoc",
             "en": "PHP API Documentation Guide · Laravel, ThinkPHP, Hyperf · Apidoc",
         },
         "meta_description": {
-            "zh": "在 Laravel、ThinkPHP、Hyperf、Webman、Yii2、Yii3 中用 PHP 8 attributes 声明接口文档，自动生成可浏览、可调试、可导出的 API 文档。",
-            "en": "Generate browsable, debuggable and exportable API docs from PHP 8 attributes in Laravel, ThinkPHP, Hyperf, Webman, Yii2 and Yii3.",
+            "zh": "在 Laravel、ThinkPHP、Hyperf、Webman、Yii2、Yii3 中用 PHP 8 attributes 声明接口文档，自动生成可浏览、可调试、可导出的 API 文档；支持 MQTT、gRPC、WebSocket、TCP/UDP 调试与 OpenAPI、protobuf、WSDL 等定义解析。",
+            "en": "PHP 8 attribute API docs for Laravel, ThinkPHP, Hyperf, Webman, Yii2 and Yii3, with MQTT/gRPC debugging and OpenAPI/protobuf/WSDL definitions.",
         },
         "seo_keywords": {
-            "zh": "PHP API 文档, PHP 8 attributes, Laravel, ThinkPHP, Hyperf, Webman, Yii2, Yii3",
-            "en": "PHP API documentation, PHP 8 attributes, Laravel, ThinkPHP, Hyperf, Webman, Yii2, Yii3",
+            "zh": "PHP API 文档, PHP 8 attributes, Laravel, ThinkPHP, Hyperf, Webman, Yii2, Yii3, MQTT, gRPC, WebSocket, 协议调试",
+            "en": "PHP API documentation, PHP 8 attributes, Laravel, ThinkPHP, Hyperf, Webman, Yii2, Yii3, MQTT, gRPC, WebSocket, protocol debugging",
         },
         "sections": {
-            "zh": ["安装与框架接入", "注解、参数与响应规则", "definitions / ref / children 复用", "鉴权、导出、场景与排错"],
-            "en": ["Install and framework setup", "Annotations, params and responses", "definitions / ref / children reuse", "Auth, exports, scenarios and troubleshooting"],
+            "zh": ["安装与框架接入", "注解、参数与响应规则", "任意协议调试与定义解析", "鉴权、导出、场景与排错"],
+            "en": ["Install and framework setup", "Annotations, params and responses", "Protocol debugging and definitions", "Auth, exports, scenarios and troubleshooting"],
         },
         "facts": {
-            "zh": ["PHP 8 attributes", "6 个框架适配", "definitions / ref / children", "在线调试、Mock、JSON/TS"],
-            "en": ["PHP 8 attributes", "6 framework adapters", "definitions / ref / children", "Debug, Mock, JSON/TS"],
+            "zh": ["PHP 8 attributes", "6 个框架适配", "任意协议调试 + 定义解析", "读接口 P95 < 10ms"],
+            "en": ["PHP 8 attributes", "6 framework adapters", "Protocol debug + definitions", "Read APIs P95 < 10 ms"],
         },
         "frameworks": "Laravel · ThinkPHP · Hyperf · Webman · Yii2 · Yii3",
     },
@@ -204,28 +204,28 @@ DOCS = {
         "h1": {"zh": "apidoc-ui API 文档前端使用指南", "en": "apidoc-ui API Documentation Front-end Guide"},
         "tagline": {"zh": "三套后端共用的静态文档前端", "en": "One static front-end for all three backends"},
         "summary": {
-            "zh": "Vue 3 + TypeScript 的文档加载与展示页面，支持应用/版本、在线调试、接口分享、Swagger 导出、缓存管理与多语言。构建产物为纯静态文件。",
-            "en": "A Vue 3 + TypeScript documentation front-end with apps/versions, live debugging, sharing, Swagger export, cache management and i18n. The build output is fully static.",
+            "zh": "Vue 3 + TypeScript 的文档加载与展示页面，支持应用/版本、在线调试、任意协议面板、接口分享、Swagger 导出、缓存管理与多语言。构建产物为纯静态文件。",
+            "en": "A Vue 3 + TypeScript documentation front-end with apps/versions, live debugging, arbitrary protocol panels, sharing, Swagger export, cache management and i18n. The build output is fully static.",
         },
         "seo_title": {
             "zh": "apidoc-ui 使用指南 · Vue 3 API 文档前端 · Apidoc",
             "en": "apidoc-ui Guide · Vue 3 API Documentation Front-end · Apidoc",
         },
         "meta_description": {
-            "zh": "Vue 3 + TypeScript 的 API 文档加载与展示页面，支持多应用/版本、在线调试、接口分享、Swagger 导出、缓存管理与多语言，构建产物为纯静态文件。",
-            "en": "A Vue 3 + TypeScript front-end for loading and displaying API docs, with apps/versions, live debugging, sharing, Swagger export, cache management and i18n.",
+            "zh": "Vue 3 + TypeScript 的 API 文档加载与展示页面，支持多应用/版本、在线调试、任意协议面板、协议定义展示、接口分享、Swagger 导出、缓存管理与多语言，构建产物为纯静态文件。",
+            "en": "Vue 3 + TypeScript API docs front-end with apps/versions, live debug, protocol panels, definitions, sharing, Swagger export, cache and i18n.",
         },
         "seo_keywords": {
-            "zh": "apidoc-ui, Vue 3, TypeScript, API 文档前端, Swagger 导出",
-            "en": "apidoc-ui, Vue 3, TypeScript, API documentation UI, Swagger export",
+            "zh": "apidoc-ui, Vue 3, TypeScript, API 文档前端, Swagger 导出, 协议调试",
+            "en": "apidoc-ui, Vue 3, TypeScript, API documentation UI, Swagger export, protocol debugging",
         },
         "sections": {
-            "zh": ["构建与部署", "config.js 运行时配置", "多 Host / appKey / 鉴权", "调试事件、Mock 扩展与排错"],
-            "en": ["Build and deploy", "config.js runtime config", "Multi-host / appKey / auth", "Debug events, Mock extensions and troubleshooting"],
+            "zh": ["构建与部署", "config.js 运行时配置", "在线调试、协议面板与鉴权", "导出、缓存与排错"],
+            "en": ["Build and deploy", "config.js runtime config", "Debug, protocol panels and auth", "Exports, caching and troubleshooting"],
         },
         "facts": {
-            "zh": ["Vue 3.5 + TypeScript", "纯静态构建产物", "多 Host / 多应用", "在线调试与 Swagger 导出"],
-            "en": ["Vue 3.5 + TypeScript", "Static build output", "Multi-host / multi-app", "Live debug and Swagger export"],
+            "zh": ["Vue 3.5 + TypeScript", "纯静态构建产物", "协议调试面板与定义展示", "在线调试与 Swagger 导出"],
+            "en": ["Vue 3.5 + TypeScript", "Static build output", "Protocol panels and definitions", "Live debug and Swagger export"],
         },
         "frameworks": "Vue 3.5 · Vite 6 · Pinia · Monaco",
     },
@@ -240,6 +240,10 @@ FAQ = {
         (
             "支持哪些框架？",
             "PHP 支持 Laravel、ThinkPHP、Hyperf、Webman、Yii2、Yii3；Go 支持 net/http、Gin、Echo、Chi、Fiber、beego、Kratos、go-zero；Rust 支持 axum 与 actix-web。",
+        ),
+        (
+            "支持非 HTTP 协议吗？",
+            "PHP 版支持用 Protocol / Channel / Debug 注解声明 MQTT、STOMP、gRPC、WebSocket、SSE、TCP/UDP 等协议，并在文档页调试；Definition 还能解析 OpenAPI、AsyncAPI、protobuf、WSDL、GraphQL、JSON Schema 等本地定义。Go 与 Rust 指南当前以 HTTP 文档为主。",
         ),
         (
             "需要数据库或额外后端吗？",
@@ -258,6 +262,10 @@ FAQ = {
         (
             "Which frameworks are supported?",
             "PHP: Laravel, ThinkPHP, Hyperf, Webman, Yii2 and Yii3. Go: net/http, Gin, Echo, Chi, Fiber, beego, Kratos and go-zero. Rust: axum and actix-web.",
+        ),
+        (
+            "Are non-HTTP protocols supported?",
+            "The PHP edition declares MQTT, STOMP, gRPC, WebSocket, SSE, TCP/UDP and other protocols with Protocol / Channel / Debug annotations and debugs them from the docs page. Definition also parses local OpenAPI, AsyncAPI, protobuf, WSDL, GraphQL, JSON Schema and related files. The Go and Rust guides currently focus on HTTP documentation.",
         ),
         (
             "Does it need a database or extra backend?",
@@ -332,7 +340,7 @@ UI = {
         "choose_language": "选择语言", "read_guides": "阅读使用文档",
         "stats_languages": "后端语言", "stats_adapters": "框架适配器", "stats_ui": "共享文档 UI", "stats_pets": "宠物表情",
         "intro_title": "一个项目家族，一套文档体验。",
-        "intro_p1": "Apidoc 把接口文档从手写 Markdown 变成代码旁的声明。PHP 版使用 PHP 8 attributes，Go 版使用类型化结构体，Rust 版使用过程宏；三者共享同一套文档模型、在线调试与静态前端。",
+        "intro_p1": "Apidoc 把接口文档从手写 Markdown 变成代码旁的声明。PHP 版使用 PHP 8 attributes，Go 版使用类型化结构体，Rust 版使用过程宏；三者共享同一套文档模型、在线调试与静态前端。PHP 版还可调试 MQTT、gRPC、TCP 等任意协议，并解析 OpenAPI、protobuf、WSDL 等定义文件。",
         "intro_p2": "PHP 版源自 <a href='https://github.com/HGthecode/apidoc-php' target='_blank' rel='noopener'>HGthecode/apidoc-php</a>（<a href='https://packagist.org/packages/hg/apidoc' target='_blank' rel='noopener'>hg/apidoc</a>）；Go、Rust 与 apidoc-ui 由 erikwang2013 维护。每种语言保留自己的安装与接入方式，文档体验保持一致。",
         "intro_source": "从声明到交付，三种语言走同一条文档流水线。",
         "intro_caption": "项目家族 Social Preview。宠物与注解代码。",
@@ -340,7 +348,7 @@ UI = {
         "languages_sub": "同一套文档工作流，不同的注解机制、框架适配与构建时机。每种语言都有独立的使用指南。",
         "ui_title": "apidoc-ui · 共享文档前端",
         "ui_sub": "PHP、Go、Rust 三套后端共用同一个静态文档 UI。Vue 3 + TypeScript，构建产物可直接部署。",
-        "ui_note": "后端地址由同目录 config.js 配置；支持多应用、在线调试、分享、Swagger 导出与缓存管理。",
+        "ui_note": "后端地址由同目录 config.js 配置；支持多应用、在线调试、任意协议面板、分享、Swagger 导出与缓存管理。",
         "compare_title": "同一个接口，三种写法。",
         "compare_sub": "不需要迁移技术栈。用你现有的语言声明路由与文档，Apidoc 负责生成、调试与交付。",
         "features_title": "同一套文档体验，各自原生。",
@@ -367,7 +375,7 @@ UI = {
         "footer_license": "MIT License", "footer_made": "由 erik 维护", "reference_label": "参考项目",
         "docs_hub_title": "API 文档使用指南", "docs_hub_sub": "四种实现，一套文档工作流。选择语言，从安装、规则到场景与排错。",
         "docs_hub_seo_title": "Apidoc 使用文档 · PHP / Go / Rust API 文档指南",
-        "docs_hub_meta_description": "四种实现，一套文档工作流。选择 PHP、Go、Rust 或 apidoc-ui，从安装、注解规则到典型场景与排错，快速搭建 API 文档。",
+        "docs_hub_meta_description": "四种实现，一套文档工作流。选择 PHP、Go、Rust 或 apidoc-ui，从安装、注解规则、任意协议调试到典型场景与排错，快速搭建 API 文档。",
         "faq_title": "常见问题", "faq_sub": "关于 Apidoc 的常见疑问。",
         "docs_hub_meta": "PHP · Go · Rust · UI",
         "workflow_title": "从声明到交付，五步。", "workflow_sub": "无论使用哪种语言，文档都沿着同一条路径进入生产。",
@@ -379,6 +387,7 @@ UI = {
             ["文档生成时机", "运行时解析控制器", "路由注册时写入", "编译期静态注册"],
             ["框架适配", "6 个", "8 个", "axum / actix-web"],
             ["在线调试 / Mock", "支持 / 规则表达式", "支持 / 按类型生成", "支持 / 15 条 fake 规则"],
+            ["协议调试 / 定义解析", "MQTT / gRPC / TCP 等", "—", "—"],
             ["鉴权", "全局与应用密码", "Cookie session + 应用 token", "HMAC-SHA256 token"],
             ["导出", "JSON / TS / Swagger / 分享", "JSON / TS", "Markdown / TS / Swagger / 分享"],
         ],
@@ -409,7 +418,7 @@ UI = {
         "choose_language": "Choose a language", "read_guides": "Read the guides",
         "stats_languages": "backend languages", "stats_adapters": "framework adapters", "stats_ui": "shared docs UI", "stats_pets": "pet moods",
         "intro_title": "One project family, one documentation experience.",
-        "intro_p1": "Apidoc turns API docs from hand-written Markdown into declarations next to your code. PHP uses PHP 8 attributes, Go uses typed structs, and Rust uses proc macros. All three share one document model, live debugging and the same static front-end.",
+        "intro_p1": "Apidoc turns API docs from hand-written Markdown into declarations next to your code. PHP uses PHP 8 attributes, Go uses typed structs, and Rust uses proc macros. All three share one document model, live debugging and the same static front-end. PHP also debugs MQTT, gRPC, TCP and other protocols, and parses OpenAPI, protobuf, WSDL and other definition files.",
         "intro_p2": "The PHP edition started from <a href='https://github.com/HGthecode/apidoc-php' target='_blank' rel='noopener'>HGthecode/apidoc-php</a> (<a href='https://packagist.org/packages/hg/apidoc' target='_blank' rel='noopener'>hg/apidoc</a>). Go, Rust and apidoc-ui are maintained by erikwang2013. Each language keeps its native setup while the documentation experience stays consistent.",
         "intro_source": "From declaration to delivery, all three languages follow the same documentation pipeline.",
         "intro_caption": "Project family social preview. The pet and annotation code.",
@@ -417,7 +426,7 @@ UI = {
         "languages_sub": "One documentation workflow, different declaration mechanisms, framework adapters and build times. Every language has its own guide.",
         "ui_title": "apidoc-ui · shared documentation front-end",
         "ui_sub": "One static documentation UI for PHP, Go and Rust backends. Vue 3 + TypeScript with a deployable static build.",
-        "ui_note": "The backend URL is set in config.js next to index.html. Multi-app, live debug, sharing, Swagger export and cache management are built in.",
+        "ui_note": "The backend URL is set in config.js next to index.html. Multi-app, live debug, arbitrary protocol panels, sharing, Swagger export and cache management are built in.",
         "compare_title": "One endpoint, three ways.",
         "compare_sub": "Keep your stack. Declare routes and docs in the language you already use; Apidoc handles generation, debugging and delivery.",
         "features_title": "One documentation experience, native in each.",
@@ -444,7 +453,7 @@ UI = {
         "footer_license": "MIT License", "footer_made": "Maintained by erik", "reference_label": "Upstream",
         "docs_hub_title": "API Documentation Guides", "docs_hub_sub": "Four implementations, one documentation workflow. Choose a language and go from install to rules, scenarios and troubleshooting.",
         "docs_hub_seo_title": "Apidoc Guides · PHP, Go and Rust API Documentation",
-        "docs_hub_meta_description": "Four implementations, one documentation workflow. Choose PHP, Go, Rust or apidoc-ui, from install and annotation rules to scenarios and troubleshooting.",
+        "docs_hub_meta_description": "Four implementations, one workflow. Choose PHP, Go, Rust or apidoc-ui, from install and annotation rules to protocol debugging and troubleshooting.",
         "faq_title": "Frequently asked questions", "faq_sub": "Common questions about Apidoc.",
         "docs_hub_meta": "PHP · Go · Rust · UI",
         "workflow_title": "From declaration to delivery, in five steps.", "workflow_sub": "Whichever language you use, docs follow the same path into production.",
@@ -456,6 +465,7 @@ UI = {
             ["Docs built at", "Runtime controller scan", "Route registration", "Compile time, static registry"],
             ["Framework adapters", "6", "8", "axum / actix-web"],
             ["Debug / Mock", "Yes / rule expressions", "Yes / generated by type", "Yes / 15 fake rules"],
+            ["Protocol debug / definitions", "MQTT / gRPC / TCP and more", "—", "—"],
             ["Auth", "Global and app passwords", "Cookie session + app token", "HMAC-SHA256 token"],
             ["Exports", "JSON / TS / Swagger / share", "JSON / TS", "Markdown / TS / Swagger / share"],
         ],
@@ -492,26 +502,26 @@ FEATURE_CARDS = [
 
 FEATURE_TEXT = {
     "zh": [
-        ("在线调试", "在文档页直接请求真实接口，支持全局参数、Mock 预填与请求前后事件。三种语言的文档都提供调试面板。"),
+        ("任意协议调试", "HTTP/WebSocket/SSE 由浏览器直连；MQTT、STOMP、gRPC、TCP/UDP 等经服务端中继。目标只来自注解，中继默认关闭。"),
         ("Mock 数据", "字段级 Mock 示例。PHP 支持规则表达式，Go 按类型生成，Rust 提供 15 条 fake 规则。"),
         ("多应用 / 多版本", "一套文档管理多个应用与版本，按应用树切换；接口归属与访问密码可以独立配置。"),
-        ("鉴权与缓存", "全局密码与应用独立密码；文档缓存、ETag/304 与常量时间比较，兼顾速度与安全。"),
+        ("鉴权与缓存", "全局密码与应用独立密码；文档缓存、ETag/304 与常量时间比较，读接口本机处理 P95 < 10ms。"),
         ("统一导出", "JSON、TypeScript、Markdown、Swagger/OpenAPI 等格式按语言提供；请求与响应可直接交给前端和测试。"),
         ("代码生成", "PHP 与 Rust 提供配置/模板驱动的代码生成；Go 侧重文档导出与注释解析。"),
-        ("共享文档 UI", "apidoc-ui 同时服务 PHP、Go、Rust 后端；Vue 3 + TypeScript，构建产物为纯静态文件。"),
-        ("安全边界", "HMAC 令牌、CORS 白名单、路径与标识符校验；把文档服务当作生产接口来保护。"),
-        ("从声明到交付", "声明、浏览、调试、导出、部署沿同一条路径完成，三种语言共享这套工作流。"),
+        ("共享文档 UI", "apidoc-ui 同时服务 PHP、Go、Rust 后端；协议面板与定义校验由后端驱动，前端按统一契约渲染。"),
+        ("安全边界", "HMAC 令牌、CORS 白名单、路径与标识符校验；协议中继还限制目标、鉴权、速率、超时与字节数。"),
+        ("从声明到交付", "声明、浏览、调试、导出、部署沿同一条路径完成；Definition 可解析 OpenAPI、protobuf、WSDL 等本地定义。"),
     ],
     "en": [
-        ("Live debugging", "Call real endpoints from the docs page with global params, Mock prefill and request/response events. Every language guide includes a debug panel."),
+        ("Arbitrary protocol debug", "HTTP, WebSocket and SSE connect from the browser; MQTT, STOMP, gRPC, TCP/UDP and others use a server relay. Targets come only from annotations, and the relay is off by default."),
         ("Mock data", "Field-level Mock examples. PHP supports rule expressions, Go generates values by type, and Rust ships 15 fake rules."),
         ("Apps and versions", "Manage multiple apps and versions in one portal, switch by the app tree, and scope access passwords per app."),
-        ("Auth and caching", "Global and per-app passwords, document caching, ETag/304 and constant-time comparison for speed with a security boundary."),
+        ("Auth and caching", "Global and per-app passwords, document caching, ETag/304 and constant-time comparison, with local read-path P95 under 10 ms."),
         ("Unified exports", "JSON, TypeScript, Markdown and Swagger/OpenAPI are available per language. Hand request and response shapes to front-end and QA."),
         ("Code generation", "PHP and Rust provide template-driven code generation; Go focuses on exports and comment parsing."),
-        ("Shared docs UI", "apidoc-ui serves PHP, Go and Rust backends. Vue 3 + TypeScript with a fully static build."),
-        ("Security boundary", "HMAC tokens, CORS allowlists and path/identifier validation. Treat the docs server like a production API."),
-        ("From declaration to delivery", "Declare, browse, debug, export and deploy on one path, shared by all three languages."),
+        ("Shared docs UI", "apidoc-ui serves PHP, Go and Rust backends. Protocol panels and definition validation are backend-driven and rendered through one contract."),
+        ("Security boundary", "HMAC tokens, CORS allowlists and path/identifier validation. Protocol relays also restrict targets, auth, rate, timeout and bytes."),
+        ("From declaration to delivery", "Declare, browse, debug, export and deploy on one path. Definition parsing covers OpenAPI, protobuf, WSDL and more."),
     ],
 }
 
@@ -1402,7 +1412,7 @@ def build_home(lang: str) -> None:
     current = "index.html" if lang == "zh" else "en/index.html"
     title = "Apidoc · PHP、Go、Rust 通用 API 文档体系" if lang == "zh" else "Apidoc · API documentation for PHP, Go and Rust"
     description = (
-        "Apidoc 是 PHP、Go、Rust 通用的 API 文档体系：注解生成、在线调试、Mock、多应用版本、鉴权、导出与共享文档 UI。"
+        "Apidoc 是 PHP、Go、Rust 通用的 API 文档体系：注解生成、在线调试、任意协议调试、Mock、多应用版本、鉴权、导出与共享文档 UI。"
         if lang == "zh" else
         "Apidoc is an API documentation system for PHP, Go and Rust: annotations, live debugging, Mock, apps/versions, auth, exports and a shared docs UI."
     )

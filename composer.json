@@ -1,6 +1,6 @@
 {
     "name": "erikwang2013/apidoc-php",
-    "description": "基于PHP 8 attributes生成API文档，兼容Laravel、ThinkPHP、Hyperf、Webman等框架；在线调试、Markdown文档、多应用/多版本、Mock数据、授权访问、接口生成器、代码生成器等众多实用功能",
+    "description": "基于PHP 8 attributes生成API文档，兼容Laravel、ThinkPHP、Hyperf、Webman等框架；在线调试、任意协议调试、协议定义解析、Markdown文档、多应用/多版本、Mock数据、授权访问、接口生成器、代码生成器等众多实用功能",
     "keywords": [
         "apidoc",
         "api文档",
@@ -9,7 +9,11 @@
         "attribute生成",
         "php接口文档",
         "Markdown",
-        "attributes"
+        "attributes",
+        "websocket",
+        "mqtt",
+        "grpc",
+        "openapi"
     ],
     "require": {
         "php": "^8.0"
