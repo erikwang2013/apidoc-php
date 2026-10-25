@@ -13,6 +13,14 @@ class OpenApiFixture
     #[Definition(file: 'tests/fixtures/protocol/openapi/api.yaml', operation: 'getUser')]
     #[Title('Get user')]
     public function getUser() {}
+
+    #[Definition(file: 'tests/fixtures/protocol/openapi/api.yaml', operation: 'createUser')]
+    #[Title('Create user')]
+    public function createUser() {}
+
+    #[Definition(file: 'tests/fixtures/protocol/openapi/swagger.yaml', operation: 'ping')]
+    #[Title('Ping')]
+    public function ping() {}
 }
 
 #[Protocol('mqtt')]
@@ -38,6 +46,10 @@ class ProtoFixture
     #[Definition(file: 'tests/fixtures/protocol/proto/helloworld.proto', operation: 'helloworld.Greeter/SayHello')]
     #[Title('SayHello')]
     public function sayHello() {}
+
+    #[Definition(file: 'tests/fixtures/protocol/proto/helloworld.proto', operation: 'helloworld.Greeter/Search')]
+    #[Title('Search')]
+    public function search() {}
 }
 
 #[Protocol('grpc')]

@@ -11,3 +11,13 @@ paths:
           content:
             application/json:
               schema: {$ref: './user.yaml#/User'}
+  /users:
+    post:
+      operationId: createUser
+      requestBody:
+        $ref: './request.yaml#/UserInput'
+      responses:
+        "200":
+          content:
+            application/json:
+              schema: {$ref: './user.yaml#/User'}

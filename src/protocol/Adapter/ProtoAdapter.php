@@ -340,7 +340,8 @@ class ProtoAdapter implements AdapterInterface
             $rpcName = $ts->identifier();
             $ts->expect('(');
             $clientStream = false;
-            if ($ts->peek() === 's' && $ts->identifier() === 'stream') {
+            if ($ts->peekIdentifier() === 'stream') {
+                $ts->identifier();
                 $clientStream = true;
             }
             $request = $ts->identifier();
@@ -353,7 +354,8 @@ class ProtoAdapter implements AdapterInterface
             }
             $ts->expect('(');
             $serverStream = false;
-            if ($ts->peek() === 's' && $ts->identifier() === 'stream') {
+            if ($ts->peekIdentifier() === 'stream') {
+                $ts->identifier();
                 $serverStream = true;
             }
             $response = $ts->identifier();

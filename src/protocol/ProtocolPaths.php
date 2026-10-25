@@ -48,12 +48,38 @@ class ProtocolPaths
         foreach ($this->roots as $root) {
             $file = DirAndFile::resolvePathWithinRoot($relativePath, $root);
             if ($file !== false && is_file($file)) {
-                return [
-                    'realpath' => realpath($file),
-                    'declared' => ltrim(str_replace('\\', '/', $relativePath), '/'),
-                ];
+                $real = realpath($file);
+                // 词法检查不跟随软链, 这里用 realpath 再确认一次目标仍在根目录内
+                if ($real !== false && self::withinRoots($real, $this->roots)) {
+                    return [
+                        'realpath' => $real,
+                        'declared' => ltrim(str_replace('\\', '/', $relativePath), '/'),
+                    ];
+                }
             }
         }
         return null;
+    }
+
+    /**
+     * 判断 realpath 是否位于任一允许根目录内(带分隔符比较)
+     * @param string $realpath
+     * @param array $roots
+     * @return bool
+     */
+    public static function withinRoots(string $realpath, array $roots): bool
+    {
+        $realpath = str_replace('\\', '/', $realpath);
+        foreach ($roots as $root) {
+            $rootPath = realpath($root);
+            if ($rootPath === false) {
+                continue;
+            }
+            $rootPath = rtrim(str_replace('\\', '/', $rootPath), '/');
+            if ($rootPath === '' || $realpath === $rootPath || strpos($realpath, $rootPath . '/') === 0) {
+                return true;
+            }
+        }
+        return false;
     }
 }

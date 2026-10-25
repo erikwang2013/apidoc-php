@@ -77,6 +77,26 @@ class TokenStream
         $this->advance();
     }
 
+    /**
+     * 预览下一个标识符而不消费
+     * @return string 非标识符时返回空串
+     */
+    public function peekIdentifier(): string
+    {
+        $savePos = $this->pos;
+        $saveLine = $this->line;
+        $saveColumn = $this->column;
+        $this->skipTrivia();
+        $value = '';
+        if (preg_match('/\G[A-Za-z_][A-Za-z0-9_.]*/', $this->source, $matches, 0, $this->pos) === 1) {
+            $value = $matches[0];
+        }
+        $this->pos = $savePos;
+        $this->line = $saveLine;
+        $this->column = $saveColumn;
+        return $value;
+    }
+
     public function identifier(): string
     {
         $this->skipTrivia();

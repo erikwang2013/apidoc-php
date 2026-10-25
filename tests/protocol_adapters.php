@@ -65,6 +65,13 @@ check('openapi response id', ($response['fields'][0]['name'] ?? '') === 'id');
 check('openapi response name', ($response['fields'][1]['name'] ?? '') === 'name');
 check('openapi external import fingerprinted', count($detail['_definitionFingerprints'] ?? []) === 2);
 check('openapi valid', ($detail['definitions'][0]['validation']['ok'] ?? false) === true);
+$detail = renderFixture(\Tests\Fixtures\Protocol\OpenApiFixture::class, 'createUser');
+$body = $detail['definitions'][0]['messages'][0] ?? [];
+check('openapi external body local ref type', ($body['fields'][0]['type'] ?? '') === 'integer');
+check('openapi external body valid', ($detail['definitions'][0]['validation']['ok'] ?? false) === true);
+$detail = renderFixture(\Tests\Fixtures\Protocol\OpenApiFixture::class, 'ping');
+check('swagger 2.0 numeric version accepted', ($detail['definitions'][0]['validation']['ok'] ?? false) === true);
+check('swagger 2.0 response field', ($detail['definitions'][0]['messages'][1]['fields'][0]['name'] ?? '') === 'ok');
 
 // ---------- AsyncAPI ----------
 $detail = renderFixture(\Tests\Fixtures\Protocol\AsyncApiFixture::class, 'onTemp');
@@ -72,6 +79,7 @@ check('asyncapi operation', ($detail['definitions'][0]['operation'] ?? '') === '
 check('asyncapi message name', ($detail['definitions'][0]['messages'][0]['name'] ?? '') === 'Temperature');
 check('asyncapi direction event', ($detail['definitions'][0]['messages'][0]['direction'] ?? '') === 'event');
 check('asyncapi field value', ($detail['definitions'][0]['messages'][0]['fields'][0]['name'] ?? '') === 'value');
+check('asyncapi external payload local ref type', ($detail['definitions'][0]['messages'][0]['fields'][0]['type'] ?? '') === 'number');
 check('asyncapi external import', count($detail['_definitionFingerprints'] ?? []) === 2);
 
 // ---------- GraphQL ----------
@@ -93,6 +101,9 @@ check('proto repeated is array', ($req['fields'][2]['type'] ?? '') === 'array');
 check('proto imported message resolves', ($req['fields'][1]['children'][0]['name'] ?? '') === 'trace_id');
 check('proto import fingerprinted', count($detail['_definitionFingerprints'] ?? []) === 2);
 check('proto response message field', ($res['fields'][0]['name'] ?? '') === 'message');
+$search = renderFixture(\Tests\Fixtures\Protocol\ProtoFixture::class, 'search');
+check('proto lowercase request type parsed', ($search['definitions'][0]['messages'][0]['fields'][0]['name'] ?? '') === 'q');
+check('proto lowercase type valid', ($search['definitions'][0]['validation']['ok'] ?? false) === true);
 $bad = renderFixture(\Tests\Fixtures\Protocol\ProtoBadFixture::class, 'bad');
 check('proto unsupported construct reported', ($bad['definitions'][0]['validation']['ok'] ?? true) === false);
 check('proto error has line', ($bad['definitions'][0]['validation']['errors'][0]['line'] ?? 0) > 0);

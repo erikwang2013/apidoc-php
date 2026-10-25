@@ -26,8 +26,8 @@ class OpenApiAdapter implements AdapterInterface
     public function parse(ProtocolContext $ctx, string $content): array
     {
         $document = $this->decode($content);
-        $version = isset($document['openapi']) ? (string)$document['openapi'] : '';
-        $swagger = isset($document['swagger']) ? (string)$document['swagger'] : '';
+        $version = isset($document['openapi']) ? $this->versionString($document['openapi']) : '';
+        $swagger = isset($document['swagger']) ? $this->versionString($document['swagger']) : '';
         if ($version === '' && $swagger === '') {
             $ctx->error('OpenAPI version is missing');
         } elseif ($version !== '' && strpos($version, '3.') !== 0) {
@@ -41,8 +41,8 @@ class OpenApiAdapter implements AdapterInterface
             return ['operation' => '', 'messages' => [], 'meta' => []];
         }
         $load = $this->loader();
-        $resolveRef = function (string $ref) use ($document, $ctx, $load): ?array {
-            return RefResolver::resolve($ref, $document, $ctx, $load);
+        $resolveRef = function (string $ref, ?array &$resolvedRoot = null) use ($document, $ctx, $load): ?array {
+            return RefResolver::resolve($ref, $document, $ctx, $load, $resolvedRoot);
         };
         $operations = $this->operations($paths, $document, $ctx, $load);
         if ($operations === []) {
@@ -53,6 +53,8 @@ class OpenApiAdapter implements AdapterInterface
         $operation = $selected['operation'];
         $method = $selected['method'];
         $path = $selected['path'];
+        // pathItem 可能来自外部文档, 其内部的本地 $ref 必须按该文档解析
+        $operationRoot = isset($selected['root']) && is_array($selected['root']) ? $selected['root'] : $document;
 
         $requestFields = [];
         $parameters = [];
@@ -66,23 +68,25 @@ class OpenApiAdapter implements AdapterInterface
             if (!is_array($parameter)) {
                 continue;
             }
+            $parameterRoot = $operationRoot;
             if (isset($parameter['$ref']) && is_string($parameter['$ref'])) {
-                $resolved = $resolveRef($parameter['$ref']);
+                $resolved = $resolveRef($parameter['$ref'], $parameterRoot);
                 if (!is_array($resolved)) {
                     continue;
                 }
                 $parameter = $resolved;
             }
-            $fields = $this->parameterFields($parameter, $ctx, $document, $load, $resolveRef);
+            $fields = $this->parameterFields($parameter, $ctx, $parameterRoot, $load, $resolveRef);
             $requestFields = array_merge($requestFields, $fields);
         }
         if (isset($operation['requestBody'])) {
             $requestBody = $operation['requestBody'];
+            $bodyRoot = $operationRoot;
             if (is_array($requestBody) && isset($requestBody['$ref']) && is_string($requestBody['$ref'])) {
-                $requestBody = $resolveRef($requestBody['$ref']);
+                $requestBody = $resolveRef($requestBody['$ref'], $bodyRoot);
             }
             if (is_array($requestBody)) {
-                $requestFields = array_merge($requestFields, $this->bodyFields($requestBody, $ctx, $document, $load, $resolveRef));
+                $requestFields = array_merge($requestFields, $this->bodyFields($requestBody, $ctx, $bodyRoot, $load, $resolveRef));
             }
         }
 
@@ -95,8 +99,9 @@ class OpenApiAdapter implements AdapterInterface
                 continue;
             }
             $response = $responses[$code];
+            $responseRoot = $operationRoot;
             if (is_array($response) && isset($response['$ref']) && is_string($response['$ref'])) {
-                $response = $resolveRef($response['$ref']);
+                $response = $resolveRef($response['$ref'], $responseRoot);
             }
             if (is_array($response)) {
                 $status = $code;
@@ -105,7 +110,7 @@ class OpenApiAdapter implements AdapterInterface
             }
         }
         if ($responseSchema !== []) {
-            $responseSchema = RefResolver::expand($responseSchema, $document, $ctx, $load);
+            $responseSchema = RefResolver::expand($responseSchema, $responseRoot ?? $operationRoot, $ctx, $load);
         }
         $responseFields = SchemaMapper::fields($responseSchema, $ctx, $resolveRef);
         $messages = [
@@ -125,6 +130,16 @@ class OpenApiAdapter implements AdapterInterface
             'messages' => $messages,
             'meta' => [],
         ];
+    }
+
+    /**
+     * 版本值转字符串: YAML/JSON 的 2.0 会变成 float, (string) 会丢掉 ".0"
+     * @param mixed $value
+     * @return string
+     */
+    protected function versionString($value): string
+    {
+        return is_float($value) ? var_export($value, true) : (string)$value;
     }
 
     protected function decode(string $content): array
@@ -165,15 +180,16 @@ class OpenApiAdapter implements AdapterInterface
     protected function operations(array $paths, array $document, ProtocolContext $ctx, callable $load): array
     {
         $result = [];
-        $resolveRef = function (string $ref) use ($document, $ctx, $load): ?array {
-            return RefResolver::resolve($ref, $document, $ctx, $load);
+        $resolveRef = function (string $ref, ?array &$resolvedRoot = null) use ($document, $ctx, $load): ?array {
+            return RefResolver::resolve($ref, $document, $ctx, $load, $resolvedRoot);
         };
         foreach ($paths as $path => $pathItem) {
             if (!is_array($pathItem)) {
                 continue;
             }
+            $pathItemRoot = $document;
             if (isset($pathItem['$ref']) && is_string($pathItem['$ref'])) {
-                $resolved = $resolveRef($pathItem['$ref']);
+                $resolved = $resolveRef($pathItem['$ref'], $pathItemRoot);
                 if (is_array($resolved)) {
                     $pathItem = $resolved;
                 }
@@ -189,6 +205,7 @@ class OpenApiAdapter implements AdapterInterface
                     'operationId' => isset($operation['operationId']) ? (string)$operation['operationId'] : '',
                     'operation' => $operation,
                     'pathItem' => $pathItem,
+                    'root' => $pathItemRoot,
                 ];
             }
         }
@@ -225,7 +242,7 @@ class OpenApiAdapter implements AdapterInterface
         return implode(', ', $names);
     }
 
-    protected function parameterFields(array $parameter, ProtocolContext $ctx, array $document, callable $load, callable $resolveRef): array
+    protected function parameterFields(array $parameter, ProtocolContext $ctx, array $root, callable $load, callable $resolveRef): array
     {
         $name = isset($parameter['name']) ? (string)$parameter['name'] : '';
         $in = isset($parameter['in']) ? (string)$parameter['in'] : 'query';
@@ -233,7 +250,7 @@ class OpenApiAdapter implements AdapterInterface
             return [];
         }
         $schema = isset($parameter['schema']) && is_array($parameter['schema']) ? $parameter['schema'] : $parameter;
-        $schema = RefResolver::expand($schema, $document, $ctx, $load);
+        $schema = RefResolver::expand($schema, $root, $ctx, $load);
         $field = [
             'name' => $name,
             'type' => SchemaMapper::typeOf($schema),
@@ -252,7 +269,7 @@ class OpenApiAdapter implements AdapterInterface
         return [$field];
     }
 
-    protected function bodyFields(array $requestBody, ProtocolContext $ctx, array $document, callable $load, callable $resolveRef): array
+    protected function bodyFields(array $requestBody, ProtocolContext $ctx, array $root, callable $load, callable $resolveRef): array
     {
         $content = isset($requestBody['content']) && is_array($requestBody['content']) ? $requestBody['content'] : [];
         $schema = [];
@@ -265,7 +282,7 @@ class OpenApiAdapter implements AdapterInterface
         if ($schema === []) {
             return [];
         }
-        $schema = RefResolver::expand($schema, $document, $ctx, $load);
+        $schema = RefResolver::expand($schema, $root, $ctx, $load);
         $fields = SchemaMapper::fields($schema, $ctx, $resolveRef);
         foreach ($fields as &$field) {
             if (!isset($field['in'])) {

@@ -72,18 +72,29 @@ class JsonSchemaAdapter implements AdapterInterface
      * @param string $sample
      * @param array $schema
      * @param callable $resolveRef
-     * @return array ['ok'=>bool,'errors'=>array]
+     * @return array ['ok'=>bool,'errors'=>array,'warnings'=>array]
      */
     protected function validateSample(string $sample, array $schema, callable $resolveRef): array
     {
         if ($sample === '') {
-            return ['ok' => true, 'errors' => []];
+            return ['ok' => true, 'errors' => [], 'warnings' => []];
         }
         $data = json_decode($sample, true);
         if (json_last_error() !== JSON_ERROR_NONE) {
-            return ['ok' => false, 'errors' => [['path' => '$', 'message' => 'JSON parse error: ' . json_last_error_msg()]]];
+            return [
+                'ok' => false,
+                'errors' => [['path' => '$', 'severity' => 'error', 'message' => 'JSON parse error: ' . json_last_error_msg()]],
+                'warnings' => [],
+            ];
         }
-        $errors = JsonSchemaValidator::validate($schema, $data, $resolveRef);
-        return ['ok' => $errors === [], 'errors' => $errors];
+        $errors = [];
+        foreach (JsonSchemaValidator::validate($schema, $data, $resolveRef) as $error) {
+            $errors[] = [
+                'path' => isset($error['path']) ? (string)$error['path'] : '$',
+                'severity' => 'error',
+                'message' => isset($error['message']) ? (string)$error['message'] : 'invalid value',
+            ];
+        }
+        return ['ok' => $errors === [], 'errors' => $errors, 'warnings' => []];
     }
 }

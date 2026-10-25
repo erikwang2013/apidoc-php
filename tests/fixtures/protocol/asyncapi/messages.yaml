@@ -1,8 +1,10 @@
+Reading:
+  type: number
 Temperature:
   name: Temperature
   payload:
     type: object
     required: [value]
     properties:
-      value: {type: number}
+      value: {$ref: '#/Reading'}
       unit: {type: string}

@@ -138,7 +138,11 @@ class ProtocolContext
             }
             $file = DirAndFile::resolvePathWithinRoot(substr($candidate, strlen($rootPath) + 1), $root);
             if ($file !== false && is_file($file)) {
-                return realpath($file);
+                $real = realpath($file);
+                // 软链可能指向根目录外, realpath 后再校验一次
+                if ($real !== false && ProtocolPaths::withinRoots($real, $this->roots)) {
+                    return $real;
+                }
             }
         }
         return null;

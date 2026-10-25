@@ -31,8 +31,8 @@ class AsyncApiAdapter implements AdapterInterface
             $ctx->unsupported('unsupported AsyncAPI version: ' . $version);
         }
         $load = $this->loader();
-        $resolveRef = function (string $ref) use ($document, $ctx, $load): ?array {
-            return RefResolver::resolve($ref, $document, $ctx, $load);
+        $resolveRef = function (string $ref, ?array &$resolvedRoot = null) use ($document, $ctx, $load): ?array {
+            return RefResolver::resolve($ref, $document, $ctx, $load, $resolvedRoot);
         };
         $wanted = (string)$ctx->option('operation', '');
         $selection = strpos($version, '3.') === 0
@@ -46,13 +46,15 @@ class AsyncApiAdapter implements AdapterInterface
             $direction = 'event';
         }
         $sample = (string)$ctx->option('sample', '');
+        $roots = isset($selection['roots']) && is_array($selection['roots']) ? $selection['roots'] : [];
         $messages = [];
-        foreach ($selection['messages'] as $message) {
+        foreach ($selection['messages'] as $index => $message) {
             if (!is_array($message)) {
                 continue;
             }
+            $messageRoot = isset($roots[$index]) && is_array($roots[$index]) ? $roots[$index] : $document;
             $payload = isset($message['payload']) && is_array($message['payload']) ? $message['payload'] : [];
-            $payload = RefResolver::expand($payload, $document, $ctx, $load);
+            $payload = RefResolver::expand($payload, $messageRoot, $ctx, $load);
             $fields = SchemaMapper::fields($payload, $ctx, $resolveRef);
             $name = isset($message['name']) ? (string)$message['name'] : (isset($payload['title']) ? (string)$payload['title'] : 'Message');
             $item = ['name' => $name, 'direction' => $direction, 'fields' => $fields];
@@ -108,8 +110,9 @@ class AsyncApiAdapter implements AdapterInterface
             if (!is_array($channel)) {
                 continue;
             }
+            $channelRoot = $document;
             if (isset($channel['$ref']) && is_string($channel['$ref'])) {
-                $resolved = $resolveRef($channel['$ref']);
+                $resolved = $resolveRef($channel['$ref'], $channelRoot);
                 if (is_array($resolved)) {
                     $channel = $resolved;
                 }
@@ -118,7 +121,7 @@ class AsyncApiAdapter implements AdapterInterface
                 if (!isset($channel[$action]) || !is_array($channel[$action])) {
                     continue;
                 }
-                $candidates[] = ['channel' => (string)$channelName, 'action' => $action, 'operation' => $channel[$action]];
+                $candidates[] = ['channel' => (string)$channelName, 'action' => $action, 'operation' => $channel[$action], 'root' => $channelRoot];
             }
         }
         if ($wanted !== '') {
@@ -127,29 +130,31 @@ class AsyncApiAdapter implements AdapterInterface
             $actionWanted = $pos === false ? '' : substr($wanted, $pos + 1);
             foreach ($candidates as $candidate) {
                 if ($candidate['channel'] === $channelWanted && ($actionWanted === '' || $candidate['action'] === $actionWanted)) {
-                    return $this->v2Messages($candidate, $ctx, $resolveRef);
+                    return $this->v2Messages($candidate, $document, $ctx, $resolveRef);
                 }
             }
             $ctx->error('operation not found: ' . $wanted . '; candidates: ' . $this->candidates($candidates));
             return null;
         }
         if (count($candidates) === 1) {
-            return $this->v2Messages($candidates[0], $ctx, $resolveRef);
+            return $this->v2Messages($candidates[0], $document, $ctx, $resolveRef);
         }
         $ctx->error('operation required; candidates: ' . $this->candidates($candidates));
         return null;
     }
 
-    protected function v2Messages(array $candidate, ProtocolContext $ctx, callable $resolveRef): array
+    protected function v2Messages(array $candidate, array $document, ProtocolContext $ctx, callable $resolveRef): array
     {
         $operation = $candidate['channel'] . ':' . $candidate['action'];
         $message = $candidate['operation']['message'] ?? [];
+        $messageRoot = isset($candidate['root']) && is_array($candidate['root']) ? $candidate['root'] : $document;
         if (is_array($message) && isset($message['$ref']) && is_string($message['$ref'])) {
-            $message = $resolveRef($message['$ref']);
+            $message = $resolveRef($message['$ref'], $messageRoot);
         }
         return [
             'operation' => $operation,
             'messages' => is_array($message) ? [$message] : [],
+            'roots' => [$messageRoot],
         ];
     }
 
@@ -194,16 +199,19 @@ class AsyncApiAdapter implements AdapterInterface
             }
         }
         $messages = [];
+        $roots = [];
         $messageRefs = isset($operation['messages']) && is_array($operation['messages']) ? $operation['messages'] : [];
         foreach ($messageRefs as $messageRef) {
+            $messageRoot = $document;
             if (is_array($messageRef) && isset($messageRef['$ref']) && is_string($messageRef['$ref'])) {
-                $messageRef = $resolveRef($messageRef['$ref']);
+                $messageRef = $resolveRef($messageRef['$ref'], $messageRoot);
             }
             if (is_array($messageRef)) {
                 $messages[] = $messageRef;
+                $roots[] = $messageRoot;
             }
         }
-        return ['operation' => $candidate['id'], 'messages' => $messages, 'channel' => $channelAddress];
+        return ['operation' => $candidate['id'], 'messages' => $messages, 'roots' => $roots, 'channel' => $channelAddress];
     }
 
     protected function candidates(array $candidates): string

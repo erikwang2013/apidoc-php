@@ -30,9 +30,10 @@ class RefResolver
      * @param array $root 当前文档根
      * @param ProtocolContext $ctx
      * @param callable $load string $content => array|null
+     * @param array|null $resolvedRoot 输出: 引用目标所在的文档根
      * @return array|null
      */
-    public static function resolve(string $ref, array $root, ProtocolContext $ctx, callable $load): ?array
+    public static function resolve(string $ref, array $root, ProtocolContext $ctx, callable $load, ?array &$resolvedRoot = null): ?array
     {
         list($file, $fragment) = self::split($ref, $ctx);
         if ($file === null) {
@@ -63,6 +64,7 @@ class RefResolver
                 $root = $document;
             }
         }
+        $resolvedRoot = $root;
         return self::pointer($root, $fragment, $ctx, $ref);
     }
 

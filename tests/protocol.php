@@ -407,6 +407,15 @@ check('relative path resolves', ($paths->resolve('tests/fixtures/protocol/Annota
 check('traversal rejected', $paths->resolve('../../etc/passwd') === null);
 check('absolute path rejected', $paths->resolve('/etc/passwd') === null);
 check('missing file rejected', $paths->resolve('tests/fixtures/protocol/missing.proto') === null);
+$secret = sys_get_temp_dir() . '/apidoc-proto-secret-' . getmypid() . '.yaml';
+$escapeLink = $root . '/tests/fixtures/protocol/escape-' . getmypid() . '.yaml';
+file_put_contents($secret, "secret: true\n");
+@symlink($secret, $escapeLink);
+check('symlink outside root rejected', $paths->resolve('tests/fixtures/protocol/' . basename($escapeLink)) === null);
+$escapeCtx = new erikwang2013\apidoc\protocol\ProtocolContext($root . '/tests/fixtures/protocol/AnnotationFixtures.php', [], [], [$root]);
+check('import symlink outside root rejected', $escapeCtx->resolve(basename($escapeLink)) === null);
+@unlink($escapeLink);
+@unlink($secret);
 
 $tmp = tempnam(sys_get_temp_dir(), 'apidoc-proto-');
 file_put_contents($tmp, 'abcdefghijklmnopq');
@@ -475,6 +484,8 @@ check('chained ref sample validates', ($chain['definitions'][0]['messages'][0]['
 $chainBad = $renderRefs('chainBad');
 check('chained ref rejects invalid sample', ($chainBad['definitions'][0]['messages'][0]['sampleValidation']['ok'] ?? true) === false);
 check('chained ref invalid sample path', ($chainBad['definitions'][0]['messages'][0]['sampleValidation']['errors'][0]['path'] ?? '') === '$.name');
+check('json schema sample error has severity', ($chainBad['definitions'][0]['messages'][0]['sampleValidation']['errors'][0]['severity'] ?? '') === 'error');
+check('json schema sample has warnings', array_key_exists('warnings', $chainBad['definitions'][0]['messages'][0]['sampleValidation'] ?? []));
 $classDefRef = new ReflectionClass(\Tests\Fixtures\Protocol\ClassDefinitionFixture::class);
 $classDef = $renderer->render($classDefRef, $classDefRef->getMethod('inherited'), (new ParseApiDetail($config))->parseApiMethod($classDefRef, $classDefRef->getMethod('inherited')));
 check('class-level definition inherited', ($classDef['definitions'][0]['source'] ?? '') === 'tests/fixtures/protocol/json-schema/user.json');
