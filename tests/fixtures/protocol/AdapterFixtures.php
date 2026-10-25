@@ -55,3 +55,11 @@ class WsdlFixture
     #[Title('Add')]
     public function add() {}
 }
+
+#[Protocol('odata')]
+class EdmxFixture
+{
+    #[Definition(file: 'tests/fixtures/protocol/edmx/metadata.xml', operation: 'Products')]
+    #[Title('Products')]
+    public function products() {}
+}

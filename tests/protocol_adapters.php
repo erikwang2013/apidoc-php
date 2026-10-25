@@ -106,5 +106,12 @@ check('wsdl response result', ($detail['definitions'][0]['messages'][1]['fields'
 check('wsdl xsd import fingerprinted', count($detail['_definitionFingerprints'] ?? []) === 2);
 check('wsdl valid', ($detail['definitions'][0]['validation']['ok'] ?? false) === true);
 
+// ---------- EDMX ----------
+$detail = renderFixture(\Tests\Fixtures\Protocol\EdmxFixture::class, 'products');
+check('edmx operation', ($detail['definitions'][0]['operation'] ?? '') === 'Products');
+check('edmx id required', ($detail['definitions'][0]['messages'][0]['fields'][0]['require'] ?? false) === true);
+check('edmx price type', ($detail['definitions'][0]['messages'][0]['fields'][2]['type'] ?? '') === 'number');
+check('edmx valid', ($detail['definitions'][0]['validation']['ok'] ?? false) === true);
+
 echo "\n{$pass} passed, {$fail} failed\n";
 exit($fail > 0 ? 1 : 0);
