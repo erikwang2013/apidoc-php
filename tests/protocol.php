@@ -521,5 +521,20 @@ try {
 }
 check('yaml rejects anchors', $threw === true);
 
+// ---------- SafeXml / TokenStream ----------
+$doc = erikwang2013\apidoc\protocol\Support\SafeXml::load('<root><a x="1">v</a></root>');
+check('xml first finds element', erikwang2013\apidoc\protocol\Support\SafeXml::attr(erikwang2013\apidoc\protocol\Support\SafeXml::first($doc->documentElement, 'a'), 'x') === '1');
+$threw = false;
+try {
+    erikwang2013\apidoc\protocol\Support\SafeXml::load('<!DOCTYPE x [<!ENTITY e SYSTEM "file:///etc/passwd">]><x>&e;</x>');
+} catch (erikwang2013\apidoc\protocol\ProtocolParseException $e) {
+    $threw = true;
+}
+check('xml rejects doctype', $threw === true);
+$ts = new erikwang2013\apidoc\protocol\Support\TokenStream("// c\nmessage A { string name = 1; }");
+$ts->skipTrivia();
+check('token identifier', $ts->identifier() === 'message');
+check('token line tracking', $ts->line() === 2);
+
 echo "\n{$pass} passed, {$fail} failed\n";
 exit($fail > 0 ? 1 : 0);
