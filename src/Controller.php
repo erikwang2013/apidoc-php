@@ -198,8 +198,20 @@ class Controller
         $this->init(true);
         $config = $this->config;
         $params = $this->requestParams;
+        $cache = null;
+        $cacheKey = Helper::getCacheKey('allApiMenus_v1', 'all', $this->lang);
+        if (!empty($config['cache']) && $config['cache']['enable']) {
+            $cache = new Cache();
+            $cacheData = $cache->get($cacheKey);
+            if ($cacheData !== null && empty($params['reload'])) {
+                return Helper::showJson(0, "", $cacheData);
+            }
+        }
         $configApps = Helper::handleAppsConfig($config['apps'], false, $config);
         $data = ApiShare::getAppShareApis($config, $configApps, "", [], false);
+        if ($cache !== null) {
+            $cache->set($cacheKey, $data);
+        }
         return Helper::showJson(0, "", $data);
     }
 

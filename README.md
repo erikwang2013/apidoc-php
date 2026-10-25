@@ -134,6 +134,14 @@ public function sayHello() {}
 支持的格式、参数、限制与配置见 [Attributes 使用说明](docs/ATTRIBUTES.md) 的「协议定义解析」。
 
 
+## ⚡性能预算
+
+文档读接口（菜单、详情、配置、Markdown、分享列表）在缓存命中时的本机处理目标为 **P95 < 10ms**；协议定义解析/渲染同样纳入该预算。运行 `php tests/performance.php` 验证。
+
+- 预算不含 PHP-FPM/框架启动、HTTP 服务器与客户端网络耗时
+- 调试中继的外部目标往返耗时不可控，预算只约束本机处理部分
+- 首次冷启动扫描、`createAllCache`、生成器、代码模板等批量/写操作不属于读接口预算；生产环境建议开启 `cache.enable` 并预热
+
 ## 📌兼容
 
 以下框架已内置兼容，可开箱即用

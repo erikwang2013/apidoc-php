@@ -1,0 +1,152 @@
+<?php
+declare(strict_types = 1);
+
+/**
+ * 响应性能回归: 文档接口缓存命中 + 协议定义解析/渲染
+ * 预算: P95 < 10ms(本机处理时间; 不含框架/HTTP 服务器/外部网络耗时)
+ * 运行: php tests/performance.php
+ */
+
+use erikwang2013\apidoc\Controller;
+use erikwang2013\apidoc\parses\ParseApiDetail;
+use erikwang2013\apidoc\utils\ConfigProvider;
+
+error_reporting(E_ALL);
+$root = dirname(__DIR__);
+define('APIDOC_ROOT_PATH', $root . '/');
+$storage = sys_get_temp_dir() . '/apidoc-perf-' . getmypid() . '/';
+@mkdir($storage, 0777, true);
+define('APIDOC_STORAGE_PATH', $storage);
+
+spl_autoload_register(function ($class) use ($root) {
+    $prefix = 'erikwang2013\\apidoc\\';
+    if (strpos($class, $prefix) === 0) {
+        $file = $root . '/src/' . str_replace('\\', '/', substr($class, strlen($prefix))) . '.php';
+        if (is_file($file)) {
+            require $file;
+        }
+    }
+});
+require __DIR__ . '/fixtures/protocol/AnnotationFixtures.php';
+require __DIR__ . '/fixtures/protocol/AdapterFixtures.php';
+
+$config = require __DIR__ . '/../src/config.php';
+$config['cache'] = ['folder' => 'apidoc', 'enable' => true];
+$config['protocols'] = ['allowed_roots' => [$root]];
+$config['apps'] = [['key' => 'api', 'title' => 'API', 'path' => 'tests/fixtures/protocol']];
+$config['docs'] = [['title' => 'Readme', 'path' => 'README.md']];
+
+const BUDGET_MS = 10.0;
+const RUNS = 100;
+
+function configure(array $params): void
+{
+    global $config;
+    $config['request_params'] = $params;
+    ConfigProvider::set($config);
+}
+
+/**
+ * @return array ['p50'=>float,'p95'=>float,'p99'=>float,'max'=>float]
+ */
+function measure(callable $fn, int $runs = RUNS): array
+{
+    $fn();
+    $times = [];
+    for ($i = 0; $i < $runs; $i++) {
+        $started = hrtime(true);
+        $fn();
+        $times[] = (hrtime(true) - $started) / 1e6;
+    }
+    sort($times);
+    $count = count($times);
+    return [
+        'p50' => $times[(int)($count * 0.50)],
+        'p95' => $times[(int)($count * 0.95)],
+        'p99' => $times[(int)($count * 0.99)],
+        'max' => $times[$count - 1],
+    ];
+}
+
+$results = [];
+$check = function (string $name, array $stats) use (&$results): void {
+    $results[$name] = $stats;
+    $flag = $stats['p95'] >= BUDGET_MS ? ' FAIL' : '';
+    printf(
+        "%-34s p50=%6.2fms p95=%6.2fms p99=%6.2fms max=%7.2fms%s\n",
+        $name,
+        $stats['p50'],
+        $stats['p95'],
+        $stats['p99'],
+        $stats['max'],
+        $flag
+    );
+};
+
+// ---------- 缓存命中的文档接口 ----------
+$detailParams = [
+    'appKey' => 'api',
+    'path' => 'Tests\\Fixtures\\Protocol\\OpenApiFixture@getUser',
+    'lang' => '',
+];
+configure($detailParams);
+$check('getApiDetail (cache hit)', measure(function () {
+    (new Controller())->getApiDetail();
+}));
+
+configure(['appKey' => 'api', 'lang' => '']);
+$check('getApiMenus (cache hit)', measure(function () {
+    (new Controller())->getApiMenus();
+}));
+
+configure(['lang' => '']);
+$check('getAllApiMenus (cache hit)', measure(function () {
+    (new Controller())->getAllApiMenus();
+}));
+
+configure(['lang' => '']);
+$check('getConfig', measure(function () {
+    (new Controller())->getConfig();
+}));
+
+configure(['appKey' => 'api', 'path' => 'README.md', 'lang' => '']);
+$check('getMdDetail', measure(function () {
+    (new Controller())->getMdDetail();
+}));
+
+configure(['appKey' => 'api', 'pageIndex' => 1, 'lang' => '']);
+$check('getApiShareList', measure(function () {
+    (new Controller())->getApiShareList();
+}));
+
+// ---------- 协议定义解析/渲染(不走详情缓存) ----------
+$cases = [
+    'openapi' => ['Tests\\Fixtures\\Protocol\\OpenApiFixture', 'getUser'],
+    'asyncapi' => ['Tests\\Fixtures\\Protocol\\AsyncApiFixture', 'onTemp'],
+    'graphql' => ['Tests\\Fixtures\\Protocol\\GraphqlFixture', 'user'],
+    'proto' => ['Tests\\Fixtures\\Protocol\\ProtoFixture', 'sayHello'],
+    'wsdl' => ['Tests\\Fixtures\\Protocol\\WsdlFixture', 'add'],
+    'edmx' => ['Tests\\Fixtures\\Protocol\\EdmxFixture', 'products'],
+    'json-rpc' => ['Tests\\Fixtures\\Protocol\\JsonRpcFixture', 'getUser'],
+    'xml-rpc' => ['Tests\\Fixtures\\Protocol\\XmlRpcFixture', 'add'],
+    'json-schema' => ['Tests\\Fixtures\\Protocol\\JsonSchemaFixture', 'user'],
+];
+$config['cache']['enable'] = false;
+configure($detailParams);
+foreach ($cases as $name => $case) {
+    $ref = new ReflectionClass($case[0]);
+    $method = $ref->getMethod($case[1]);
+    $check('render ' . $name, measure(function () use ($config, $case) {
+        (new ParseApiDetail($config))->renderApiDetail('api', $case[0] . '@' . $case[1]);
+    }, 50));
+}
+
+printf("\n%d endpoints measured, budget P95 < %.0f ms\n", count($results), BUDGET_MS);
+$failed = array_filter($results, static function (array $stats): bool {
+    return $stats['p95'] >= BUDGET_MS;
+});
+if ($failed !== []) {
+    echo "FAIL: " . implode(', ', array_keys($failed)) . " exceeded the budget\n";
+    exit(1);
+}
+echo "PASS\n";
