@@ -216,3 +216,11 @@ class ClassDefinitionFixture
     #[Title('Inherited definition')]
     public function inherited() {}
 }
+
+#[Protocol('webhooks')]
+class CacheFixture
+{
+    #[Definition(file: 'tests/fixtures/protocol/json-schema/cache.json')]
+    #[Title('Cache')]
+    public function user() {}
+}

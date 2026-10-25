@@ -10,6 +10,7 @@ use erikwang2013\apidoc\protocol\ProtocolPaths;
 use erikwang2013\apidoc\protocol\ProtocolRegistry;
 use erikwang2013\apidoc\protocol\debug\DebugRegistry;
 use erikwang2013\apidoc\protocol\debug\Driver\GrpcDriver;
+use erikwang2013\apidoc\utils\Cache;
 use ReflectionClass;
 use ReflectionMethod;
 
@@ -238,6 +239,54 @@ class ParseProtocol
     }
 
     /**
+     * 详情响应缓存是否仍然有效:文件定义必须带指纹且全部 mtime/size 未变
+     * @param array $detail
+     * @return bool
+     */
+    public static function cacheFresh(array $detail): bool
+    {
+        $definitions = isset($detail['definitions']) && is_array($detail['definitions']) ? $detail['definitions'] : [];
+        if ($definitions === []) {
+            return true;
+        }
+        $fileBacked = false;
+        foreach ($definitions as $definition) {
+            $format = (string)($definition['format'] ?? '');
+            if ($format !== 'inline' && $format !== 'pending') {
+                $fileBacked = true;
+                break;
+            }
+        }
+        if (!$fileBacked) {
+            return true;
+        }
+        $fingerprints = isset($detail['_definitionFingerprints']) && is_array($detail['_definitionFingerprints'])
+            ? $detail['_definitionFingerprints']
+            : [];
+        return self::fingerprintsFresh($fingerprints);
+    }
+
+    /**
+     * @param array $fingerprints realpath => ['mtime'=>int,'size'=>int]
+     * @return bool
+     */
+    protected static function fingerprintsFresh(array $fingerprints): bool
+    {
+        if ($fingerprints === []) {
+            return false;
+        }
+        foreach ($fingerprints as $file => $stat) {
+            if (!is_string($file) || !is_array($stat) || !is_file($file)) {
+                return false;
+            }
+            if (filemtime($file) !== (int)($stat['mtime'] ?? -1) || filesize($file) !== (int)($stat['size'] ?? -1)) {
+                return false;
+            }
+        }
+        return true;
+    }
+
+    /**
      * 解析单个 Definition 注解项
      * @param array $def
      * @param array $methodAnnotations
@@ -296,13 +345,14 @@ class ParseProtocol
         $limits = $protocolConfig;
         $roots = isset($protocolConfig['allowed_roots']) && is_array($protocolConfig['allowed_roots']) ? $protocolConfig['allowed_roots'] : [];
         $sampleErrors = [];
+        $fileFingerprints = [];
         if (!empty($def['sampleFile'])) {
             $sampleResolved = $paths->resolve((string)$def['sampleFile']);
             if ($sampleResolved === null) {
                 $sampleErrors[] = $this->diagnostic('error', 'sample file not found or outside allowed roots');
             } else {
-                // 样例文件变更同样需要让 Task 5 的定义缓存失效
-                $fingerprints[$sampleResolved['realpath']] = ['mtime' => filemtime($sampleResolved['realpath']), 'size' => filesize($sampleResolved['realpath'])];
+                // 样例文件变更同样需要让定义缓存失效
+                $fileFingerprints[$sampleResolved['realpath']] = ['mtime' => filemtime($sampleResolved['realpath']), 'size' => filesize($sampleResolved['realpath'])];
                 // 样例文件与定义文件走同一套路径/大小约束
                 $sampleCtx = new ProtocolContext($sampleResolved['realpath'], [], $limits, $roots);
                 $sampleContent = $sampleCtx->read();
@@ -323,6 +373,24 @@ class ParseProtocol
             $format = ProtocolRegistry::detect($file, $content === null ? '' : $content);
             if ($format === '') {
                 $format = $catalog['defaultFormat'];
+            }
+        }
+
+        $cache = new Cache();
+        $cacheKey = 'protocol/' . $format . '/' . md5($file) . '_' . md5($resolved['realpath']) . '_' . md5((string)json_encode($options));
+        $useCache = $format !== '';
+        if ($useCache) {
+            $cached = $cache->get($cacheKey);
+            if (is_array($cached)
+                && isset($cached['result'], $cached['fingerprints'])
+                && is_array($cached['result'])
+                && is_array($cached['fingerprints'])
+                && self::fingerprintsFresh($cached['fingerprints'])
+            ) {
+                foreach ($cached['fingerprints'] as $cachedFile => $cachedStat) {
+                    $fingerprints[$cachedFile] = $cachedStat;
+                }
+                return $cached['result'];
             }
         }
 
@@ -349,10 +417,10 @@ class ParseProtocol
         // 根文件与全部导入文件参与指纹
         foreach (array_merge([$resolved['realpath']], $ctx->imports()) as $filePath) {
             if (is_file($filePath)) {
-                $fingerprints[$filePath] = ['mtime' => filemtime($filePath), 'size' => filesize($filePath)];
+                $fileFingerprints[$filePath] = ['mtime' => filemtime($filePath), 'size' => filesize($filePath)];
             }
         }
-        return [
+        $result = [
             'format' => $format,
             'source' => $file,
             'operation' => $options['operation'] !== '' ? $options['operation'] : $operation,
@@ -364,6 +432,13 @@ class ParseProtocol
                 'warnings' => $ctx->warnings(),
             ],
         ];
+        if ($useCache) {
+            $cache->set($cacheKey, ['result' => $result, 'fingerprints' => $fileFingerprints]);
+        }
+        foreach ($fileFingerprints as $filePath => $stat) {
+            $fingerprints[$filePath] = $stat;
+        }
+        return $result;
     }
 
     /**

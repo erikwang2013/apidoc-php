@@ -480,5 +480,32 @@ $classDef = $renderer->render($classDefRef, $classDefRef->getMethod('inherited')
 check('class-level definition inherited', ($classDef['definitions'][0]['source'] ?? '') === 'tests/fixtures/protocol/json-schema/user.json');
 check('class-level definition parsed', ($classDef['definitions'][0]['messages'][0]['fields'][0]['name'] ?? '') === 'id');
 
+// ---------- 定义缓存与文件指纹 ----------
+$fpFile = sys_get_temp_dir() . '/apidoc-proto-fp-' . getmypid() . '.json';
+file_put_contents($fpFile, '{"type":"object","properties":{"a":{"type":"string"}}}');
+$fpDetail = [
+    'definitions' => [['format' => 'json-schema', 'source' => 'x', 'messages' => [], 'validation' => ['ok' => true, 'errors' => [], 'warnings' => []]]],
+    '_definitionFingerprints' => [$fpFile => ['mtime' => filemtime($fpFile), 'size' => filesize($fpFile)]],
+];
+check('fingerprint fresh', erikwang2013\apidoc\parses\ParseProtocol::cacheFresh($fpDetail) === true);
+touch($fpFile, time() + 5);
+clearstatcache();
+check('fingerprint detects mtime change', erikwang2013\apidoc\parses\ParseProtocol::cacheFresh($fpDetail) === false);
+unlink($fpFile);
+check('fingerprint detects missing file', erikwang2013\apidoc\parses\ParseProtocol::cacheFresh($fpDetail) === false);
+check('inline-only detail is fresh', erikwang2013\apidoc\parses\ParseProtocol::cacheFresh(['definitions' => [['format' => 'inline']]]) === true);
+check('file detail without fingerprints is stale', erikwang2013\apidoc\parses\ParseProtocol::cacheFresh(['definitions' => [['format' => 'json-schema']]]) === false);
+
+$cacheFile = 'tests/fixtures/protocol/json-schema/cache.json';
+erikwang2013\apidoc\utils\DirAndFile::deleteDir(APIDOC_STORAGE_PATH . 'apidoc/protocol');
+file_put_contents($cacheFile, '{"title":"Cache","type":"object","properties":{"a":{"type":"string"}}}');
+$cacheFirst = (new ParseApiDetail($config))->renderApiDetail('api', 'Tests\\Fixtures\\Protocol\\CacheFixture@user');
+check('adapter cache first parse', ($cacheFirst['definitions'][0]['messages'][0]['fields'][0]['name'] ?? '') === 'a');
+file_put_contents($cacheFile, '{"title":"Cache","type":"object","properties":{"b":{"type":"string"},"extra":{"type":"string"}}}');
+clearstatcache();
+$cacheSecond = (new ParseApiDetail($config))->renderApiDetail('api', 'Tests\\Fixtures\\Protocol\\CacheFixture@user');
+check('adapter cache invalidates on file change', ($cacheSecond['definitions'][0]['messages'][0]['fields'][0]['name'] ?? '') === 'b');
+@unlink($cacheFile);
+
 echo "\n{$pass} passed, {$fail} failed\n";
 exit($fail > 0 ? 1 : 0);

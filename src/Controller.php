@@ -5,6 +5,7 @@ namespace erikwang2013\apidoc;
 
 use erikwang2013\apidoc\parses\ParseApiDetail;
 use erikwang2013\apidoc\parses\ParseCodeTemplate;
+use erikwang2013\apidoc\parses\ParseProtocol;
 use erikwang2013\apidoc\parses\ParseApiMenus;
 use erikwang2013\apidoc\parses\ParseMarkdown;
 use erikwang2013\apidoc\protocol\debug\DebugProxy;
@@ -172,7 +173,7 @@ class Controller
     {
         $config = $this->config;
         if (!empty($config['cache']) && $config['cache']['enable']) {
-            $cacheKey = Helper::getCacheKey('apiMenu', $appKey, $this->lang);
+            $cacheKey = Helper::getCacheKey('apiMenu_v2', $appKey, $this->lang);
             $cacheData = (new Cache())->get($cacheKey);
             if ($cacheData && empty($this->requestParams['reload'])) {
                 $apiData = $cacheData;
@@ -220,9 +221,9 @@ class Controller
         if (!empty($config['cache']) && $config['cache']['enable']) {
             // 清洗 path 防止 ../ 等穿越写缓存文件
             $cachePath = str_replace(['/', '\\', '..'], '', (string)$params['path']);
-            $cacheKey = Helper::getCacheKey('apiDetail', $appKey, $this->lang, $cachePath);
+            $cacheKey = Helper::getCacheKey('apiDetail_v2', $appKey, $this->lang, $cachePath);
             $cacheData = (new Cache())->get($cacheKey);
-            if ($cacheData && empty($params['reload'])) {
+            if ($cacheData && empty($params['reload']) && ParseProtocol::cacheFresh($cacheData)) {
                 $res = $cacheData;
             } else {
                 // 生成数据并缓存
@@ -233,6 +234,8 @@ class Controller
             // 生成数据
             $res = (new ParseApiDetail($config))->renderApiDetail($appKey, $apiKey);
         }
+        // 指纹只用于缓存校验,不向前端泄漏服务器路径
+        unset($res['_definitionFingerprints']);
         $res['appKey'] = $appKey;
         return Helper::showJson(0, "", $res);
     }
@@ -339,14 +342,14 @@ class Controller
                                 foreach ($controller['children'] as $item) {
                                     if (!empty($item['url']) && !empty($item['menuKey'])) {
                                         $apiDetail = (new ParseApiDetail($config))->renderApiDetail($appKey, urldecode($item['menuKey']));
-                                        $apiDetailCacheKey = Helper::getCacheKey('apiDetail', $appKey, $this->lang, $item['menuKey']);
+                                        $apiDetailCacheKey = Helper::getCacheKey('apiDetail_v2', $appKey, $this->lang, $item['menuKey']);
                                         $cache->set($apiDetailCacheKey, $apiDetail);
                                     }
                                 }
                             }
                         }
                     }
-                    $cacheKey = Helper::getCacheKey('apiMenu', $appKey, $this->lang);
+                    $cacheKey = Helper::getCacheKey('apiMenu_v2', $appKey, $this->lang);
                     $cache->set($cacheKey, $controllerData);
                 }
             } catch (\ReflectionException $e) {
