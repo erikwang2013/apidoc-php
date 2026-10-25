@@ -1,0 +1,2 @@
+# 静态站点不进入 Composer/GitHub tag 归档
+/site export-ignore

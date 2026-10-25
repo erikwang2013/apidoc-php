@@ -22,6 +22,9 @@
         "ext-dom": "Required for WSDL/XSD/EDMX definition parsing",
         "ext-curl": "Required for gRPC and HTTP relay in some drivers"
     },
+    "archive": {
+        "exclude": ["/site"]
+    },
     "license": "MIT",
     "authors": [
         {

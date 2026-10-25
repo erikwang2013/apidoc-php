@@ -63,7 +63,7 @@ HOME_IMAGE = {
 DOCS = {
     "php": {
         "label": "PHP",
-        "version": "v1.0.6",
+        "version": "v1.1.0",
         "repo": "https://github.com/erikwang2013/apidoc-php",
         "release_url": "https://github.com/erikwang2013/apidoc-php/releases",
         "source_url": "https://github.com/erikwang2013/apidoc-php/blob/main/docs/ATTRIBUTES.md",
@@ -300,6 +300,15 @@ PETS = [
 ]
 
 VERSIONS = [
+    {
+        "key": "php",
+        "version": "v1.1.0",
+        "title": {"zh": "任意协议调试与定义解析", "en": "Arbitrary protocols and definitions"},
+        "points": {
+            "zh": ["Protocol / Channel / Debug 注解与浏览器直连/受控中继面板", "OpenAPI、AsyncAPI、protobuf、WSDL、GraphQL、JSON Schema 等定义解析与校验", "文档读接口与协议渲染纳入 10ms 本机 CPU 预算"],
+            "en": ["Protocol / Channel / Debug annotations with browser-direct and controlled relay panels", "Definition parsing and validation for OpenAPI, AsyncAPI, protobuf, WSDL, GraphQL, JSON Schema and more", "10 ms local CPU budget for read APIs and protocol rendering"],
+        },
+    },
     {
         "key": "php",
         "version": "v1.0.6",
