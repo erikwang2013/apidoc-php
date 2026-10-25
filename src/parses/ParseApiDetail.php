@@ -240,7 +240,9 @@ class ParseApiDetail
             }
         }
 
-        return array_merge($methodAnnotations, $protocolMeta);
+        // 协议定义解析(文件/内联);debug 以 $protocolMeta 为准
+        $protocolData = (new ParseProtocol($config))->render($refClass, $refMethod, $methodAnnotations, $protocolMeta);
+        return array_merge($methodAnnotations, $protocolMeta, $protocolData);
     }
 
     /**

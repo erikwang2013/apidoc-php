@@ -2,7 +2,7 @@
 
 namespace Tests\Fixtures\Protocol;
 
-use erikwang2013\apidoc\annotation\{Protocol, Channel, Debug, Param, Title, Method, Url};
+use erikwang2013\apidoc\annotation\{Protocol, Channel, Debug, Definition, Param, Returned, Title, Method, Url};
 
 #[Protocol('mqtt')]
 class MqttFixture
@@ -158,4 +158,33 @@ class P2NoDriverFixture
 {
     #[Title('Send WebRTC offer')]
     public function offer() {}
+}
+
+#[Protocol('json-rpc')]
+class InlineFixture
+{
+    #[Param(name: 'id', type: 'integer', require: true, desc: 'ID')]
+    #[Returned(name: 'ok', type: 'boolean', desc: 'OK')]
+    #[Title('Inline')]
+    public function call() {}
+}
+
+#[Protocol('webhooks')]
+class JsonSchemaFixture
+{
+    #[Definition(file: 'tests/fixtures/protocol/json-schema/user.json', sample: '{"id":1,"name":"a"}')]
+    #[Title('User')]
+    public function user() {}
+
+    #[Definition(file: 'tests/fixtures/protocol/json-schema/invalid.json')]
+    #[Title('Broken')]
+    public function broken() {}
+
+    #[Definition(file: 'tests/fixtures/protocol/json-schema/webhook.json')]
+    #[Title('Hook')]
+    public function hook() {}
+
+    #[Definition(file: 'tests/fixtures/protocol/json-schema/user.json', sampleFile: 'tests/fixtures/protocol/json-schema/user-sample.json')]
+    #[Title('User from file')]
+    public function userFile() {}
 }

@@ -4,6 +4,10 @@ declare(strict_types = 1);
 namespace erikwang2013\apidoc\parses;
 
 use erikwang2013\apidoc\protocol\ProtocolCatalog;
+use erikwang2013\apidoc\protocol\ProtocolContext;
+use erikwang2013\apidoc\protocol\ProtocolParseException;
+use erikwang2013\apidoc\protocol\ProtocolPaths;
+use erikwang2013\apidoc\protocol\ProtocolRegistry;
 use erikwang2013\apidoc\protocol\debug\DebugRegistry;
 use erikwang2013\apidoc\protocol\debug\Driver\GrpcDriver;
 use ReflectionClass;
@@ -169,6 +173,222 @@ class ParseProtocol
             $result = ['protocol' => $protocol] + $result;
         }
         return $result;
+    }
+
+    /**
+     * 解析协议定义(文件/内联)并校验样例
+     * @param ReflectionClass $refClass
+     * @param ReflectionMethod $refMethod
+     * @param array $methodAnnotations 已处理的注解
+     * @param array $protocolMeta metadata() 结果
+     * @return array 无协议元数据时返回 []
+     */
+    public function render(ReflectionClass $refClass, ReflectionMethod $refMethod, array $methodAnnotations, array $protocolMeta = []): array
+    {
+        if (empty($protocolMeta)) {
+            // 直接传入 parseApiMethod 结果时,协议元数据已合并进注解数组
+            $protocolMeta = array_intersect_key($methodAnnotations, array_flip(['protocol', 'channel', 'debug']));
+        }
+        if (empty($protocolMeta)) {
+            return [];
+        }
+        $protocolConfig = isset($this->config['protocols']) && is_array($this->config['protocols']) ? $this->config['protocols'] : [];
+        $catalog = ProtocolCatalog::get((string)($protocolMeta['protocol']['name'] ?? ''));
+        $classAnnotations = $this->parseAnnotation->getClassAnnotation($refClass);
+
+        // 类级定义在前,方法级同 file|operation|message 覆盖
+        $entries = [];
+        foreach ([$classAnnotations, $methodAnnotations] as $annotations) {
+            foreach ($this->normalizeItems($annotations['definition'] ?? null) as $item) {
+                $file = isset($item['file']) ? (string)$item['file'] : '';
+                if ($file === '' && isset($item['name'])) {
+                    $file = (string)$item['name'];
+                }
+                $item['file'] = $file;
+                $entries[$file . '|' . (string)($item['operation'] ?? '') . '|' . (string)($item['message'] ?? '')] = $item;
+            }
+        }
+
+        $definitions = [];
+        $errors = [];
+        $warnings = [];
+        $fingerprints = [];
+        if (empty($entries)) {
+            $definitions[] = $this->inlineDefinition($methodAnnotations);
+        } else {
+            foreach (array_values($entries) as $def) {
+                $definition = $this->renderDefinition($def, $methodAnnotations, $catalog, $protocolConfig, $fingerprints);
+                $definitions[] = $definition;
+                $errors = array_merge($errors, $definition['validation']['errors']);
+                $warnings = array_merge($warnings, $definition['validation']['warnings']);
+            }
+        }
+        return array_merge($protocolMeta, [
+            'definitions' => $definitions,
+            'validation' => ['ok' => $errors === [], 'errors' => $errors, 'warnings' => $warnings],
+            '_definitionFingerprints' => $fingerprints,
+        ]);
+    }
+
+    /**
+     * 解析单个 Definition 注解项
+     * @param array $def
+     * @param array $methodAnnotations
+     * @param array $catalog
+     * @param array $protocolConfig
+     * @param array $fingerprints realpath => 指纹,按引用累积
+     * @return array
+     */
+    protected function renderDefinition(array $def, array $methodAnnotations, array $catalog, array $protocolConfig, array &$fingerprints): array
+    {
+        $file = (string)($def['file'] ?? '');
+        $format = !empty($def['format']) ? (string)$def['format'] : 'auto';
+        if ($file === '') {
+            if ($format === 'inline' || $catalog['defaultFormat'] === '') {
+                return $this->inlineDefinition($methodAnnotations);
+            }
+            return [
+                'format' => 'pending',
+                'source' => '',
+                'operation' => '',
+                'meta' => [],
+                'messages' => [],
+                'validation' => [
+                    'ok' => true,
+                    'errors' => [],
+                    'warnings' => [$this->diagnostic('warning', 'definition file required for ' . $catalog['name'])],
+                ],
+            ];
+        }
+
+        $paths = new ProtocolPaths($protocolConfig);
+        $resolved = $paths->resolve($file);
+        if ($resolved === null) {
+            return [
+                'format' => $format === 'auto' ? ($catalog['defaultFormat'] !== '' ? $catalog['defaultFormat'] : 'auto') : $format,
+                'source' => $file,
+                'operation' => '',
+                'meta' => [],
+                'messages' => [],
+                'validation' => [
+                    'ok' => false,
+                    'errors' => [$this->diagnostic('error', 'definition file not found or outside allowed roots')],
+                    'warnings' => [],
+                ],
+            ];
+        }
+
+        $options = [
+            'operation' => (string)($def['operation'] ?? ''),
+            'message' => (string)($def['message'] ?? ''),
+            'direction' => (string)($def['direction'] ?? ''),
+            'sample' => (string)($def['sample'] ?? ''),
+            'sampleEncoding' => (string)($def['sampleEncoding'] ?? ''),
+            'strict' => array_key_exists('strict', $def) ? (bool)$def['strict'] : true,
+        ];
+        $limits = $protocolConfig;
+        $roots = isset($protocolConfig['allowed_roots']) && is_array($protocolConfig['allowed_roots']) ? $protocolConfig['allowed_roots'] : [];
+        $sampleErrors = [];
+        if (!empty($def['sampleFile'])) {
+            $sampleResolved = $paths->resolve((string)$def['sampleFile']);
+            if ($sampleResolved === null) {
+                $sampleErrors[] = $this->diagnostic('error', 'sample file not found or outside allowed roots');
+            } else {
+                // 样例文件与定义文件走同一套路径/大小约束
+                $sampleCtx = new ProtocolContext($sampleResolved['realpath'], [], $limits, $roots);
+                $sampleContent = $sampleCtx->read();
+                if ($sampleContent === null) {
+                    $sampleErrors = array_merge($sampleErrors, $sampleCtx->errors());
+                } else {
+                    $options['sample'] = $sampleContent;
+                }
+            }
+        }
+
+        $ctx = new ProtocolContext($resolved['realpath'], $options, $limits, $roots);
+        foreach ($sampleErrors as $entry) {
+            $ctx->error($entry['message'], (int)$entry['line'], (int)$entry['column']);
+        }
+        $content = $ctx->read();
+        if ($format === 'auto') {
+            $format = ProtocolRegistry::detect($file, $content === null ? '' : $content);
+            if ($format === '') {
+                $format = $catalog['defaultFormat'];
+            }
+        }
+
+        $operation = '';
+        $meta = [];
+        $messages = [];
+        if ($content !== null) {
+            $adapter = ProtocolRegistry::adapter($format);
+            if ($adapter === null) {
+                $ctx->unsupported('unsupported definition format: ' . $format);
+            } else {
+                try {
+                    $parsed = $adapter->parse($ctx, $content);
+                    $operation = isset($parsed['operation']) ? (string)$parsed['operation'] : '';
+                    $meta = isset($parsed['meta']) && is_array($parsed['meta']) ? $parsed['meta'] : [];
+                    $messages = isset($parsed['messages']) && is_array($parsed['messages']) ? $parsed['messages'] : [];
+                } catch (ProtocolParseException $e) {
+                    $ctx->error($e->getMessage(), $e->line(), $e->column());
+                } catch (\Throwable $e) {
+                    $ctx->error($e->getMessage());
+                }
+            }
+        }
+        // 根文件与全部导入文件参与指纹
+        foreach (array_merge([$resolved['realpath']], $ctx->imports()) as $filePath) {
+            if (is_file($filePath)) {
+                $fingerprints[$filePath] = ['mtime' => filemtime($filePath), 'size' => filesize($filePath)];
+            }
+        }
+        return [
+            'format' => $format,
+            'source' => $file,
+            'operation' => $options['operation'] !== '' ? $options['operation'] : $operation,
+            'meta' => $meta,
+            'messages' => $messages,
+            'validation' => [
+                'ok' => $ctx->errors() === [],
+                'errors' => $ctx->errors(),
+                'warnings' => $ctx->warnings(),
+            ],
+        ];
+    }
+
+    /**
+     * 无定义文件时由注解生成内联定义
+     * @param array $methodAnnotations
+     * @return array
+     */
+    protected function inlineDefinition(array $methodAnnotations): array
+    {
+        $request = $this->normalizeItems($methodAnnotations['param'] ?? null);
+        $response = array_merge(
+            $this->normalizeItems($methodAnnotations['responseSuccess'] ?? null),
+            $this->normalizeItems($methodAnnotations['responseError'] ?? null)
+        );
+        $messages = [];
+        if (!empty($request)) {
+            $messages[] = ['name' => 'Request', 'direction' => 'request', 'fields' => $request];
+        }
+        if (!empty($response)) {
+            $messages[] = ['name' => 'Response', 'direction' => 'response', 'fields' => $response];
+        }
+        return [
+            'format' => 'inline',
+            'source' => 'inline',
+            'operation' => '',
+            'meta' => [],
+            'messages' => $messages,
+            'validation' => ['ok' => true, 'errors' => [], 'warnings' => []],
+        ];
+    }
+
+    protected function diagnostic(string $severity, string $message, int $line = 0, int $column = 0): array
+    {
+        return ['path' => '', 'line' => $line, 'column' => $column, 'severity' => $severity, 'message' => $message];
     }
 
     /**

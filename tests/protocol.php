@@ -435,5 +435,26 @@ $importCtx->pop();
 check('pop restores file', $importCtx->file() === $ctxFile);
 check('max_imports enforced', $importCtx->push($root . '/src/protocol/ProtocolContext.php') === false && count($importCtx->errors()) === 1);
 
+// ---------- 内联定义 / JSON Schema 适配器 ----------
+$renderer = new ParseProtocol($config);
+$inlineRef = new ReflectionClass(\Tests\Fixtures\Protocol\InlineFixture::class);
+$inline = $renderer->render($inlineRef, $inlineRef->getMethod('call'), (new ParseApiDetail($config))->parseApiMethod($inlineRef, $inlineRef->getMethod('call')));
+check('inline definition created', ($inline['definitions'][0]['format'] ?? '') === 'inline');
+check('inline request message', ($inline['definitions'][0]['messages'][0]['direction'] ?? '') === 'request');
+check('inline request field id', ($inline['definitions'][0]['messages'][0]['fields'][0]['name'] ?? '') === 'id');
+check('inline response field ok', ($inline['definitions'][0]['messages'][1]['fields'][0]['name'] ?? '') === 'ok');
+$detail = (new ParseApiDetail($config))->renderApiDetail('api', 'Tests\\Fixtures\\Protocol\\JsonSchemaFixture@user');
+check('json schema definition parses', ($detail['definitions'][0]['messages'][0]['fields'][0]['name'] ?? '') === 'id');
+check('json schema sample valid', ($detail['definitions'][0]['messages'][0]['sampleValidation']['ok'] ?? false) === true);
+check('file definition has fingerprints', count($detail['_definitionFingerprints'] ?? []) === 1);
+$brokenRef = new ReflectionClass(\Tests\Fixtures\Protocol\JsonSchemaFixture::class);
+$broken = $renderer->render($brokenRef, $brokenRef->getMethod('broken'), (new ParseApiDetail($config))->parseApiMethod($brokenRef, $brokenRef->getMethod('broken')));
+check('malformed json is a validation error', ($broken['definitions'][0]['validation']['ok'] ?? true) === false);
+check('malformed json error is visible', strpos(json_encode($broken['definitions'][0]['validation']['errors']), 'JSON') !== false);
+$hook = $renderer->render($brokenRef, $brokenRef->getMethod('hook'), (new ParseApiDetail($config))->parseApiMethod($brokenRef, $brokenRef->getMethod('hook')));
+check('webhook signature metadata recorded', ($hook['definitions'][0]['meta']['header'] ?? '') === 'X-Signature');
+$fromFile = $renderer->render($brokenRef, $brokenRef->getMethod('userFile'), (new ParseApiDetail($config))->parseApiMethod($brokenRef, $brokenRef->getMethod('userFile')));
+check('sampleFile is validated', ($fromFile['definitions'][0]['messages'][0]['sampleValidation']['ok'] ?? false) === true);
+
 echo "\n{$pass} passed, {$fail} failed\n";
 exit($fail > 0 ? 1 : 0);
