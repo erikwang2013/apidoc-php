@@ -1,6 +1,4 @@
-Rust 版用过程宏在 handler 上声明文档，文档片段在编译期静态注册，运行期零成本聚合。它兼容 axum 与 actix-web，内置 Web UI、在线调试、Mock、鉴权、多应用版本、导出、分享与代码生成。适合希望文档严格跟随代码、并在编译期发现错误的 Rust 服务。
-
-> 本页聚焦 HTTP 文档；任意协议调试与协议定义解析见 [PHP 指南]({{root}}{{docsbase}}php.html)。
+Rust 版用过程宏在 handler 上声明文档，文档片段在编译期静态注册，运行期零成本聚合。它兼容 axum 与 actix-web，内置 Web UI、45 种协议注解与浏览器/服务端双通道调试，并提供 Mock、鉴权、多应用版本、AsyncAPI/Swagger/TS 导出、分享与代码生成。适合希望文档严格跟随代码、并在编译期发现错误的 Rust 服务。
 
 <figure class="doc-figure"><img src="{{root}}assets/img/rust/social-preview.svg" alt="apidoc-rust social preview"><figcaption>apidoc-rust：过程宏驱动的 API 文档，兼容 axum 与 actix-web。</figcaption></figure>
 
@@ -8,14 +6,14 @@ Rust 版用过程宏在 handler 上声明文档，文档片段在编译期静态
 
 - axum 或 actix-web 服务；后续版本通过薄适配器扩展其他框架。
 - 希望文档在编译期生成，接口与文档不会失同步。
-- 需要在线调试、Mock、HMAC 鉴权、多应用/版本、Markdown/TypeScript/Swagger 导出。
+- 需要 HTTP 与 MQTT、gRPC、WebSocket 等协议调试，Mock、HMAC 鉴权、多应用/版本、Markdown/TypeScript/Swagger/AsyncAPI 导出。
 - 项目使用 Rust 1.82+，接受过程宏 + `linkme` 的注册方式。
 
 ## 安装与依赖
 
 ```toml
 [dependencies]
-apidoc-rust = "2.0"
+apidoc-rust = "2.1"
 serde_json = "1"
 linkme = "0.3"
 ```
@@ -25,6 +23,7 @@ linkme = "0.3"
 - `features = ["axum"]`：axum 适配器，Mock 隐含启用。
 - `features = ["actix"]`：actix-web 适配器，功能与 axum 1:1。
 - `features = ["mock"]`：只开 Mock 引擎，不挂框架。
+- `debug-*`：按协议族开启服务端执行器，如 `debug-grpc`、`debug-thrift`、`debug-dubbo`、`debug-iso8583`、`debug-mqtt`、`debug-amqp`、`debug-kafka`、`debug-xmpp`、`debug-coap`、`debug-industrial`、`debug-http`、`debug-http3`、`debug-media`、`debug-sockets`；`debug-all` 聚合全部执行器。
 
 `linkme` 必须直接依赖，因为宏生成的注册代码会引用它。只注册文档、不直接使用其他 API 的 crate 还必须被链接，而不是只编译；调用任意 crate 导出项或注册 handler 可以强制链接。
 
@@ -34,7 +33,7 @@ linkme = "0.3"
 | --- | --- |
 | `DocRegistry` | 收集所有宏片段，合并为端点，解析 `ref` / `table`。 |
 | `ApidocConfig` | 项目级配置：标题、描述、鉴权、应用树、版本、表、缓存、代码模板。 |
-| `DocEndpoint` | 一个接口：title、desc、url、method、headers、params、querys、returned、group、tags 等。 |
+| `DocEndpoint` | 一个接口：title、desc、url、method、headers、params、querys、returned、group、tags、protocol、protocol_opts、events 等。 |
 | `DocParam` | 参数：name、type、required、default、desc、mock、children。 |
 | `AppConfig` | 应用/版本节点：key、title、items、password。 |
 | `TableDef` / `TableField` | 数据表字段引用，供 `#[apidoc::table]` 使用。 |
@@ -105,6 +104,8 @@ fn get_user_info() -> String {
 | `r#ref` | 引用其他接口的返回结构，按函数名全局匹配。 |
 | `app` | 挂到 `ApidocConfig.apps` 中的某个 key。 |
 | `table` | 引用 `ApidocConfig.tables` 中的表 key，字段平铺进 `returned`。 |
+| `protocol` / `websocket` / `grpc` / `mqtt` / ... | 45 个协议注解别名；位置参数为 `target`，与通用 `protocol(kind, ...)` 等价。 |
+| `event` | `direction` / `name`，声明流式协议消息。 |
 
 `param`、`query`、`returned` 的字段参数：
 
@@ -117,6 +118,7 @@ fn get_user_info() -> String {
 | `desc` | 字段说明。 |
 | `mock` | Mock 值或 `fake:xxx` 规则。 |
 | `children` | 嵌套子字段，用 `{ ... }` 数组书写。 |
+| `field` | 协议字段号；用于 `event` / 协议消息字段。 |
 
 ### 编译期规则
 
@@ -154,7 +156,7 @@ fn get_user_detail() -> String { unimplemented!() }
 
 ```toml
 [dependencies]
-apidoc-rust = { version = "2.0", features = ["axum"] }
+apidoc-rust = { version = "2.1", features = ["axum"] }
 ```
 
 ```rust
@@ -192,7 +194,7 @@ let app = Router::new()
 
 ```toml
 [dependencies]
-apidoc-rust = { version = "2.0", features = ["actix"] }
+apidoc-rust = { version = "2.1", features = ["actix"] }
 ```
 
 ```rust
@@ -247,6 +249,31 @@ return 'HTTP ' + ctx.status + ' · ' + ctx.ms + 'ms\n' + ctx.text;
 ```
 
 脚本报错只在结果区提示，不中断请求。
+
+## 多协议注解与调试
+
+![apidoc-rust 多协议调试架构]({{root}}assets/img/rust/{{imglang}}/multiprotocol.svg)
+
+每个协议一个独立注解，位置参数等价于 `target`：
+
+```rust
+#[apidoc::websocket("wss://example.com/ws")]
+#[apidoc::grpc(target = "http://localhost:50051", service = "helloworld.Greeter", method = "SayHello")]
+#[apidoc::mqtt("mqtt://broker:1883", topic = "sensors/#")]
+#[apidoc::event(direction = "in", name = "message")]
+#[apidoc::param(name = "payload", ty = "json", field = "1")]
+fn stream() {}
+```
+
+也支持通用形式 `#[apidoc::protocol("kind", ...)]`。覆盖 P1–P6：
+
+- 浏览器直连：SOAP/GraphQL、JSON-RPC/XML-RPC、OData、MCP/A2A、Webhooks、WebSocket、SSE、Socket.IO、STOMP、WebRTC、HLS 等。
+- 服务端执行：gRPC、Thrift、Dubbo/Hessian、ISO 8583、TCP/UDP/Unix Socket、MQTT、AMQP、Kafka、XMPP、CoAP、Modbus、DNP3、IEC 104、BACnet、OPC UA、HTTP/2、HTTP/3、RTP/RTCP、RTSP、SIP、RTMP 等。
+- P6 增强：webhook 入站捕获、AsyncAPI 2.6 导出、`.proto` / `.thrift` IDL 导入、Nacos Dubbo 与事件 Mock。
+
+服务端执行默认关闭：`DebugConfig { enable_server_side: true }` 必须同时配置全局鉴权；目标先过 SSRF 守卫（allowlist、默认拒绝回环/私网/链路本地/CGNAT、云元数据永久拒绝、DNS 解析后逐 IP 校验并钉住连接、禁重定向/代理/CONNECT），并受 `max_bytes` / `max_frames` / `timeout` 限制。未实现 pinned TLS 的 `wss`、gRPC `https`、MQTT/AMQP TLS 会 fail closed。
+
+api.json、四种导出、代码模板与 mock 响应均在构建期物化；`tests/latency.rs` 验证本地路由 p99 < 10ms（不含调试目标网络耗时）。
 
 ## 鉴权
 
@@ -327,11 +354,12 @@ GET /apidoc/share?app=api&url=/api/user/info&method=GET&base=https://example.com
 GET /apidoc/export?format=md
 GET /apidoc/export?format=ts
 GET /apidoc/export?format=swagger
+GET /apidoc/export?format=asyncapi
 GET /apidoc/generate?template=api.ts
 ```
 
 - `share` 返回深链；鉴权开启时附带 token，打开免密。
-- `export` 支持 Markdown、TypeScript、Swagger/OpenAPI 3.0.0；未知 format 返回 400。
+- `export` 支持 Markdown、TypeScript、Swagger/OpenAPI 3.0.0、AsyncAPI 2.6；未知 format 返回 400。
 - `generate` 内置 `api.ts`、`handler.rs`、`schema.sql`，同名自定义模板可以覆盖。模板支持 `{{变量}}` 与 `{{#each ...}}`，变量包括 endpoints、tables、字段与 SQL 片段变量。
 
 ## 典型场景
@@ -371,7 +399,17 @@ Rust 侧不连数据库：在 `ApidocConfig.tables` 里配置表和字段，再�
 | `app` 落默认应用 | `ApidocConfig.apps` 是否有对应 key。 |
 | 鉴权 token 重启失效 | 显式配置固定 `secret_key`。 |
 | 调试跨域失败 | 是否挂 `cors_layer`；`allow_origins` 是否包含页面来源。 |
+| 协议调试不可用 | `DebugConfig.enable_server_side` 是否开启并配置鉴权；对应 `debug-*` feature 是否编译；目标是否被 SSRF 守卫拒绝或 TLS 未支持。 |
+| AsyncAPI 导出失败 | 端点是否带协议与 `event` 消息；`export?format=asyncapi` 是否在支持列表。 |
 | 页面旧数据 | 文档产物在路由构建时物化；重启服务或重新构建。 |
+
+## 可视概览
+
+<figure class="doc-figure"><img src="{{root}}assets/img/rust/{{imglang}}/architecture.svg" alt="apidoc-rust architecture"><figcaption>apidoc-rust 总体架构：编译期注册、构建期物化与适配器。</figcaption></figure>
+
+<figure class="doc-figure"><img src="{{root}}assets/img/rust/{{imglang}}/features.svg" alt="apidoc-rust features"><figcaption>apidoc-rust 功能图：文档、调试、鉴权、导出与代码生成。</figcaption></figure>
+
+<figure class="doc-figure"><img src="{{root}}assets/img/rust/{{imglang}}/lifecycle.svg" alt="apidoc-rust lifecycle"><figcaption>apidoc-rust 生命周期：声明、收集、物化与交付。</figcaption></figure>
 
 ## 参考
 

@@ -1,74 +1,96 @@
-<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 900 560" font-family="system-ui, -apple-system, 'Segoe UI', 'PingFang SC', sans-serif">
-  <rect width="900" height="560" fill="#ffffff"/>
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 900 710" font-family="system-ui, -apple-system, 'Segoe UI', 'PingFang SC', sans-serif">
+  <rect width="900" height="710" fill="#ffffff"/>
   <text x="450" y="40" text-anchor="middle" font-size="24" font-weight="700" fill="#1a1a2e">Project Features</text>
   <text x="450" y="64" text-anchor="middle" font-size="14" fill="#666">apidoc-go core features overview</text>
 
-  <!-- 3x3 features grid -->
+  <!-- 3x3 功能网格 -->
   <rect x="60" y="100" width="246" height="130" rx="12" fill="#eef4ff" stroke="#4a7dff"/>
   <circle cx="183" cy="138" r="14" fill="#4a7dff"/>
   <text x="183" y="144" text-anchor="middle" font-size="15" font-weight="700" fill="#ffffff">1</text>
   <text x="183" y="176" text-anchor="middle" font-size="15" font-weight="600" fill="#1a1a2e">Auto Documentation</text>
-  <text x="183" y="200" text-anchor="middle" font-size="12" fill="#555">Typed Doc declared with route</text>
-  <text x="183" y="218" text-anchor="middle" font-size="12" fill="#555">One declaration, docs born with route</text>
+  <text x="183" y="200" text-anchor="middle" font-size="11" fill="#555">Typed Doc declared with route</text>
+  <text x="183" y="218" text-anchor="middle" font-size="11" fill="#555">Docs born with the route</text>
 
   <rect x="327" y="100" width="246" height="130" rx="12" fill="#f0fdf4" stroke="#22c55e"/>
   <circle cx="450" cy="138" r="14" fill="#22c55e"/>
   <text x="450" y="144" text-anchor="middle" font-size="15" font-weight="700" fill="#ffffff">2</text>
-  <text x="450" y="176" text-anchor="middle" font-size="15" font-weight="600" fill="#1a1a2e">Online Debugging</text>
-  <text x="450" y="200" text-anchor="middle" font-size="12" fill="#555">Request real APIs from the browser</text>
-  <text x="450" y="218" text-anchor="middle" font-size="12" fill="#555">No server forwarding, SSRF-free</text>
+  <text x="450" y="176" text-anchor="middle" font-size="15" font-weight="600" fill="#1a1a2e">Docs API</text>
+  <text x="450" y="200" text-anchor="middle" font-size="11" fill="#555">External UI reads docs data</text>
+  <text x="450" y="218" text-anchor="middle" font-size="11" fill="#555">Renders panels and test requests</text>
 
   <rect x="594" y="100" width="246" height="130" rx="12" fill="#fff7ed" stroke="#f97316"/>
   <circle cx="717" cy="138" r="14" fill="#f97316"/>
   <text x="717" y="144" text-anchor="middle" font-size="15" font-weight="700" fill="#ffffff">3</text>
   <text x="717" y="176" text-anchor="middle" font-size="15" font-weight="600" fill="#1a1a2e">Mock Data</text>
-  <text x="717" y="200" text-anchor="middle" font-size="12" fill="#555">Field-level Mock examples</text>
-  <text x="717" y="218" text-anchor="middle" font-size="12" fill="#555">Get ahead in API integration</text>
+  <text x="717" y="200" text-anchor="middle" font-size="11" fill="#555">Field-level Mock examples</text>
+  <text x="717" y="218" text-anchor="middle" font-size="11" fill="#555">Faster API integration</text>
 
   <rect x="60" y="250" width="246" height="130" rx="12" fill="#fdf2f8" stroke="#ec4899"/>
   <circle cx="183" cy="288" r="14" fill="#ec4899"/>
   <text x="183" y="294" text-anchor="middle" font-size="15" font-weight="700" fill="#ffffff">4</text>
-  <text x="183" y="326" text-anchor="middle" font-size="15" font-weight="600" fill="#1a1a2e">Multi-app / Multi-version</text>
-  <text x="183" y="350" text-anchor="middle" font-size="12" fill="#555">App / Version tree management</text>
-  <text x="183" y="368" text-anchor="middle" font-size="12" fill="#555">One plugin, whole project docs</text>
+  <text x="183" y="326" text-anchor="middle" font-size="15" font-weight="600" fill="#1a1a2e">Multi-app / Version</text>
+  <text x="183" y="350" text-anchor="middle" font-size="11" fill="#555">App / Version tree</text>
+  <text x="183" y="368" text-anchor="middle" font-size="11" fill="#555">One plugin, whole project docs</text>
 
   <rect x="327" y="250" width="246" height="130" rx="12" fill="#f5f3ff" stroke="#8b5cf6"/>
   <circle cx="450" cy="288" r="14" fill="#8b5cf6"/>
   <text x="450" y="294" text-anchor="middle" font-size="15" font-weight="700" fill="#ffffff">5</text>
   <text x="450" y="326" text-anchor="middle" font-size="15" font-weight="600" fill="#1a1a2e">Password Auth</text>
-  <text x="450" y="350" text-anchor="middle" font-size="12" fill="#555">Global + app-level password</text>
-  <text x="450" y="368" text-anchor="middle" font-size="12" fill="#555">HMAC Token · Constant-time</text>
+  <text x="450" y="350" text-anchor="middle" font-size="11" fill="#555">Global + app passwords</text>
+  <text x="450" y="368" text-anchor="middle" font-size="11" fill="#555">HMAC token · Constant-time</text>
 
   <rect x="594" y="250" width="246" height="130" rx="12" fill="#ecfeff" stroke="#06b6d4"/>
   <circle cx="717" cy="288" r="14" fill="#06b6d4"/>
   <text x="717" y="294" text-anchor="middle" font-size="15" font-weight="700" fill="#ffffff">6</text>
   <text x="717" y="326" text-anchor="middle" font-size="15" font-weight="600" fill="#1a1a2e">Markdown Docs</text>
-  <text x="717" y="350" text-anchor="middle" font-size="12" fill="#555">Safe rendering with goldmark</text>
-  <text x="717" y="368" text-anchor="middle" font-size="12" fill="#555">Raw HTML auto-stripped</text>
+  <text x="717" y="350" text-anchor="middle" font-size="11" fill="#555">Safe goldmark rendering</text>
+  <text x="717" y="368" text-anchor="middle" font-size="11" fill="#555">Raw HTML auto-stripped</text>
 
   <rect x="60" y="400" width="246" height="130" rx="12" fill="#fefce8" stroke="#eab308"/>
   <circle cx="183" cy="438" r="14" fill="#eab308"/>
   <text x="183" y="444" text-anchor="middle" font-size="15" font-weight="700" fill="#ffffff">7</text>
   <text x="183" y="476" text-anchor="middle" font-size="15" font-weight="600" fill="#1a1a2e">Multi-framework</text>
-  <text x="183" y="500" text-anchor="middle" font-size="12" fill="#555">net/http · Gin · Echo · Chi · Fiber</text>
-  <text x="183" y="518" text-anchor="middle" font-size="12" fill="#555">One integration, all frameworks</text>
+  <text x="183" y="492" text-anchor="middle" font-size="11" fill="#555">net/http · Gin · Echo · Chi · Fiber</text>
+  <text x="183" y="506" text-anchor="middle" font-size="11" fill="#555">beego · Kratos · go-zero</text>
+  <text x="183" y="520" text-anchor="middle" font-size="11" fill="#555">One integration, all frameworks</text>
 
   <rect x="327" y="400" width="246" height="130" rx="12" fill="#fef2f2" stroke="#ef4444"/>
   <circle cx="450" cy="438" r="14" fill="#ef4444"/>
   <text x="450" y="444" text-anchor="middle" font-size="15" font-weight="700" fill="#ffffff">8</text>
-  <text x="450" y="476" text-anchor="middle" font-size="15" font-weight="600" fill="#1a1a2e">JSON / TS Export</text>
-  <text x="450" y="500" text-anchor="middle" font-size="12" fill="#555">One-click API type export</text>
-  <text x="450" y="518" text-anchor="middle" font-size="12" fill="#555">Smoother frontend-backend dev</text>
+  <text x="450" y="476" text-anchor="middle" font-size="15" font-weight="600" fill="#1a1a2e">JSON / TypeScript Export</text>
+  <text x="450" y="500" text-anchor="middle" font-size="11" fill="#555">Export API types in one click</text>
+  <text x="450" y="518" text-anchor="middle" font-size="11" fill="#555">Smooth front-end handoff</text>
 
   <rect x="594" y="400" width="246" height="130" rx="12" fill="#f0f9ff" stroke="#3b82f6"/>
   <circle cx="717" cy="438" r="14" fill="#3b82f6"/>
   <text x="717" y="444" text-anchor="middle" font-size="15" font-weight="700" fill="#ffffff">9</text>
   <text x="717" y="476" text-anchor="middle" font-size="15" font-weight="600" fill="#1a1a2e">Security</text>
-  <text x="717" y="500" text-anchor="middle" font-size="12" fill="#555">No SSRF · CORS whitelist</text>
-  <text x="717" y="518" text-anchor="middle" font-size="12" fill="#555">XSS &amp; path traversal protection</text>
+  <text x="717" y="500" text-anchor="middle" font-size="11" fill="#555">Password auth · CORS allowlist</text>
+  <text x="717" y="518" text-anchor="middle" font-size="11" fill="#555">XSS &amp; path traversal guards</text>
 
-  <!-- Watermark -->
+  <rect x="60" y="550" width="246" height="130" rx="12" fill="#ecfdf5" stroke="#10b981"/>
+  <circle cx="183" cy="588" r="14" fill="#10b981"/>
+  <text x="183" y="594" text-anchor="middle" font-size="15" font-weight="700" fill="#ffffff">10</text>
+  <text x="183" y="626" text-anchor="middle" font-size="15" font-weight="600" fill="#1a1a2e">Annotation Parsing</text>
+  <text x="183" y="650" text-anchor="middle" font-size="11" fill="#555">go/ast generates docs</text>
+  <text x="183" y="668" text-anchor="middle" font-size="11" fill="#555">`@apidoc` / `@protocol`</text>
+
+  <rect x="327" y="550" width="246" height="130" rx="12" fill="#fffbeb" stroke="#f59e0b"/>
+  <circle cx="450" cy="588" r="14" fill="#f59e0b"/>
+  <text x="450" y="594" text-anchor="middle" font-size="15" font-weight="700" fill="#ffffff">11</text>
+  <text x="450" y="626" text-anchor="middle" font-size="15" font-weight="600" fill="#1a1a2e">Response Cache</text>
+  <text x="450" y="650" text-anchor="middle" font-size="11" fill="#555">Versioned pre-serialized cache</text>
+  <text x="450" y="668" text-anchor="middle" font-size="11" fill="#555">ETag + 304 · millisecond</text>
+
+  <rect x="594" y="550" width="246" height="130" rx="12" fill="#faf5ff" stroke="#a855f7"/>
+  <circle cx="717" cy="588" r="14" fill="#a855f7"/>
+  <text x="717" y="594" text-anchor="middle" font-size="15" font-weight="700" fill="#ffffff">12</text>
+  <text x="717" y="626" text-anchor="middle" font-size="15" font-weight="600" fill="#1a1a2e">Param Inference</text>
+  <text x="717" y="650" text-anchor="middle" font-size="11" fill="#555">reflect from handler signature</text>
+  <text x="717" y="668" text-anchor="middle" font-size="11" fill="#555">No manual params</text>
+
+  <!-- 水印 -->
   <g opacity="0.4">
-    <text x="826" y="536" font-size="15" fill="#94a3b8" text-anchor="end" transform="rotate(-18 826 536)">https://erik.xyz</text>
+    <text x="826" y="690" font-size="15" fill="#94a3b8" text-anchor="end" transform="rotate(-18 826 690)">https://erik.xyz</text>
   </g>
 </svg>

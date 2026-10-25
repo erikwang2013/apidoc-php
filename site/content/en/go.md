@@ -1,13 +1,12 @@
-The Go edition declares API docs as typed structs next to route registration. Docs and routes live together, and the built-in web UI adds browsing, live debugging, Mock, auth, caching and exports. It fits Go HTTP services that want documentation to travel with the router.
+The Go edition declares API docs as typed structs next to route registration. Docs and routes live together; the library exposes menus/protocols/detail/export APIs for apidoc-ui to render, debug and display protocol panels. It fits Go HTTP services that want documentation to travel with the router.
 
-> This guide focuses on HTTP documentation. For arbitrary protocol debugging and definition parsing, see the [PHP guide]({{root}}{{docsbase}}php.html).
-<figure class="doc-figure"><img src="{{root}}assets/img/go/{{imglang}}/architecture.svg" alt="apidoc-go architecture"><figcaption>apidoc-go architecture: route registration, document store, JSON API and built-in UI.</figcaption></figure>
+<figure class="doc-figure"><img src="{{root}}assets/img/go/{{imglang}}/architecture.svg" alt="apidoc-go architecture"><figcaption>apidoc-go architecture: route registration, document store, response cache and external docs API.</figcaption></figure>
 
 ## When to use it
 
 - Services built on net/http, Gin, Echo, Chi, Fiber, beego, Kratos or go-zero.
 - Teams that want route registration and documentation in the same place.
-- Projects that need live debugging, Mock, apps/versions, password auth, ETag caching and JSON/TypeScript exports.
+- Projects that need apidoc-ui rendering, protocol annotations, Mock, apps/versions, password auth, response caching and JSON/TypeScript exports.
 - Go 1.24+ projects that can add doc registration to the existing route setup.
 
 ## Installation
@@ -60,7 +59,33 @@ func main() {
 }
 ```
 
-Open `http://localhost:8080/apidoc`. The docs UI, JSON API and export endpoints are mounted under the same prefix by `Mount`.
+The docs API lives under `http://localhost:8080/apidoc/api/...` and is consumed by apidoc-ui (or any client implementing the same contract). `Mount` only mounts the docs API; the built-in web UI has been removed.
+
+| Endpoint | Purpose |
+| --- | --- |
+| `GET /apidoc/api/menus` | App/version/controller/endpoint tree. |
+| `GET /apidoc/api/protocols` | Protocol registry, aliases, URL schemes and default ports. |
+| `GET /apidoc/api/detail` | Endpoint detail; protocol endpoints return `protocol`, `protocol_info`, `method`, `url`, params, responses and Mock. |
+| `GET /apidoc/api/export` | Full project tree; `?format=typescript` exports type definitions. |
+
+### Protocol annotations
+
+Non-HTTP endpoints reuse `@method` + `@url` and select a protocol with `@protocol` (or infer it from the URL scheme):
+
+```go
+// @apidoc
+// @protocol mqtt
+// @method PUBLISH
+// @url mqtt://broker:1883/sensors/temp
+// @title Publish temperature
+// @param qos int false "QoS" in=option default=1
+// @param payload json true "Payload" in=payload
+func PublishTemp() {}
+```
+
+`@protocol` accepts HTTP/2, HTTP/3, SOAP, GraphQL, gRPC, Dubbo, Thrift, Hessian, WebSocket, SSE, MQTT, STOMP, Kafka, CoAP, Modbus TCP, DNP3, TCP, UDP and aliases; see `GET /api/protocols` for the full list. Declare binary bodies with `@param ... type=binary` (or `hex`/`base64`) + `in=payload`.
+
+Protocol execution stays out of the Go library: it only returns metadata, and apidoc-ui renders the panel and issues test requests. The library starts no protocol servers and exposes no `/api/debug/*` execution endpoint. Use PHP or Rust when server-side execution is required.
 
 ## Core model and registration rules
 
@@ -227,14 +252,15 @@ for _, r := range results {
 }
 ```
 
-Supported tags include `@method`, `@url`, `@title`, `@desc`, `@author`, `@app`, `@version`, `@group`, `@sort`, `@param`, `@header`, `@body`, `@success` / `@response` and `@markdown`. `@param` takes `name type required desc key=value...`; `in` accepts `header`, `query`, `body` or `path`.
+Supported tags include `@method`, `@url`, `@title`, `@desc`, `@author`, `@app`, `@version`, `@group`, `@sort`, `@param`, `@header`, `@body`, `@success` / `@response`, `@markdown` and `@protocol`. `@param` takes `name type required desc key=value...`; `in` accepts `header`, `query`, `body` or `path`.
 
 ## Mock and live debugging
 
 - The detail page generates Mock examples automatically; `Param.Mock` and `Response.Mock` can override values.
 - Without a Mock value, the mock package generates values by type: `string`, `int`, `float`, `bool`, `object` and so on.
-- The debugger calls the target service directly from the browser. Cross-origin origins must be listed in `DebugOrigins`; the adapter sends the CORS headers.
-- Doc API responses carry `ETag` and `Cache-Control: private, max-age=300`, so repeat requests can return 304.
+- apidoc-ui calls the target service directly from the browser. Cross-origin origins must be listed in `DebugOrigins`; the adapter sends the CORS headers.
+- Protocol endpoints only return metadata; the panel and test request are owned by the external UI. Go has no server-side relay endpoint.
+- `/api/menus`, `/api/protocols` and `/api/export` are pre-serialized and cached per document version; `Register` / `SetAppMeta` invalidates them. Responses carry `ETag` and `Cache-Control: private, max-age=300`, so repeat requests can return 304.
 
 ## Auth
 
@@ -290,7 +316,7 @@ For large existing handler sets, parse comments with `parse.ParseDir` and turn e
 
 | Problem | Check |
 | --- | --- |
-| `/apidoc` returns 404 | Did you call `Mount`? Does `Prefix` match the URL? |
+| `/apidoc/api/menus` returns 404 | Did you call `Mount`? Does `Prefix` match the URL? Is the front-end pointing at the docs API instead of the removed built-in UI? |
 | Route registration fails | Are `Method` / `URL` empty? Does the adapter support the route syntax? Is the framework running? |
 | Endpoint is missing | Did `Register` return an error? Do `Doc.App` / `Version` match `Config.Apps`? |
 | Inferred params are wrong | Does the handler struct use `json` tags? Is a framework context in the argument list? |
@@ -301,9 +327,9 @@ For large existing handler sets, parse comments with `parse.ParseDir` and turn e
 
 ## Visual overview
 
-<figure class="doc-figure"><img src="{{root}}assets/img/go/{{imglang}}/features.svg" alt="apidoc-go features"><figcaption>apidoc-go features: docs, debugging, Mock, exports and adapters.</figcaption></figure>
+<figure class="doc-figure"><img src="{{root}}assets/img/go/{{imglang}}/features.svg" alt="apidoc-go features"><figcaption>apidoc-go features: docs, protocol annotations, Mock, response cache, exports and adapters.</figcaption></figure>
 
-<figure class="doc-figure"><img src="{{root}}assets/img/go/{{imglang}}/lifecycle.svg" alt="apidoc-go lifecycle"><figcaption>apidoc-go lifecycle: registration, store, render and debug.</figcaption></figure>
+<figure class="doc-figure"><img src="{{root}}assets/img/go/{{imglang}}/lifecycle.svg" alt="apidoc-go lifecycle"><figcaption>apidoc-go lifecycle: registration, store, response cache and external UI debugging.</figcaption></figure>
 
 ## Reference
 

@@ -2,7 +2,7 @@
 <urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9" xmlns:xhtml="http://www.w3.org/1999/xhtml" xmlns:image="http://www.google.com/schemas/sitemap-image/1.1">
   <url>
     <loc>https://apidoc.erik.xyz/</loc>
-    <lastmod>2026-10-25</lastmod>
+    <lastmod>2026-10-26</lastmod>
     <changefreq>weekly</changefreq>
     <priority>1.0</priority>
     <xhtml:link rel="alternate" hreflang="zh-CN" href="https://apidoc.erik.xyz/"/>
@@ -15,7 +15,7 @@
   </url>
   <url>
     <loc>https://apidoc.erik.xyz/docs/</loc>
-    <lastmod>2026-10-25</lastmod>
+    <lastmod>2026-10-26</lastmod>
     <changefreq>monthly</changefreq>
     <priority>0.8</priority>
     <xhtml:link rel="alternate" hreflang="zh-CN" href="https://apidoc.erik.xyz/docs/"/>
@@ -37,7 +37,7 @@
   </url>
   <url>
     <loc>https://apidoc.erik.xyz/docs/go.html</loc>
-    <lastmod>2026-10-25</lastmod>
+    <lastmod>2026-10-26</lastmod>
     <changefreq>monthly</changefreq>
     <priority>0.7</priority>
     <xhtml:link rel="alternate" hreflang="zh-CN" href="https://apidoc.erik.xyz/docs/go.html"/>
@@ -50,7 +50,7 @@
   </url>
   <url>
     <loc>https://apidoc.erik.xyz/docs/rust.html</loc>
-    <lastmod>2026-10-25</lastmod>
+    <lastmod>2026-10-26</lastmod>
     <changefreq>monthly</changefreq>
     <priority>0.7</priority>
     <xhtml:link rel="alternate" hreflang="zh-CN" href="https://apidoc.erik.xyz/docs/rust.html"/>
@@ -58,7 +58,7 @@
     <xhtml:link rel="alternate" hreflang="x-default" href="https://apidoc.erik.xyz/docs/rust.html"/>
     <image:image>
       <image:loc>https://apidoc.erik.xyz/assets/img/rust/social-preview.svg</image:loc>
-      <image:title>apidoc-rust 架构图</image:title>
+      <image:title>apidoc-rust 多协议调试概览</image:title>
     </image:image>
   </url>
   <url>
@@ -76,7 +76,7 @@
   </url>
   <url>
     <loc>https://apidoc.erik.xyz/en/</loc>
-    <lastmod>2026-10-25</lastmod>
+    <lastmod>2026-10-26</lastmod>
     <changefreq>weekly</changefreq>
     <priority>1.0</priority>
     <xhtml:link rel="alternate" hreflang="zh-CN" href="https://apidoc.erik.xyz/"/>
@@ -89,7 +89,7 @@
   </url>
   <url>
     <loc>https://apidoc.erik.xyz/en/docs/</loc>
-    <lastmod>2026-10-25</lastmod>
+    <lastmod>2026-10-26</lastmod>
     <changefreq>monthly</changefreq>
     <priority>0.8</priority>
     <xhtml:link rel="alternate" hreflang="zh-CN" href="https://apidoc.erik.xyz/docs/"/>
@@ -111,7 +111,7 @@
   </url>
   <url>
     <loc>https://apidoc.erik.xyz/en/docs/go.html</loc>
-    <lastmod>2026-10-25</lastmod>
+    <lastmod>2026-10-26</lastmod>
     <changefreq>monthly</changefreq>
     <priority>0.7</priority>
     <xhtml:link rel="alternate" hreflang="zh-CN" href="https://apidoc.erik.xyz/docs/go.html"/>
@@ -124,7 +124,7 @@
   </url>
   <url>
     <loc>https://apidoc.erik.xyz/en/docs/rust.html</loc>
-    <lastmod>2026-10-25</lastmod>
+    <lastmod>2026-10-26</lastmod>
     <changefreq>monthly</changefreq>
     <priority>0.7</priority>
     <xhtml:link rel="alternate" hreflang="zh-CN" href="https://apidoc.erik.xyz/docs/rust.html"/>
@@ -132,7 +132,7 @@
     <xhtml:link rel="alternate" hreflang="x-default" href="https://apidoc.erik.xyz/docs/rust.html"/>
     <image:image>
       <image:loc>https://apidoc.erik.xyz/assets/img/rust/social-preview.svg</image:loc>
-      <image:title>apidoc-rust architecture</image:title>
+      <image:title>apidoc-rust multi-protocol debugging overview</image:title>
     </image:image>
   </url>
   <url>

@@ -1,20 +1,19 @@
-The Rust edition declares documentation with proc macros on handlers. Fragments are statically registered at compile time and aggregated at zero runtime cost. It supports axum and actix-web and ships a web UI, live debugging, Mock, auth, apps/versions, exports, sharing and code generation. It fits Rust services that want docs to stay strict with the code and fail early at compile time.
+The Rust edition declares documentation with proc macros on handlers. Fragments are statically registered at compile time and aggregated at zero runtime cost. It supports axum and actix-web, ships a web UI, 45 protocol annotations with browser/server debugging, Mock, auth, apps/versions, AsyncAPI/Swagger/TS exports, sharing and code generation. It fits Rust services that want docs to stay strict with the code and fail early at compile time.
 
-> This guide focuses on HTTP documentation. For arbitrary protocol debugging and definition parsing, see the [PHP guide]({{root}}{{docsbase}}php.html).
 <figure class="doc-figure"><img src="{{root}}assets/img/rust/social-preview.svg" alt="apidoc-rust social preview"><figcaption>apidoc-rust: proc-macro API docs for axum and actix-web.</figcaption></figure>
 
 ## When to use it
 
 - axum or actix-web services, with thin adapters for additional frameworks over time.
 - Teams that want docs generated at compile time so code and docs cannot drift.
-- Projects that need live debugging, Mock, HMAC auth, apps/versions and Markdown/TypeScript/Swagger exports.
+- Projects that need HTTP and MQTT/gRPC/WebSocket protocol debugging, Mock, HMAC auth, apps/versions and Markdown/TypeScript/Swagger/AsyncAPI exports.
 - Rust 1.82+ projects that accept proc macros plus `linkme` registration.
 
 ## Installation and dependencies
 
 ```toml
 [dependencies]
-apidoc-rust = "2.0"
+apidoc-rust = "2.1"
 serde_json = "1"
 linkme = "0.3"
 ```
@@ -23,6 +22,7 @@ Rust 1.82+ is required. The published package is `apidoc-rust`, the library name
 
 - `features = ["axum"]`: axum adapter, Mock enabled implicitly.
 - `features = ["actix"]`: actix-web adapter, feature parity with axum.
+- `debug-*`: opt into server executors by protocol family (`debug-grpc`, `debug-thrift`, `debug-dubbo`, `debug-iso8583`, `debug-mqtt`, `debug-amqp`, `debug-kafka`, `debug-xmpp`, `debug-coap`, `debug-industrial`, `debug-http`, `debug-http3`, `debug-media`, `debug-sockets`); `debug-all` aggregates them.
 - `features = ["mock"]`: Mock engine only, no framework.
 
 `linkme` must be a direct dependency because generated registration code references it. A crate that only registers docs and uses nothing else from the crate must be linked, not merely built; calling any exported item or registering a handler forces the link.
@@ -104,6 +104,8 @@ fn get_user_info() -> String {
 | `r#ref` | Reuse another endpoint's returned fields by global function name. |
 | `app` | Attach to an `ApidocConfig.apps` key. |
 | `table` | Flatten fields from `ApidocConfig.tables` into `returned`. |
+| `protocol` / `websocket` / `grpc` / `mqtt` / ... | 45 protocol annotation aliases; positional argument is `target`, equivalent to `protocol(kind, ...)`. |
+| `event` | `direction` / `name`; declares a streaming protocol message. |
 
 Field arguments for `param`, `query` and `returned`:
 
@@ -153,7 +155,7 @@ fn get_user_detail() -> String { unimplemented!() }
 
 ```toml
 [dependencies]
-apidoc-rust = { version = "2.0", features = ["axum"] }
+apidoc-rust = { version = "2.1", features = ["axum"] }
 ```
 
 ```rust
@@ -191,7 +193,7 @@ Call `cors_layer` on the final router so business routes can also be called from
 
 ```toml
 [dependencies]
-apidoc-rust = { version = "2.0", features = ["actix"] }
+apidoc-rust = { version = "2.1", features = ["actix"] }
 ```
 
 ```rust
@@ -246,6 +248,31 @@ return 'HTTP ' + ctx.status + ' · ' + ctx.ms + 'ms\n' + ctx.text;
 ```
 
 Script errors are shown in the result area and do not abort the request.
+
+## Protocol annotations and debugging
+
+![apidoc-rust multi-protocol debugging architecture]({{root}}assets/img/rust/{{imglang}}/multiprotocol.svg)
+
+Each protocol has its own annotation; the positional argument is `target`:
+
+```rust
+#[apidoc::websocket("wss://example.com/ws")]
+#[apidoc::grpc(target = "http://localhost:50051", service = "helloworld.Greeter", method = "SayHello")]
+#[apidoc::mqtt("mqtt://broker:1883", topic = "sensors/#")]
+#[apidoc::event(direction = "in", name = "message")]
+#[apidoc::param(name = "payload", ty = "json", field = "1")]
+fn stream() {}
+```
+
+The generic `#[apidoc::protocol("kind", ...)]` form is equivalent. Coverage spans P1–P6:
+
+- Browser-direct: SOAP/GraphQL, JSON-RPC/XML-RPC, OData, MCP/A2A, Webhooks, WebSocket, SSE, Socket.IO, STOMP, WebRTC and HLS.
+- Server-side: gRPC, Thrift, Dubbo/Hessian, ISO 8583, TCP/UDP/Unix Socket, MQTT, AMQP, Kafka, XMPP, CoAP, Modbus, DNP3, IEC 104, BACnet, OPC UA, HTTP/2, HTTP/3, RTP/RTCP, RTSP, SIP and RTMP.
+- P6: inbound webhook capture, AsyncAPI 2.6 export, `.proto` / `.thrift` IDL import, Nacos Dubbo and event Mock examples.
+
+Server execution is off by default: `DebugConfig { enable_server_side: true }` requires global auth. Targets pass an SSRF guard first (allowlist, loopback/private/link-local/CGNAT denied by default, cloud metadata always denied, DNS results checked per IP and pinned, redirects/proxies/CONNECT disabled) and are bounded by `max_bytes` / `max_frames` / `timeout`. Protocols without pinned TLS support (`wss`, gRPC `https`, MQTT/AMQP TLS) fail closed.
+
+api.json, all exports, code templates and mock responses are materialized when the router is built; `tests/latency.rs` verifies local routes at p99 < 10 ms, excluding the debug target's network time.
 
 ## Auth
 
@@ -326,11 +353,12 @@ GET /apidoc/share?app=api&url=/api/user/info&method=GET&base=https://example.com
 GET /apidoc/export?format=md
 GET /apidoc/export?format=ts
 GET /apidoc/export?format=swagger
+GET /apidoc/export?format=asyncapi
 GET /apidoc/generate?template=api.ts
 ```
 
 - `share` returns a deep link; when auth is enabled it includes a token so the link opens without a password.
-- `export` supports Markdown, TypeScript and Swagger/OpenAPI 3.0.0; an unknown format returns 400.
+- `export` supports Markdown, TypeScript, Swagger/OpenAPI 3.0.0 and AsyncAPI 2.6; an unknown format returns 400.
 - `generate` ships `api.ts`, `handler.rs` and `schema.sql` templates. A custom template with the same name overrides the built-in one. Templates support `{{variable}}` and `{{#each ...}}`, including endpoints, tables, field values and SQL fragment variables.
 
 ## Common scenarios
@@ -370,7 +398,17 @@ Rust does not connect to the database. Define tables and fields in `ApidocConfig
 | `app` falls back to default | Is the key present in `ApidocConfig.apps`? |
 | Tokens die after restart | Set a fixed `secret_key`. |
 | Debug CORS fails | Is `cors_layer` mounted? Does `allow_origins` include the page origin? |
+| Protocol debugging is unavailable | Is `DebugConfig.enable_server_side` enabled with auth? Is the matching `debug-*` feature compiled? Did the SSRF guard or unsupported TLS reject the target? |
+| AsyncAPI export fails | Does the endpoint declare a protocol and `event` messages? Is `export?format=asyncapi` enabled? |
 | Page is stale | Doc artifacts are materialized when the router is built; restart or rebuild. |
+
+## Visual overview
+
+<figure class="doc-figure"><img src="{{root}}assets/img/rust/{{imglang}}/architecture.svg" alt="apidoc-rust architecture"><figcaption>apidoc-rust architecture: compile-time registry, build-time materialization and adapters.</figcaption></figure>
+
+<figure class="doc-figure"><img src="{{root}}assets/img/rust/{{imglang}}/features.svg" alt="apidoc-rust features"><figcaption>apidoc-rust features: docs, debugging, auth, exports and codegen.</figcaption></figure>
+
+<figure class="doc-figure"><img src="{{root}}assets/img/rust/{{imglang}}/lifecycle.svg" alt="apidoc-rust lifecycle"><figcaption>apidoc-rust lifecycle: declare, collect, materialize and deliver.</figcaption></figure>
 
 ## Reference
 

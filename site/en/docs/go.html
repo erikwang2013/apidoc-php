@@ -4,7 +4,7 @@
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <title>Go API Documentation Guide · Gin, Echo, Fiber · Apidoc</title>
-  <meta name="description" content="Declare Go API docs as typed structs at route registration, then browse and debug them in a built-in web UI. Supports net/http, Gin, Echo, Fiber and more.">
+  <meta name="description" content="Go API docs from typed structs at route registration, with protocol annotations, response cache, Mock and 8 framework adapters.">
   <meta name="theme-color" content="#f7f6fc">
   <link rel="icon" href="../../assets/img/apidoc-pet.svg" type="image/svg+xml">
   <link rel="preload" href="../../assets/img/apidoc-pet.svg" as="image">
@@ -27,7 +27,7 @@
   </noscript>
   <meta property="og:type" content="article">
   <meta property="og:title" content="Go API Documentation Guide · Gin, Echo, Fiber · Apidoc">
-  <meta property="og:description" content="Declare Go API docs as typed structs at route registration, then browse and debug them in a built-in web UI. Supports net/http, Gin, Echo, Fiber and more.">
+  <meta property="og:description" content="Go API docs from typed structs at route registration, with protocol annotations, response cache, Mock and 8 framework adapters.">
   <meta property="og:url" content="https://apidoc.erik.xyz/en/docs/go.html">
   <meta property="og:image" content="https://apidoc.erik.xyz/assets/img/php/social-preview-en.png">
   <meta property="og:image:type" content="image/png">
@@ -39,10 +39,10 @@
   <meta property="og:locale:alternate" content="zh_CN">
   <meta name="twitter:card" content="summary_large_image">
   <meta name="twitter:title" content="Go API Documentation Guide · Gin, Echo, Fiber · Apidoc">
-  <meta name="twitter:description" content="Declare Go API docs as typed structs at route registration, then browse and debug them in a built-in web UI. Supports net/http, Gin, Echo, Fiber and more.">
+  <meta name="twitter:description" content="Go API docs from typed structs at route registration, with protocol annotations, response cache, Mock and 8 framework adapters.">
   <meta name="twitter:image" content="https://apidoc.erik.xyz/assets/img/php/social-preview-en.png">
   <meta name="twitter:image:alt" content="Apidoc: API documentation for PHP, Go and Rust">
-  <script type="application/ld+json">{"@context":"https://schema.org","@graph":[{"@type":"Person","@id":"https://apidoc.erik.xyz/#person","name":"erik","url":"https://erik.xyz","sameAs":["https://github.com/erikwang2013"]},{"@type":"Organization","@id":"https://apidoc.erik.xyz/#organization","name":"Apidoc","url":"https://apidoc.erik.xyz/","description":"Open-source API documentation for PHP, Go and Rust.","logo":{"@type":"ImageObject","url":"https://apidoc.erik.xyz/assets/img/apidoc-pet.svg"},"sameAs":["https://github.com/erikwang2013"],"founder":{"@id":"https://apidoc.erik.xyz/#person"}},{"@type":"WebSite","@id":"https://apidoc.erik.xyz/#website","url":"https://apidoc.erik.xyz/","name":"Apidoc","description":"API documentation for PHP, Go and Rust.","inLanguage":["zh-CN","en"],"publisher":{"@id":"https://apidoc.erik.xyz/#organization"}},{"@type":"TechArticle","@id":"https://apidoc.erik.xyz/en/docs/go.html#article","headline":"Go API Documentation Guide","description":"Declare docs as typed structs next to route registration. A built-in web UI provides browsing and live debugging for net/http, Gin, Echo, Chi, Fiber, beego, Kratos and go-zero.","url":"https://apidoc.erik.xyz/en/docs/go.html","mainEntityOfPage":{"@id":"https://apidoc.erik.xyz/en/docs/go.html"},"inLanguage":"en","author":{"@id":"https://apidoc.erik.xyz/#person"},"publisher":{"@id":"https://apidoc.erik.xyz/#organization"},"isPartOf":{"@id":"https://apidoc.erik.xyz/en/docs/"},"about":"Go","articleSection":"Go","dateModified":"2026-10-25","image":"https://apidoc.erik.xyz/assets/img/social-preview.png","keywords":"Go API documentation, net/http, Gin, Echo, Chi, Fiber, beego, Kratos, go-zero"},{"@type":"BreadcrumbList","@id":"https://apidoc.erik.xyz/en/docs/go.html#breadcrumb","itemListElement":[{"@type":"ListItem","position":1,"name":"Home","item":"https://apidoc.erik.xyz/en/"},{"@type":"ListItem","position":2,"name":"Usage guides","item":"https://apidoc.erik.xyz/en/docs/"},{"@type":"ListItem","position":3,"name":"Go","item":"https://apidoc.erik.xyz/en/docs/go.html"}]}]}</script><meta property="article:modified_time" content="2026-10-25"><meta property="article:section" content="Go">
+  <script type="application/ld+json">{"@context":"https://schema.org","@graph":[{"@type":"Person","@id":"https://apidoc.erik.xyz/#person","name":"erik","url":"https://erik.xyz","sameAs":["https://github.com/erikwang2013"]},{"@type":"Organization","@id":"https://apidoc.erik.xyz/#organization","name":"Apidoc","url":"https://apidoc.erik.xyz/","description":"Open-source API documentation for PHP, Go and Rust.","logo":{"@type":"ImageObject","url":"https://apidoc.erik.xyz/assets/img/apidoc-pet.svg"},"sameAs":["https://github.com/erikwang2013"],"founder":{"@id":"https://apidoc.erik.xyz/#person"}},{"@type":"WebSite","@id":"https://apidoc.erik.xyz/#website","url":"https://apidoc.erik.xyz/","name":"Apidoc","description":"API documentation for PHP, Go and Rust.","inLanguage":["zh-CN","en"],"publisher":{"@id":"https://apidoc.erik.xyz/#organization"}},{"@type":"TechArticle","@id":"https://apidoc.erik.xyz/en/docs/go.html#article","headline":"Go API Documentation Guide","description":"Declare docs as typed structs next to route registration and expose menus/protocols/detail/export APIs for apidoc-ui to render and debug. Supports @protocol annotations, response caching, Mock, auth and param inference across 8 Go frameworks.","url":"https://apidoc.erik.xyz/en/docs/go.html","mainEntityOfPage":{"@id":"https://apidoc.erik.xyz/en/docs/go.html"},"inLanguage":"en","author":{"@id":"https://apidoc.erik.xyz/#person"},"publisher":{"@id":"https://apidoc.erik.xyz/#organization"},"isPartOf":{"@id":"https://apidoc.erik.xyz/en/docs/"},"about":"Go","articleSection":"Go","dateModified":"2026-10-26","image":"https://apidoc.erik.xyz/assets/img/social-preview.png","keywords":"Go API documentation, net/http, Gin, Echo, Chi, Fiber, beego, Kratos, go-zero, protocol annotations, response cache"},{"@type":"BreadcrumbList","@id":"https://apidoc.erik.xyz/en/docs/go.html#breadcrumb","itemListElement":[{"@type":"ListItem","position":1,"name":"Home","item":"https://apidoc.erik.xyz/en/"},{"@type":"ListItem","position":2,"name":"Usage guides","item":"https://apidoc.erik.xyz/en/docs/"},{"@type":"ListItem","position":3,"name":"Go","item":"https://apidoc.erik.xyz/en/docs/go.html"}]}]}</script><meta property="article:modified_time" content="2026-10-26"><meta property="article:section" content="Go">
 </head>
 <body data-copy-label="Copy" data-copied-label="Copied" data-menu-open="Open menu" data-menu-close="Close menu">
   <a class="skip-link" href="#main">Skip to main content</a>
@@ -93,31 +93,28 @@
   <section class="docs-hero">
   <div class="wrap">
     <p class="docs-breadcrumb"><a href="../index.html">Home</a><span>/</span><a href="index.html">Usage guides</a><span>/</span>Go</p>
-    <div class="docs-badges"><span class="lang-badge">Go</span><span class="version-pill">v1.0.7</span></div>
+    <div class="docs-badges"><span class="lang-badge">Go</span><span class="version-pill">v1.0.15</span></div>
     <h1>Go API Documentation Guide</h1>
-    <p>Declare docs as typed structs next to route registration. A built-in web UI provides browsing and live debugging for net/http, Gin, Echo, Chi, Fiber, beego, Kratos and go-zero.</p>
+    <p>Declare docs as typed structs next to route registration and expose menus/protocols/detail/export APIs for apidoc-ui to render and debug. Supports @protocol annotations, response caching, Mock, auth and param inference across 8 Go frameworks.</p>
     <div class="docs-actions"><a class="text-link" href="https://github.com/erikwang2013/apidoc-go" target="_blank" rel="noopener">GitHub <svg class="icon icon-xs" aria-hidden="true"><use href="#i-external"></use></svg></a><a class="text-link" href="https://github.com/erikwang2013/apidoc-go/blob/main/README.md" target="_blank" rel="noopener">View source <svg class="icon icon-xs" aria-hidden="true"><use href="#i-external"></use></svg></a></div>
-    <p class="docs-meta">Version v1.0.7 / Full reference: Go README</p>
+    <p class="docs-meta">Version v1.0.15 / Full reference: Go README</p>
   </div>
 </section><div class="wrap docs-layout">
   <aside class="docs-sidebar">
     <p class="docs-sidebar-title">On this page</p>
-    <ul class="docs-toc"><li><a href="#sec-1">When to use it</a></li><li><a href="#sec-2">Installation</a></li><li><a href="#sec-3">Minimal example (net/http)</a></li><li><a href="#sec-4">Core model and registration rules</a></li><li><a href="#sec-5">Config</a></li><li><a href="#sec-6">Framework adapters</a></li><li><a href="#sec-7">Writing docs: Doc / Param / Response</a></li><li><a href="#sec-8">Param inference with reflect</a></li><li><a href="#sec-9">Comment parsing with go/ast</a></li><li><a href="#sec-10">Mock and live debugging</a></li><li><a href="#sec-11">Auth</a></li><li><a href="#sec-12">Apps and versions</a></li><li><a href="#sec-13">Exports</a></li><li><a href="#sec-14">Common scenarios</a></li><li class="is-sub"><a href="#sec-15">REST CRUD</a></li><li class="is-sub"><a href="#sec-16">Pagination</a></li><li class="is-sub"><a href="#sec-17">Login and tokens</a></li><li class="is-sub"><a href="#sec-18">File upload</a></li><li class="is-sub"><a href="#sec-19">Multiple versions</a></li><li class="is-sub"><a href="#sec-20">Comment-driven docs</a></li><li><a href="#sec-21">Rules and troubleshooting</a></li><li><a href="#sec-22">Visual overview</a></li><li><a href="#sec-23">Reference</a></li></ul>
+    <ul class="docs-toc"><li><a href="#sec-1">When to use it</a></li><li><a href="#sec-2">Installation</a></li><li><a href="#sec-3">Minimal example (net/http)</a></li><li class="is-sub"><a href="#sec-4">Protocol annotations</a></li><li><a href="#sec-5">Core model and registration rules</a></li><li><a href="#sec-6">Config</a></li><li><a href="#sec-7">Framework adapters</a></li><li><a href="#sec-8">Writing docs: Doc / Param / Response</a></li><li><a href="#sec-9">Param inference with reflect</a></li><li><a href="#sec-10">Comment parsing with go/ast</a></li><li><a href="#sec-11">Mock and live debugging</a></li><li><a href="#sec-12">Auth</a></li><li><a href="#sec-13">Apps and versions</a></li><li><a href="#sec-14">Exports</a></li><li><a href="#sec-15">Common scenarios</a></li><li class="is-sub"><a href="#sec-16">REST CRUD</a></li><li class="is-sub"><a href="#sec-17">Pagination</a></li><li class="is-sub"><a href="#sec-18">Login and tokens</a></li><li class="is-sub"><a href="#sec-19">File upload</a></li><li class="is-sub"><a href="#sec-20">Multiple versions</a></li><li class="is-sub"><a href="#sec-21">Comment-driven docs</a></li><li><a href="#sec-22">Rules and troubleshooting</a></li><li><a href="#sec-23">Visual overview</a></li><li><a href="#sec-24">Reference</a></li></ul>
     <a class="docs-edit" href="https://github.com/erikwang2013/apidoc-go/blob/main/README.md" target="_blank" rel="noopener">View source <svg class="icon icon-xs" aria-hidden="true"><use href="#i-external"></use></svg></a>
   </aside>
   <article class="docs-article">
-    <details class="docs-toc-mobile"><summary>On this page</summary><ul class="docs-toc"><li><a href="#sec-1">When to use it</a></li><li><a href="#sec-2">Installation</a></li><li><a href="#sec-3">Minimal example (net/http)</a></li><li><a href="#sec-4">Core model and registration rules</a></li><li><a href="#sec-5">Config</a></li><li><a href="#sec-6">Framework adapters</a></li><li><a href="#sec-7">Writing docs: Doc / Param / Response</a></li><li><a href="#sec-8">Param inference with reflect</a></li><li><a href="#sec-9">Comment parsing with go/ast</a></li><li><a href="#sec-10">Mock and live debugging</a></li><li><a href="#sec-11">Auth</a></li><li><a href="#sec-12">Apps and versions</a></li><li><a href="#sec-13">Exports</a></li><li><a href="#sec-14">Common scenarios</a></li><li class="is-sub"><a href="#sec-15">REST CRUD</a></li><li class="is-sub"><a href="#sec-16">Pagination</a></li><li class="is-sub"><a href="#sec-17">Login and tokens</a></li><li class="is-sub"><a href="#sec-18">File upload</a></li><li class="is-sub"><a href="#sec-19">Multiple versions</a></li><li class="is-sub"><a href="#sec-20">Comment-driven docs</a></li><li><a href="#sec-21">Rules and troubleshooting</a></li><li><a href="#sec-22">Visual overview</a></li><li><a href="#sec-23">Reference</a></li></ul></details>
-    <p>The Go edition declares API docs as typed structs next to route registration. Docs and routes live together, and the built-in web UI adds browsing, live debugging, Mock, auth, caching and exports. It fits Go HTTP services that want documentation to travel with the router.</p>
-<blockquote>
-<p>This guide focuses on HTTP documentation. For arbitrary protocol debugging and definition parsing, see the <a href="../../en/docs/php.html">PHP guide</a>.</p>
-</blockquote>
-<figure class="doc-figure"><img fetchpriority="high" loading="eager" src="../../assets/img/go/en/architecture.svg" alt="apidoc-go architecture" width="900" height="560" decoding="async"><figcaption>apidoc-go architecture: route registration, document store, JSON API and built-in UI.</figcaption></figure>
+    <details class="docs-toc-mobile"><summary>On this page</summary><ul class="docs-toc"><li><a href="#sec-1">When to use it</a></li><li><a href="#sec-2">Installation</a></li><li><a href="#sec-3">Minimal example (net/http)</a></li><li class="is-sub"><a href="#sec-4">Protocol annotations</a></li><li><a href="#sec-5">Core model and registration rules</a></li><li><a href="#sec-6">Config</a></li><li><a href="#sec-7">Framework adapters</a></li><li><a href="#sec-8">Writing docs: Doc / Param / Response</a></li><li><a href="#sec-9">Param inference with reflect</a></li><li><a href="#sec-10">Comment parsing with go/ast</a></li><li><a href="#sec-11">Mock and live debugging</a></li><li><a href="#sec-12">Auth</a></li><li><a href="#sec-13">Apps and versions</a></li><li><a href="#sec-14">Exports</a></li><li><a href="#sec-15">Common scenarios</a></li><li class="is-sub"><a href="#sec-16">REST CRUD</a></li><li class="is-sub"><a href="#sec-17">Pagination</a></li><li class="is-sub"><a href="#sec-18">Login and tokens</a></li><li class="is-sub"><a href="#sec-19">File upload</a></li><li class="is-sub"><a href="#sec-20">Multiple versions</a></li><li class="is-sub"><a href="#sec-21">Comment-driven docs</a></li><li><a href="#sec-22">Rules and troubleshooting</a></li><li><a href="#sec-23">Visual overview</a></li><li><a href="#sec-24">Reference</a></li></ul></details>
+    <p>The Go edition declares API docs as typed structs next to route registration. Docs and routes live together; the library exposes menus/protocols/detail/export APIs for apidoc-ui to render, debug and display protocol panels. It fits Go HTTP services that want documentation to travel with the router.</p>
+<figure class="doc-figure"><img fetchpriority="high" loading="eager" src="../../assets/img/go/en/architecture.svg" alt="apidoc-go architecture" width="900" height="600" decoding="async"><figcaption>apidoc-go architecture: route registration, document store, response cache and external docs API.</figcaption></figure>
 
 <h2 id="sec-1">When to use it</h2>
 <ul>
 <li>Services built on net/http, Gin, Echo, Chi, Fiber, beego, Kratos or go-zero.</li>
 <li>Teams that want route registration and documentation in the same place.</li>
-<li>Projects that need live debugging, Mock, apps/versions, password auth, ETag caching and JSON/TypeScript exports.</li>
+<li>Projects that need apidoc-ui rendering, protocol annotations, Mock, apps/versions, password auth, response caching and JSON/TypeScript exports.</li>
 <li>Go 1.24+ projects that can add doc registration to the existing route setup.</li>
 </ul>
 <h2 id="sec-2">Installation</h2>
@@ -166,8 +163,48 @@
 <span class="p">}</span>
 </code></pre>
 
-<p>Open <code>http://localhost:8080/apidoc</code>. The docs UI, JSON API and export endpoints are mounted under the same prefix by <code>Mount</code>.</p>
-<h2 id="sec-4">Core model and registration rules</h2>
+<p>The docs API lives under <code>http://localhost:8080/apidoc/api/...</code> and is consumed by apidoc-ui (or any client implementing the same contract). <code>Mount</code> only mounts the docs API; the built-in web UI has been removed.</p>
+<div class="table-scroll"><table>
+<thead>
+<tr>
+<th>Endpoint</th>
+<th>Purpose</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>GET /apidoc/api/menus</code></td>
+<td>App/version/controller/endpoint tree.</td>
+</tr>
+<tr>
+<td><code>GET /apidoc/api/protocols</code></td>
+<td>Protocol registry, aliases, URL schemes and default ports.</td>
+</tr>
+<tr>
+<td><code>GET /apidoc/api/detail</code></td>
+<td>Endpoint detail; protocol endpoints return <code>protocol</code>, <code>protocol_info</code>, <code>method</code>, <code>url</code>, params, responses and Mock.</td>
+</tr>
+<tr>
+<td><code>GET /apidoc/api/export</code></td>
+<td>Full project tree; <code>?format=typescript</code> exports type definitions.</td>
+</tr>
+</tbody>
+</table></div>
+<h3 id="sec-4">Protocol annotations</h3>
+<p>Non-HTTP endpoints reuse <code>@method</code> + <code>@url</code> and select a protocol with <code>@protocol</code> (or infer it from the URL scheme):</p>
+<pre class="highlight"><code class="language-go"><span class="c1">// @apidoc</span>
+<span class="c1">// @protocol mqtt</span>
+<span class="c1">// @method PUBLISH</span>
+<span class="c1">// @url mqtt://broker:1883/sensors/temp</span>
+<span class="c1">// @title Publish temperature</span>
+<span class="c1">// @param qos int false &quot;QoS&quot; in=option default=1</span>
+<span class="c1">// @param payload json true &quot;Payload&quot; in=payload</span>
+<span class="kd">func</span><span class="w"> </span><span class="nx">PublishTemp</span><span class="p">()</span><span class="w"> </span><span class="p">{}</span>
+</code></pre>
+
+<p><code>@protocol</code> accepts HTTP/2, HTTP/3, SOAP, GraphQL, gRPC, Dubbo, Thrift, Hessian, WebSocket, SSE, MQTT, STOMP, Kafka, CoAP, Modbus TCP, DNP3, TCP, UDP and aliases; see <code>GET /api/protocols</code> for the full list. Declare binary bodies with <code>@param ... type=binary</code> (or <code>hex</code>/<code>base64</code>) + <code>in=payload</code>.</p>
+<p>Protocol execution stays out of the Go library: it only returns metadata, and apidoc-ui renders the panel and issues test requests. The library starts no protocol servers and exposes no <code>/api/debug/*</code> execution endpoint. Use PHP or Rust when server-side execution is required.</p>
+<h2 id="sec-5">Core model and registration rules</h2>
 <div class="table-scroll"><table>
 <thead>
 <tr>
@@ -206,7 +243,7 @@
 <li><code>Method</code> and <code>URL</code> are required. Path parameter syntax follows the host framework, such as Gin's <code>:id</code> or <code>*path</code>.</li>
 <li>Check the error from <code>Register</code>; adapter failures surface from <code>Register</code> or <code>Mount</code>.</li>
 </ul>
-<h2 id="sec-5">Config</h2>
+<h2 id="sec-6">Config</h2>
 <pre class="highlight"><code class="language-go"><span class="nx">s</span><span class="w"> </span><span class="o">:=</span><span class="w"> </span><span class="nx">apidoc</span><span class="p">.</span><span class="nx">New</span><span class="p">(</span><span class="nx">apidoc</span><span class="p">.</span><span class="nx">Config</span><span class="p">{</span>
 <span class="w">    </span><span class="nx">Prefix</span><span class="p">:</span><span class="w">       </span><span class="s">&quot;/apidoc&quot;</span><span class="p">,</span>
 <span class="w">    </span><span class="nx">Title</span><span class="p">:</span><span class="w">        </span><span class="s">&quot;My API&quot;</span><span class="p">,</span>
@@ -275,7 +312,7 @@
 </tr>
 </tbody>
 </table></div>
-<h2 id="sec-6">Framework adapters</h2>
+<h2 id="sec-7">Framework adapters</h2>
 <div class="table-scroll"><table>
 <thead>
 <tr>
@@ -342,7 +379,7 @@
 </code></pre>
 
 <p>Swap the adapter constructor for Echo, Chi or Fiber and keep the registration code. beego keeps one handler per path, so multiple methods on the same URL need to follow the framework's capabilities. Kratos and go-zero take their own server types.</p>
-<h2 id="sec-7">Writing docs: Doc / Param / Response</h2>
+<h2 id="sec-8">Writing docs: Doc / Param / Response</h2>
 <pre class="highlight"><code class="language-go"><span class="nx">s</span><span class="p">.</span><span class="nx">Register</span><span class="p">(</span><span class="nx">apidoc</span><span class="p">.</span><span class="nx">Route</span><span class="p">{</span>
 <span class="w">    </span><span class="nx">Method</span><span class="p">:</span><span class="w"> </span><span class="s">&quot;POST&quot;</span><span class="p">,</span>
 <span class="w">    </span><span class="nx">URL</span><span class="p">:</span><span class="w">    </span><span class="s">&quot;/users&quot;</span><span class="p">,</span>
@@ -372,7 +409,7 @@
 </code></pre>
 
 <p><code>Param.In</code> accepts <code>header</code>, <code>query</code>, <code>body</code> or <code>path</code>. Use <code>Children</code> for object/array fields and <code>Response.Fields</code> for nested response fields. <code>Markdown</code> is rendered on the detail page.</p>
-<h2 id="sec-8">Param inference with reflect</h2>
+<h2 id="sec-9">Param inference with reflect</h2>
 <p>When <code>Doc.Params</code> is empty, <code>Register</code> infers params from the handler signature. Struct arguments expand into body fields using <code>json</code> tags, and framework contexts such as <code>*gin.Context</code>, <code>echo.Context</code> or <code>*fiber.Ctx</code> are skipped:</p>
 <pre class="highlight"><code class="language-go"><span class="kd">type</span><span class="w"> </span><span class="nx">CreateUserReq</span><span class="w"> </span><span class="kd">struct</span><span class="w"> </span><span class="p">{</span>
 <span class="w">    </span><span class="nx">Name</span><span class="w">  </span><span class="kt">string</span><span class="w"> </span><span class="s">`json:&quot;name&quot;`</span>
@@ -383,7 +420,7 @@
 </code></pre>
 
 <p>Inference provides fields and types, not descriptions. Explicit <code>Doc.Params</code> is still recommended for important endpoints.</p>
-<h2 id="sec-9">Comment parsing with go/ast</h2>
+<h2 id="sec-10">Comment parsing with go/ast</h2>
 <p>Write <code>@apidoc</code> comments above a handler and parse the directory with <code>parse.ParseDir</code>:</p>
 <pre class="highlight"><code class="language-go"><span class="c1">// @apidoc</span>
 <span class="c1">// @method POST</span>
@@ -403,15 +440,16 @@
 <span class="p">}</span>
 </code></pre>
 
-<p>Supported tags include <code>@method</code>, <code>@url</code>, <code>@title</code>, <code>@desc</code>, <code>@author</code>, <code>@app</code>, <code>@version</code>, <code>@group</code>, <code>@sort</code>, <code>@param</code>, <code>@header</code>, <code>@body</code>, <code>@success</code> / <code>@response</code> and <code>@markdown</code>. <code>@param</code> takes <code>name type required desc key=value...</code>; <code>in</code> accepts <code>header</code>, <code>query</code>, <code>body</code> or <code>path</code>.</p>
-<h2 id="sec-10">Mock and live debugging</h2>
+<p>Supported tags include <code>@method</code>, <code>@url</code>, <code>@title</code>, <code>@desc</code>, <code>@author</code>, <code>@app</code>, <code>@version</code>, <code>@group</code>, <code>@sort</code>, <code>@param</code>, <code>@header</code>, <code>@body</code>, <code>@success</code> / <code>@response</code>, <code>@markdown</code> and <code>@protocol</code>. <code>@param</code> takes <code>name type required desc key=value...</code>; <code>in</code> accepts <code>header</code>, <code>query</code>, <code>body</code> or <code>path</code>.</p>
+<h2 id="sec-11">Mock and live debugging</h2>
 <ul>
 <li>The detail page generates Mock examples automatically; <code>Param.Mock</code> and <code>Response.Mock</code> can override values.</li>
 <li>Without a Mock value, the mock package generates values by type: <code>string</code>, <code>int</code>, <code>float</code>, <code>bool</code>, <code>object</code> and so on.</li>
-<li>The debugger calls the target service directly from the browser. Cross-origin origins must be listed in <code>DebugOrigins</code>; the adapter sends the CORS headers.</li>
-<li>Doc API responses carry <code>ETag</code> and <code>Cache-Control: private, max-age=300</code>, so repeat requests can return 304.</li>
+<li>apidoc-ui calls the target service directly from the browser. Cross-origin origins must be listed in <code>DebugOrigins</code>; the adapter sends the CORS headers.</li>
+<li>Protocol endpoints only return metadata; the panel and test request are owned by the external UI. Go has no server-side relay endpoint.</li>
+<li><code>/api/menus</code>, <code>/api/protocols</code> and <code>/api/export</code> are pre-serialized and cached per document version; <code>Register</code> / <code>SetAppMeta</code> invalidates them. Responses carry <code>ETag</code> and <code>Cache-Control: private, max-age=300</code>, so repeat requests can return 304.</li>
 </ul>
-<h2 id="sec-11">Auth</h2>
+<h2 id="sec-12">Auth</h2>
 <p>When <code>Config.Auth</code> is enabled:</p>
 <ul>
 <li>The UI shows a login panel. <code>POST /apidoc/api/login</code> checks the global password and sets an HttpOnly cookie.</li>
@@ -420,9 +458,9 @@
 <li><code>Secure: true</code> adds the Secure flag to the cookie on HTTPS.</li>
 <li><code>DebugOrigins</code> only allows the listed origins; do not open it to everyone.</li>
 </ul>
-<h2 id="sec-12">Apps and versions</h2>
+<h2 id="sec-13">Apps and versions</h2>
 <p><code>Doc.App</code> / <code>Doc.Version</code> place an endpoint in the tree. <code>Config.Apps</code> supplies app titles and passwords. The UI switches apps and versions in the same portal. The version is metadata; actual routing is still controlled by the registered handler.</p>
-<h2 id="sec-13">Exports</h2>
+<h2 id="sec-14">Exports</h2>
 <div class="table-scroll"><table>
 <thead>
 <tr>
@@ -450,20 +488,20 @@
 </tbody>
 </table></div>
 <p>Exports are protected by the same auth as the doc API. Front-end teams can download TypeScript or feed the JSON into test tooling.</p>
-<h2 id="sec-14">Common scenarios</h2>
-<h3 id="sec-15">REST CRUD</h3>
+<h2 id="sec-15">Common scenarios</h2>
+<h3 id="sec-16">REST CRUD</h3>
 <p>Register a <code>Route</code> for list, detail, create, update and delete. Group them with <code>Doc.Controller</code> and use <code>Param.In</code> for path, query and body fields. Later registrations replace duplicate <code>(app, version, method, url)</code> entries, which is useful during initialization.</p>
-<h3 id="sec-16">Pagination</h3>
+<h3 id="sec-17">Pagination</h3>
 <p>Put shared <code>page</code> / <code>pageSize</code> fields in <code>GlobalParams</code>, or let reflect expand a request struct. Use explicit <code>Doc.Params</code> when descriptions and defaults matter.</p>
-<h3 id="sec-17">Login and tokens</h3>
+<h3 id="sec-18">Login and tokens</h3>
 <p>Add <code>Authorization</code> to <code>GlobalParams</code> so every endpoint carries it. The debug panel can fill global headers. Protect the documentation itself with the global or app password in production.</p>
-<h3 id="sec-18">File upload</h3>
+<h3 id="sec-19">File upload</h3>
 <p>Use <code>Type: "file"</code> (or the framework's upload field) and handle multipart in the handler. The debug panel supports file selection.</p>
-<h3 id="sec-19">Multiple versions</h3>
+<h3 id="sec-20">Multiple versions</h3>
 <p>Use <code>Doc.Version</code> for version metadata and <code>Config.Apps</code> for the app tree. There is no need to copy the doc server per version.</p>
-<h3 id="sec-20">Comment-driven docs</h3>
+<h3 id="sec-21">Comment-driven docs</h3>
 <p>For large existing handler sets, parse comments with <code>parse.ParseDir</code> and turn each <code>parse.Result</code> into a <code>Route</code>. This avoids duplicating field declarations in the router.</p>
-<h2 id="sec-21">Rules and troubleshooting</h2>
+<h2 id="sec-22">Rules and troubleshooting</h2>
 <div class="table-scroll"><table>
 <thead>
 <tr>
@@ -473,8 +511,8 @@
 </thead>
 <tbody>
 <tr>
-<td><code>/apidoc</code> returns 404</td>
-<td>Did you call <code>Mount</code>? Does <code>Prefix</code> match the URL?</td>
+<td><code>/apidoc/api/menus</code> returns 404</td>
+<td>Did you call <code>Mount</code>? Does <code>Prefix</code> match the URL? Is the front-end pointing at the docs API instead of the removed built-in UI?</td>
 </tr>
 <tr>
 <td>Route registration fails</td>
@@ -506,12 +544,12 @@
 </tr>
 </tbody>
 </table></div>
-<h2 id="sec-22">Visual overview</h2>
-<figure class="doc-figure"><img loading="lazy" src="../../assets/img/go/en/features.svg" alt="apidoc-go features" width="900" height="560" decoding="async"><figcaption>apidoc-go features: docs, debugging, Mock, exports and adapters.</figcaption></figure>
+<h2 id="sec-23">Visual overview</h2>
+<figure class="doc-figure"><img loading="lazy" src="../../assets/img/go/en/features.svg" alt="apidoc-go features" width="900" height="710" decoding="async"><figcaption>apidoc-go features: docs, protocol annotations, Mock, response cache, exports and adapters.</figcaption></figure>
 
-<figure class="doc-figure"><img loading="lazy" src="../../assets/img/go/en/lifecycle.svg" alt="apidoc-go lifecycle" width="900" height="300" decoding="async"><figcaption>apidoc-go lifecycle: registration, store, render and debug.</figcaption></figure>
+<figure class="doc-figure"><img loading="lazy" src="../../assets/img/go/en/lifecycle.svg" alt="apidoc-go lifecycle" width="900" height="300" decoding="async"><figcaption>apidoc-go lifecycle: registration, store, response cache and external UI debugging.</figcaption></figure>
 
-<h2 id="sec-23">Reference</h2>
+<h2 id="sec-24">Reference</h2>
 <ul>
 <li><a href="https://github.com/erikwang2013/apidoc-go" target="_blank" rel="noopener">apidoc-go README</a></li>
 <li><a href="https://github.com/erikwang2013/apidoc-go/releases" target="_blank" rel="noopener">apidoc-go Releases</a></li>

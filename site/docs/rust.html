@@ -4,7 +4,7 @@
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <title>Rust API 文档生成指南 · axum / actix-web · Apidoc</title>
-  <meta name="description" content="用过程宏在 handler 上声明 Rust API 文档，编译期静态注册，运行期零成本聚合；兼容 axum 与 actix-web，内置鉴权、Mock、导出、分享与代码生成。">
+  <meta name="description" content="Rust 过程宏在编译期生成 API 文档，支持 45 种协议注解、浏览器直连与服务端受控执行；兼容 axum/actix-web，内置鉴权、Mock、AsyncAPI/Swagger/TS 导出与代码生成。">
   <meta name="theme-color" content="#f7f6fc">
   <link rel="icon" href="../assets/img/apidoc-pet.svg" type="image/svg+xml">
   <link rel="preload" href="../assets/img/apidoc-pet.svg" as="image">
@@ -27,7 +27,7 @@
   </noscript>
   <meta property="og:type" content="article">
   <meta property="og:title" content="Rust API 文档生成指南 · axum / actix-web · Apidoc">
-  <meta property="og:description" content="用过程宏在 handler 上声明 Rust API 文档，编译期静态注册，运行期零成本聚合；兼容 axum 与 actix-web，内置鉴权、Mock、导出、分享与代码生成。">
+  <meta property="og:description" content="Rust 过程宏在编译期生成 API 文档，支持 45 种协议注解、浏览器直连与服务端受控执行；兼容 axum/actix-web，内置鉴权、Mock、AsyncAPI/Swagger/TS 导出与代码生成。">
   <meta property="og:url" content="https://apidoc.erik.xyz/docs/rust.html">
   <meta property="og:image" content="https://apidoc.erik.xyz/assets/img/social-preview.png">
   <meta property="og:image:type" content="image/png">
@@ -39,10 +39,10 @@
   <meta property="og:locale:alternate" content="en_US">
   <meta name="twitter:card" content="summary_large_image">
   <meta name="twitter:title" content="Rust API 文档生成指南 · axum / actix-web · Apidoc">
-  <meta name="twitter:description" content="用过程宏在 handler 上声明 Rust API 文档，编译期静态注册，运行期零成本聚合；兼容 axum 与 actix-web，内置鉴权、Mock、导出、分享与代码生成。">
+  <meta name="twitter:description" content="Rust 过程宏在编译期生成 API 文档，支持 45 种协议注解、浏览器直连与服务端受控执行；兼容 axum/actix-web，内置鉴权、Mock、AsyncAPI/Swagger/TS 导出与代码生成。">
   <meta name="twitter:image" content="https://apidoc.erik.xyz/assets/img/social-preview.png">
   <meta name="twitter:image:alt" content="Apidoc：PHP、Go、Rust 通用 API 文档体系">
-  <script type="application/ld+json">{"@context":"https://schema.org","@graph":[{"@type":"Person","@id":"https://apidoc.erik.xyz/#person","name":"erik","url":"https://erik.xyz","sameAs":["https://github.com/erikwang2013"]},{"@type":"Organization","@id":"https://apidoc.erik.xyz/#organization","name":"Apidoc","url":"https://apidoc.erik.xyz/","description":"Open-source API documentation for PHP, Go and Rust.","logo":{"@type":"ImageObject","url":"https://apidoc.erik.xyz/assets/img/apidoc-pet.svg"},"sameAs":["https://github.com/erikwang2013"],"founder":{"@id":"https://apidoc.erik.xyz/#person"}},{"@type":"WebSite","@id":"https://apidoc.erik.xyz/#website","url":"https://apidoc.erik.xyz/","name":"Apidoc","description":"API documentation for PHP, Go and Rust.","inLanguage":["zh-CN","en"],"publisher":{"@id":"https://apidoc.erik.xyz/#organization"}},{"@type":"TechArticle","@id":"https://apidoc.erik.xyz/docs/rust.html#article","headline":"Rust API 文档使用指南","description":"用过程宏在 handler 上声明文档，编译期静态注册，运行期零成本聚合；兼容 axum 与 actix-web，内置鉴权、Mock、导出、分享与代码生成。","url":"https://apidoc.erik.xyz/docs/rust.html","mainEntityOfPage":{"@id":"https://apidoc.erik.xyz/docs/rust.html"},"inLanguage":"zh-CN","author":{"@id":"https://apidoc.erik.xyz/#person"},"publisher":{"@id":"https://apidoc.erik.xyz/#organization"},"isPartOf":{"@id":"https://apidoc.erik.xyz/docs/"},"about":"Rust","articleSection":"Rust","dateModified":"2026-10-25","image":"https://apidoc.erik.xyz/assets/img/social-preview.png","keywords":"Rust API 文档, axum, actix-web, 过程宏, proc macro"},{"@type":"BreadcrumbList","@id":"https://apidoc.erik.xyz/docs/rust.html#breadcrumb","itemListElement":[{"@type":"ListItem","position":1,"name":"首页","item":"https://apidoc.erik.xyz/"},{"@type":"ListItem","position":2,"name":"使用文档","item":"https://apidoc.erik.xyz/docs/"},{"@type":"ListItem","position":3,"name":"Rust","item":"https://apidoc.erik.xyz/docs/rust.html"}]}]}</script><meta property="article:modified_time" content="2026-10-25"><meta property="article:section" content="Rust">
+  <script type="application/ld+json">{"@context":"https://schema.org","@graph":[{"@type":"Person","@id":"https://apidoc.erik.xyz/#person","name":"erik","url":"https://erik.xyz","sameAs":["https://github.com/erikwang2013"]},{"@type":"Organization","@id":"https://apidoc.erik.xyz/#organization","name":"Apidoc","url":"https://apidoc.erik.xyz/","description":"Open-source API documentation for PHP, Go and Rust.","logo":{"@type":"ImageObject","url":"https://apidoc.erik.xyz/assets/img/apidoc-pet.svg"},"sameAs":["https://github.com/erikwang2013"],"founder":{"@id":"https://apidoc.erik.xyz/#person"}},{"@type":"WebSite","@id":"https://apidoc.erik.xyz/#website","url":"https://apidoc.erik.xyz/","name":"Apidoc","description":"API documentation for PHP, Go and Rust.","inLanguage":["zh-CN","en"],"publisher":{"@id":"https://apidoc.erik.xyz/#organization"}},{"@type":"TechArticle","@id":"https://apidoc.erik.xyz/docs/rust.html#article","headline":"Rust API 文档使用指南","description":"过程宏在编译期生成文档，linkme 静态注册、运行期零成本聚合；支持 45 种协议注解与浏览器直连/服务端受控执行，内置鉴权、Mock、AsyncAPI/Swagger/TS 导出、分享与代码生成，兼容 axum 与 actix-web。","url":"https://apidoc.erik.xyz/docs/rust.html","mainEntityOfPage":{"@id":"https://apidoc.erik.xyz/docs/rust.html"},"inLanguage":"zh-CN","author":{"@id":"https://apidoc.erik.xyz/#person"},"publisher":{"@id":"https://apidoc.erik.xyz/#organization"},"isPartOf":{"@id":"https://apidoc.erik.xyz/docs/"},"about":"Rust","articleSection":"Rust","dateModified":"2026-10-26","image":"https://apidoc.erik.xyz/assets/img/social-preview.png","keywords":"Rust API 文档, axum, actix-web, 过程宏, proc macro, MQTT, gRPC, WebSocket"},{"@type":"BreadcrumbList","@id":"https://apidoc.erik.xyz/docs/rust.html#breadcrumb","itemListElement":[{"@type":"ListItem","position":1,"name":"首页","item":"https://apidoc.erik.xyz/"},{"@type":"ListItem","position":2,"name":"使用文档","item":"https://apidoc.erik.xyz/docs/"},{"@type":"ListItem","position":3,"name":"Rust","item":"https://apidoc.erik.xyz/docs/rust.html"}]}]}</script><meta property="article:modified_time" content="2026-10-26"><meta property="article:section" content="Rust">
 </head>
 <body data-copy-label="复制" data-copied-label="已复制" data-menu-open="打开菜单" data-menu-close="关闭菜单">
   <a class="skip-link" href="#main">跳到主要内容</a>
@@ -93,36 +93,33 @@
   <section class="docs-hero">
   <div class="wrap">
     <p class="docs-breadcrumb"><a href="../index.html">首页</a><span>/</span><a href="index.html">使用文档</a><span>/</span>Rust</p>
-    <div class="docs-badges"><span class="lang-badge">Rust</span><span class="version-pill">v2.0.0</span></div>
+    <div class="docs-badges"><span class="lang-badge">Rust</span><span class="version-pill">v2.1.0</span></div>
     <h1>Rust API 文档使用指南</h1>
-    <p>用过程宏在 handler 上声明文档，编译期静态注册，运行期零成本聚合；兼容 axum 与 actix-web，内置鉴权、Mock、导出、分享与代码生成。</p>
+    <p>过程宏在编译期生成文档，linkme 静态注册、运行期零成本聚合；支持 45 种协议注解与浏览器直连/服务端受控执行，内置鉴权、Mock、AsyncAPI/Swagger/TS 导出、分享与代码生成，兼容 axum 与 actix-web。</p>
     <div class="docs-actions"><a class="text-link" href="https://github.com/erikwang2013/apidoc-rust" target="_blank" rel="noopener">GitHub <svg class="icon icon-xs" aria-hidden="true"><use href="#i-external"></use></svg></a><a class="text-link" href="https://github.com/erikwang2013/apidoc-rust/blob/HEAD/README.md" target="_blank" rel="noopener">查看源文档 <svg class="icon icon-xs" aria-hidden="true"><use href="#i-external"></use></svg></a></div>
-    <p class="docs-meta">版本 v2.0.0 / 完整参考：Rust README</p>
+    <p class="docs-meta">版本 v2.1.0 / 完整参考：Rust README</p>
   </div>
 </section><div class="wrap docs-layout">
   <aside class="docs-sidebar">
     <p class="docs-sidebar-title">本页目录</p>
-    <ul class="docs-toc"><li><a href="#sec-1">适用场景</a></li><li><a href="#sec-2">安装与依赖</a></li><li><a href="#sec-3">核心模型与收集</a></li><li><a href="#sec-4">编写注解</a></li><li class="is-sub"><a href="#sec-5">注解一览</a></li><li class="is-sub"><a href="#sec-6">编译期规则</a></li><li><a href="#sec-7">收集、输出与引用</a></li><li><a href="#sec-8">axum 接入</a></li><li><a href="#sec-9">actix-web 接入</a></li><li><a href="#sec-10">Mock 与在线调试</a></li><li><a href="#sec-11">鉴权</a></li><li><a href="#sec-12">多应用与多版本</a></li><li><a href="#sec-13">数据表引用与文档缓存</a></li><li><a href="#sec-14">分享、导出与代码生成</a></li><li><a href="#sec-15">典型场景</a></li><li class="is-sub"><a href="#sec-16">REST CRUD</a></li><li class="is-sub"><a href="#sec-17">分页与通用字段</a></li><li class="is-sub"><a href="#sec-18">登录与鉴权</a></li><li class="is-sub"><a href="#sec-19">多版本</a></li><li class="is-sub"><a href="#sec-20">前端类型与后端骨架</a></li><li class="is-sub"><a href="#sec-21">数据表驱动</a></li><li><a href="#sec-22">规则与排错</a></li><li><a href="#sec-23">参考</a></li></ul>
+    <ul class="docs-toc"><li><a href="#sec-1">适用场景</a></li><li><a href="#sec-2">安装与依赖</a></li><li><a href="#sec-3">核心模型与收集</a></li><li><a href="#sec-4">编写注解</a></li><li class="is-sub"><a href="#sec-5">注解一览</a></li><li class="is-sub"><a href="#sec-6">编译期规则</a></li><li><a href="#sec-7">收集、输出与引用</a></li><li><a href="#sec-8">axum 接入</a></li><li><a href="#sec-9">actix-web 接入</a></li><li><a href="#sec-10">Mock 与在线调试</a></li><li><a href="#sec-11">多协议注解与调试</a></li><li><a href="#sec-12">鉴权</a></li><li><a href="#sec-13">多应用与多版本</a></li><li><a href="#sec-14">数据表引用与文档缓存</a></li><li><a href="#sec-15">分享、导出与代码生成</a></li><li><a href="#sec-16">典型场景</a></li><li class="is-sub"><a href="#sec-17">REST CRUD</a></li><li class="is-sub"><a href="#sec-18">分页与通用字段</a></li><li class="is-sub"><a href="#sec-19">登录与鉴权</a></li><li class="is-sub"><a href="#sec-20">多版本</a></li><li class="is-sub"><a href="#sec-21">前端类型与后端骨架</a></li><li class="is-sub"><a href="#sec-22">数据表驱动</a></li><li><a href="#sec-23">规则与排错</a></li><li><a href="#sec-24">可视概览</a></li><li><a href="#sec-25">参考</a></li></ul>
     <a class="docs-edit" href="https://github.com/erikwang2013/apidoc-rust/blob/HEAD/README.md" target="_blank" rel="noopener">查看源文档 <svg class="icon icon-xs" aria-hidden="true"><use href="#i-external"></use></svg></a>
   </aside>
   <article class="docs-article">
-    <details class="docs-toc-mobile"><summary>本页目录</summary><ul class="docs-toc"><li><a href="#sec-1">适用场景</a></li><li><a href="#sec-2">安装与依赖</a></li><li><a href="#sec-3">核心模型与收集</a></li><li><a href="#sec-4">编写注解</a></li><li class="is-sub"><a href="#sec-5">注解一览</a></li><li class="is-sub"><a href="#sec-6">编译期规则</a></li><li><a href="#sec-7">收集、输出与引用</a></li><li><a href="#sec-8">axum 接入</a></li><li><a href="#sec-9">actix-web 接入</a></li><li><a href="#sec-10">Mock 与在线调试</a></li><li><a href="#sec-11">鉴权</a></li><li><a href="#sec-12">多应用与多版本</a></li><li><a href="#sec-13">数据表引用与文档缓存</a></li><li><a href="#sec-14">分享、导出与代码生成</a></li><li><a href="#sec-15">典型场景</a></li><li class="is-sub"><a href="#sec-16">REST CRUD</a></li><li class="is-sub"><a href="#sec-17">分页与通用字段</a></li><li class="is-sub"><a href="#sec-18">登录与鉴权</a></li><li class="is-sub"><a href="#sec-19">多版本</a></li><li class="is-sub"><a href="#sec-20">前端类型与后端骨架</a></li><li class="is-sub"><a href="#sec-21">数据表驱动</a></li><li><a href="#sec-22">规则与排错</a></li><li><a href="#sec-23">参考</a></li></ul></details>
-    <p>Rust 版用过程宏在 handler 上声明文档，文档片段在编译期静态注册，运行期零成本聚合。它兼容 axum 与 actix-web，内置 Web UI、在线调试、Mock、鉴权、多应用版本、导出、分享与代码生成。适合希望文档严格跟随代码、并在编译期发现错误的 Rust 服务。</p>
-<blockquote>
-<p>本页聚焦 HTTP 文档；任意协议调试与协议定义解析见 <a href="../docs/php.html">PHP 指南</a>。</p>
-</blockquote>
+    <details class="docs-toc-mobile"><summary>本页目录</summary><ul class="docs-toc"><li><a href="#sec-1">适用场景</a></li><li><a href="#sec-2">安装与依赖</a></li><li><a href="#sec-3">核心模型与收集</a></li><li><a href="#sec-4">编写注解</a></li><li class="is-sub"><a href="#sec-5">注解一览</a></li><li class="is-sub"><a href="#sec-6">编译期规则</a></li><li><a href="#sec-7">收集、输出与引用</a></li><li><a href="#sec-8">axum 接入</a></li><li><a href="#sec-9">actix-web 接入</a></li><li><a href="#sec-10">Mock 与在线调试</a></li><li><a href="#sec-11">多协议注解与调试</a></li><li><a href="#sec-12">鉴权</a></li><li><a href="#sec-13">多应用与多版本</a></li><li><a href="#sec-14">数据表引用与文档缓存</a></li><li><a href="#sec-15">分享、导出与代码生成</a></li><li><a href="#sec-16">典型场景</a></li><li class="is-sub"><a href="#sec-17">REST CRUD</a></li><li class="is-sub"><a href="#sec-18">分页与通用字段</a></li><li class="is-sub"><a href="#sec-19">登录与鉴权</a></li><li class="is-sub"><a href="#sec-20">多版本</a></li><li class="is-sub"><a href="#sec-21">前端类型与后端骨架</a></li><li class="is-sub"><a href="#sec-22">数据表驱动</a></li><li><a href="#sec-23">规则与排错</a></li><li><a href="#sec-24">可视概览</a></li><li><a href="#sec-25">参考</a></li></ul></details>
+    <p>Rust 版用过程宏在 handler 上声明文档，文档片段在编译期静态注册，运行期零成本聚合。它兼容 axum 与 actix-web，内置 Web UI、45 种协议注解与浏览器/服务端双通道调试，并提供 Mock、鉴权、多应用版本、AsyncAPI/Swagger/TS 导出、分享与代码生成。适合希望文档严格跟随代码、并在编译期发现错误的 Rust 服务。</p>
 <figure class="doc-figure"><img fetchpriority="high" loading="eager" src="../assets/img/rust/social-preview.svg" alt="apidoc-rust social preview" width="1280" height="640" decoding="async"><figcaption>apidoc-rust：过程宏驱动的 API 文档，兼容 axum 与 actix-web。</figcaption></figure>
 
 <h2 id="sec-1">适用场景</h2>
 <ul>
 <li>axum 或 actix-web 服务；后续版本通过薄适配器扩展其他框架。</li>
 <li>希望文档在编译期生成，接口与文档不会失同步。</li>
-<li>需要在线调试、Mock、HMAC 鉴权、多应用/版本、Markdown/TypeScript/Swagger 导出。</li>
+<li>需要 HTTP 与 MQTT、gRPC、WebSocket 等协议调试，Mock、HMAC 鉴权、多应用/版本、Markdown/TypeScript/Swagger/AsyncAPI 导出。</li>
 <li>项目使用 Rust 1.82+，接受过程宏 + <code>linkme</code> 的注册方式。</li>
 </ul>
 <h2 id="sec-2">安装与依赖</h2>
 <pre class="highlight"><code class="language-toml"><span class="k">[dependencies]</span>
-<span class="n">apidoc-rust</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s2">&quot;2.0&quot;</span>
+<span class="n">apidoc-rust</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s2">&quot;2.1&quot;</span>
 <span class="n">serde_json</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s2">&quot;1&quot;</span>
 <span class="n">linkme</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s2">&quot;0.3&quot;</span>
 </code></pre>
@@ -132,6 +129,7 @@
 <li><code>features = ["axum"]</code>：axum 适配器，Mock 隐含启用。</li>
 <li><code>features = ["actix"]</code>：actix-web 适配器，功能与 axum 1:1。</li>
 <li><code>features = ["mock"]</code>：只开 Mock 引擎，不挂框架。</li>
+<li><code>debug-*</code>：按协议族开启服务端执行器，如 <code>debug-grpc</code>、<code>debug-thrift</code>、<code>debug-dubbo</code>、<code>debug-iso8583</code>、<code>debug-mqtt</code>、<code>debug-amqp</code>、<code>debug-kafka</code>、<code>debug-xmpp</code>、<code>debug-coap</code>、<code>debug-industrial</code>、<code>debug-http</code>、<code>debug-http3</code>、<code>debug-media</code>、<code>debug-sockets</code>；<code>debug-all</code> 聚合全部执行器。</li>
 </ul>
 <p><code>linkme</code> 必须直接依赖，因为宏生成的注册代码会引用它。只注册文档、不直接使用其他 API 的 crate 还必须被链接，而不是只编译；调用任意 crate 导出项或注册 handler 可以强制链接。</p>
 <h2 id="sec-3">核心模型与收集</h2>
@@ -153,7 +151,7 @@
 </tr>
 <tr>
 <td><code>DocEndpoint</code></td>
-<td>一个接口：title、desc、url、method、headers、params、querys、returned、group、tags 等。</td>
+<td>一个接口：title、desc、url、method、headers、params、querys、returned、group、tags、protocol、protocol_opts、events 等。</td>
 </tr>
 <tr>
 <td><code>DocParam</code></td>
@@ -288,6 +286,14 @@
 <td><code>table</code></td>
 <td>引用 <code>ApidocConfig.tables</code> 中的表 key，字段平铺进 <code>returned</code>。</td>
 </tr>
+<tr>
+<td><code>protocol</code> / <code>websocket</code> / <code>grpc</code> / <code>mqtt</code> / ...</td>
+<td>45 个协议注解别名；位置参数为 <code>target</code>，与通用 <code>protocol(kind, ...)</code> 等价。</td>
+</tr>
+<tr>
+<td><code>event</code></td>
+<td><code>direction</code> / <code>name</code>，声明流式协议消息。</td>
+</tr>
 </tbody>
 </table></div>
 <p><code>param</code>、<code>query</code>、<code>returned</code> 的字段参数：</p>
@@ -327,6 +333,10 @@
 <td><code>children</code></td>
 <td>嵌套子字段，用 <code>{ ... }</code> 数组书写。</td>
 </tr>
+<tr>
+<td><code>field</code></td>
+<td>协议字段号；用于 <code>event</code> / 协议消息字段。</td>
+</tr>
 </tbody>
 </table></div>
 <h3 id="sec-6">编译期规则</h3>
@@ -358,7 +368,7 @@
 <p><code>ref</code> 是 Rust 关键字，属性路径必须写 raw identifier：<code>#[apidoc::r#ref(...)]</code>。目标是函数名，全局匹配；引用方自己的 <code>returned</code> 会被目标整体覆盖；<code>collect</code> 时会在 stderr 输出警告。<code>table</code> 与 <code>ref</code> 可以同时使用，表字段会在引用解析后追加。</p>
 <h2 id="sec-8">axum 接入</h2>
 <pre class="highlight"><code class="language-toml"><span class="k">[dependencies]</span>
-<span class="n">apidoc-rust</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="p">{</span><span class="w"> </span><span class="n">version</span><span class="w"> </span><span class="p">=</span><span class="w"> </span><span class="s2">&quot;2.0&quot;</span><span class="p">,</span><span class="w"> </span><span class="n">features</span><span class="w"> </span><span class="p">=</span><span class="w"> </span><span class="p">[</span><span class="s2">&quot;axum&quot;</span><span class="p">]</span><span class="w"> </span><span class="p">}</span>
+<span class="n">apidoc-rust</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="p">{</span><span class="w"> </span><span class="n">version</span><span class="w"> </span><span class="p">=</span><span class="w"> </span><span class="s2">&quot;2.1&quot;</span><span class="p">,</span><span class="w"> </span><span class="n">features</span><span class="w"> </span><span class="p">=</span><span class="w"> </span><span class="p">[</span><span class="s2">&quot;axum&quot;</span><span class="p">]</span><span class="w"> </span><span class="p">}</span>
 </code></pre>
 
 <pre class="highlight"><code class="language-rust"><span class="k">use</span><span class="w"> </span><span class="n">apidoc</span>::<span class="n">axum</span>::<span class="p">{</span><span class="n">apidoc_routes</span><span class="p">,</span><span class="w"> </span><span class="n">cors_layer</span><span class="p">,</span><span class="w"> </span><span class="n">CorsConfig</span><span class="p">};</span>
@@ -422,7 +432,7 @@
 <p><code>cors_layer</code> 应在最终 Router 上调用，确保业务路由也能被浏览器跨域直连。<code>CorsConfig { allow_origins: vec![] }</code> 或 <code>["*"]</code> 放行字面 <code>*</code>，不携带凭据；配置白名单时精确匹配 Origin。</p>
 <h2 id="sec-9">actix-web 接入</h2>
 <pre class="highlight"><code class="language-toml"><span class="k">[dependencies]</span>
-<span class="n">apidoc-rust</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="p">{</span><span class="w"> </span><span class="n">version</span><span class="w"> </span><span class="p">=</span><span class="w"> </span><span class="s2">&quot;2.0&quot;</span><span class="p">,</span><span class="w"> </span><span class="n">features</span><span class="w"> </span><span class="p">=</span><span class="w"> </span><span class="p">[</span><span class="s2">&quot;actix&quot;</span><span class="p">]</span><span class="w"> </span><span class="p">}</span>
+<span class="n">apidoc-rust</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="p">{</span><span class="w"> </span><span class="n">version</span><span class="w"> </span><span class="p">=</span><span class="w"> </span><span class="s2">&quot;2.1&quot;</span><span class="p">,</span><span class="w"> </span><span class="n">features</span><span class="w"> </span><span class="p">=</span><span class="w"> </span><span class="p">[</span><span class="s2">&quot;actix&quot;</span><span class="p">]</span><span class="w"> </span><span class="p">}</span>
 </code></pre>
 
 <pre class="highlight"><code class="language-rust"><span class="k">use</span><span class="w"> </span><span class="n">actix_web</span>::<span class="p">{</span><span class="n">App</span><span class="p">,</span><span class="w"> </span><span class="n">HttpServer</span><span class="p">};</span>
@@ -470,7 +480,26 @@
 </code></pre>
 
 <p>脚本报错只在结果区提示，不中断请求。</p>
-<h2 id="sec-11">鉴权</h2>
+<h2 id="sec-11">多协议注解与调试</h2>
+<p><img loading="lazy" alt="apidoc-rust 多协议调试架构" src="../assets/img/rust/zh/multiprotocol.svg" width="940" height="820" decoding="async"></p>
+<p>每个协议一个独立注解，位置参数等价于 <code>target</code>：</p>
+<pre class="highlight"><code class="language-rust"><span class="cp">#[apidoc::websocket(</span><span class="s">&quot;wss://example.com/ws&quot;</span><span class="cp">)]</span>
+<span class="cp">#[apidoc::grpc(target = </span><span class="s">&quot;http://localhost:50051&quot;</span><span class="cp">, service = </span><span class="s">&quot;helloworld.Greeter&quot;</span><span class="cp">, method = </span><span class="s">&quot;SayHello&quot;</span><span class="cp">)]</span>
+<span class="cp">#[apidoc::mqtt(</span><span class="s">&quot;mqtt://broker:1883&quot;</span><span class="cp">, topic = </span><span class="s">&quot;sensors/#&quot;</span><span class="cp">)]</span>
+<span class="cp">#[apidoc::event(direction = </span><span class="s">&quot;in&quot;</span><span class="cp">, name = </span><span class="s">&quot;message&quot;</span><span class="cp">)]</span>
+<span class="cp">#[apidoc::param(name = </span><span class="s">&quot;payload&quot;</span><span class="cp">, ty = </span><span class="s">&quot;json&quot;</span><span class="cp">, field = </span><span class="s">&quot;1&quot;</span><span class="cp">)]</span>
+<span class="k">fn</span> <span class="nf">stream</span><span class="p">()</span><span class="w"> </span><span class="p">{}</span>
+</code></pre>
+
+<p>也支持通用形式 <code>#[apidoc::protocol("kind", ...)]</code>。覆盖 P1–P6：</p>
+<ul>
+<li>浏览器直连：SOAP/GraphQL、JSON-RPC/XML-RPC、OData、MCP/A2A、Webhooks、WebSocket、SSE、Socket.IO、STOMP、WebRTC、HLS 等。</li>
+<li>服务端执行：gRPC、Thrift、Dubbo/Hessian、ISO 8583、TCP/UDP/Unix Socket、MQTT、AMQP、Kafka、XMPP、CoAP、Modbus、DNP3、IEC 104、BACnet、OPC UA、HTTP/2、HTTP/3、RTP/RTCP、RTSP、SIP、RTMP 等。</li>
+<li>P6 增强：webhook 入站捕获、AsyncAPI 2.6 导出、<code>.proto</code> / <code>.thrift</code> IDL 导入、Nacos Dubbo 与事件 Mock。</li>
+</ul>
+<p>服务端执行默认关闭：<code>DebugConfig { enable_server_side: true }</code> 必须同时配置全局鉴权；目标先过 SSRF 守卫（allowlist、默认拒绝回环/私网/链路本地/CGNAT、云元数据永久拒绝、DNS 解析后逐 IP 校验并钉住连接、禁重定向/代理/CONNECT），并受 <code>max_bytes</code> / <code>max_frames</code> / <code>timeout</code> 限制。未实现 pinned TLS 的 <code>wss</code>、gRPC <code>https</code>、MQTT/AMQP TLS 会 fail closed。</p>
+<p>api.json、四种导出、代码模板与 mock 响应均在构建期物化；<code>tests/latency.rs</code> 验证本地路由 p99 &lt; 10ms（不含调试目标网络耗时）。</p>
+<h2 id="sec-12">鉴权</h2>
 <pre class="highlight"><code class="language-rust"><span class="k">use</span><span class="w"> </span><span class="n">apidoc</span>::<span class="n">auth</span>::<span class="n">AuthConfig</span><span class="p">;</span>
 
 <span class="kd">let</span><span class="w"> </span><span class="n">config</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">ApidocConfig</span><span class="w"> </span><span class="p">{</span>
@@ -494,7 +523,7 @@
 <li>连续登录失败按指数退避拒绝；带凭据/token 的响应统一 <code>Cache-Control: no-store</code>。</li>
 </ol>
 <p><code>secret_key</code> 缺省时使用进程内随机密钥，进程重启后旧 token 失效；多实例部署必须显式配置一致的 <code>secret_key</code>。</p>
-<h2 id="sec-12">多应用与多版本</h2>
+<h2 id="sec-13">多应用与多版本</h2>
 <pre class="highlight"><code class="language-rust"><span class="cp">#[apidoc::app(</span><span class="s">&quot;demo&quot;</span><span class="cp">)]</span>
 <span class="cp">#[apidoc::title(</span><span class="s">&quot;获取用户信息&quot;</span><span class="cp">)]</span>
 <span class="k">fn</span> <span class="nf">get_user_info</span><span class="p">()</span><span class="w"> </span>-&gt; <span class="nb">String</span> <span class="p">{</span><span class="w"> </span><span class="fm">unimplemented!</span><span class="p">()</span><span class="w"> </span><span class="p">}</span>
@@ -518,7 +547,7 @@
 <li>UI 顶部出现应用/版本选择器，token 按 appKey 分开存储。</li>
 <li>应用配置了 <code>password</code> 时只校验应用 token；应用密码优先于全局密码。</li>
 </ul>
-<h2 id="sec-13">数据表引用与文档缓存</h2>
+<h2 id="sec-14">数据表引用与文档缓存</h2>
 <pre class="highlight"><code class="language-rust"><span class="n">ApidocConfig</span><span class="w"> </span><span class="p">{</span>
 <span class="w">    </span><span class="n">tables</span>: <span class="nc">vec</span><span class="o">!</span><span class="p">[</span><span class="n">TableDef</span><span class="w"> </span><span class="p">{</span>
 <span class="w">        </span><span class="n">key</span>: <span class="s">&quot;user&quot;</span><span class="p">.</span><span class="n">into</span><span class="p">(),</span>
@@ -534,33 +563,34 @@
 </code></pre>
 
 <p><code>#[apidoc::table("user")]</code> 会把表字段平铺追加到 <code>returned</code>；未配置的 key 只警告不报错。<code>cache.ttl</code> 控制 <code>/apidoc/mock</code> 的进程内缓存，0 表示永久；<code>api.json</code> / 导出在构建路由时已物化，不走该缓存。</p>
-<h2 id="sec-14">分享、导出与代码生成</h2>
+<h2 id="sec-15">分享、导出与代码生成</h2>
 <pre class="highlight"><code class="language-text">GET /apidoc/share?app=api&amp;url=/api/user/info&amp;method=GET&amp;base=https://example.com
 GET /apidoc/export?format=md
 GET /apidoc/export?format=ts
 GET /apidoc/export?format=swagger
+GET /apidoc/export?format=asyncapi
 GET /apidoc/generate?template=api.ts
 </code></pre>
 
 <ul>
 <li><code>share</code> 返回深链；鉴权开启时附带 token，打开免密。</li>
-<li><code>export</code> 支持 Markdown、TypeScript、Swagger/OpenAPI 3.0.0；未知 format 返回 400。</li>
+<li><code>export</code> 支持 Markdown、TypeScript、Swagger/OpenAPI 3.0.0、AsyncAPI 2.6；未知 format 返回 400。</li>
 <li><code>generate</code> 内置 <code>api.ts</code>、<code>handler.rs</code>、<code>schema.sql</code>，同名自定义模板可以覆盖。模板支持 <code>{{变量}}</code> 与 <code>{{#each ...}}</code>，变量包括 endpoints、tables、字段与 SQL 片段变量。</li>
 </ul>
-<h2 id="sec-15">典型场景</h2>
-<h3 id="sec-16">REST CRUD</h3>
+<h2 id="sec-16">典型场景</h2>
+<h3 id="sec-17">REST CRUD</h3>
 <p>为每个 handler 挂 <code>title</code>、<code>url</code>、<code>method</code>、参数与返回；用 <code>group</code> / <code>tag</code> 归类。编译期校验能在提交前发现 URL、method 和参数名错误。</p>
-<h3 id="sec-17">分页与通用字段</h3>
+<h3 id="sec-18">分页与通用字段</h3>
 <p>用 <code>ref</code> 复用列表接口的 <code>returned</code>，或把分页参数抽成公共定义；<code>table</code> 适合把配置好的表字段平铺进响应。</p>
-<h3 id="sec-18">登录与鉴权</h3>
+<h3 id="sec-19">登录与鉴权</h3>
 <p>开启 <code>AuthConfig</code> 后，UI 自动显示密码遮罩；应用级密码适合把不同团队的应用拆开。多实例要配置固定的 <code>secret_key</code>。</p>
-<h3 id="sec-19">多版本</h3>
+<h3 id="sec-20">多版本</h3>
 <p>用 <code>AppConfig.items</code> 建树，用 <code>#[apidoc::app("key")]</code> 挂接口；UI 按应用/版本切换。</p>
-<h3 id="sec-20">前端类型与后端骨架</h3>
+<h3 id="sec-21">前端类型与后端骨架</h3>
 <p><code>export?format=ts</code> 直接给前端类型；<code>generate?template=handler.rs</code> / <code>schema.sql</code> 生成后端骨架和建表 SQL。</p>
-<h3 id="sec-21">数据表驱动</h3>
+<h3 id="sec-22">数据表驱动</h3>
 <p>Rust 侧不连数据库：在 <code>ApidocConfig.tables</code> 里配置表和字段，再用 <code>table</code> 注解引用，文档与配置保持一致。</p>
-<h2 id="sec-22">规则与排错</h2>
+<h2 id="sec-23">规则与排错</h2>
 <div class="table-scroll"><table>
 <thead>
 <tr>
@@ -598,12 +628,27 @@ GET /apidoc/generate?template=api.ts
 <td>是否挂 <code>cors_layer</code>；<code>allow_origins</code> 是否包含页面来源。</td>
 </tr>
 <tr>
+<td>协议调试不可用</td>
+<td><code>DebugConfig.enable_server_side</code> 是否开启并配置鉴权；对应 <code>debug-*</code> feature 是否编译；目标是否被 SSRF 守卫拒绝或 TLS 未支持。</td>
+</tr>
+<tr>
+<td>AsyncAPI 导出失败</td>
+<td>端点是否带协议与 <code>event</code> 消息；<code>export?format=asyncapi</code> 是否在支持列表。</td>
+</tr>
+<tr>
 <td>页面旧数据</td>
 <td>文档产物在路由构建时物化；重启服务或重新构建。</td>
 </tr>
 </tbody>
 </table></div>
-<h2 id="sec-23">参考</h2>
+<h2 id="sec-24">可视概览</h2>
+<figure class="doc-figure"><img loading="lazy" src="../assets/img/rust/zh/architecture.svg" alt="apidoc-rust architecture" width="940" height="860" decoding="async"><figcaption>apidoc-rust 总体架构：编译期注册、构建期物化与适配器。</figcaption></figure>
+
+<figure class="doc-figure"><img loading="lazy" src="../assets/img/rust/zh/features.svg" alt="apidoc-rust features" width="940" height="815" decoding="async"><figcaption>apidoc-rust 功能图：文档、调试、鉴权、导出与代码生成。</figcaption></figure>
+
+<figure class="doc-figure"><img loading="lazy" src="../assets/img/rust/zh/lifecycle.svg" alt="apidoc-rust lifecycle" width="940" height="500" decoding="async"><figcaption>apidoc-rust 生命周期：声明、收集、物化与交付。</figcaption></figure>
+
+<h2 id="sec-25">参考</h2>
 <ul>
 <li><a href="https://github.com/erikwang2013/apidoc-rust" target="_blank" rel="noopener">apidoc-rust README</a></li>
 <li><a href="https://github.com/erikwang2013/apidoc-rust/releases" target="_blank" rel="noopener">apidoc-rust Releases</a></li>
@@ -611,7 +656,7 @@ GET /apidoc/generate?template=api.ts
 <li>架构、功能、生命周期图见本页顶部与 README <code>docs/images/</code>。</li>
 </ul>
     <div class="docs-end">
-  <div><p><strong>安装</strong></p><div class="command-box"><code id="doc-install-rust">apidoc-rust = &quot;2.0&quot;</code><button class="copy-btn copy-btn--light" type="button" data-copy="doc-install-rust">复制</button></div></div>
+  <div><p><strong>安装</strong></p><div class="command-box"><code id="doc-install-rust">apidoc-rust = &quot;2.1&quot;</code><button class="copy-btn copy-btn--light" type="button" data-copy="doc-install-rust">复制</button></div></div>
   <a class="btn btn-secondary" href="index.html">返回文档中心</a>
 </div>
 <div class="docs-next"><h2>其他语言指南</h2><div class="docs-next-grid"><a class="docs-next-link" href="php.html"><span class="lang-badge">PHP</span><strong>PHP 使用指南</strong><svg class="icon icon-xs" aria-hidden="true"><use href="#i-arrow"></use></svg></a><a class="docs-next-link" href="go.html"><span class="lang-badge">Go</span><strong>Go 使用指南</strong><svg class="icon icon-xs" aria-hidden="true"><use href="#i-arrow"></use></svg></a><a class="docs-next-link" href="ui.html"><span class="lang-badge">UI</span><strong>apidoc-ui 使用指南</strong><svg class="icon icon-xs" aria-hidden="true"><use href="#i-arrow"></use></svg></a></div></div>
