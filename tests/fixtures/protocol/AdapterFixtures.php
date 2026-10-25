@@ -23,3 +23,11 @@ class AsyncApiFixture
     #[Title('Temperature')]
     public function onTemp() {}
 }
+
+#[Protocol('graphql')]
+class GraphqlFixture
+{
+    #[Definition(file: 'tests/fixtures/protocol/graphql/schema.graphql', operation: 'Query.user')]
+    #[Title('User')]
+    public function user() {}
+}

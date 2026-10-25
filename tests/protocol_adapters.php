@@ -74,5 +74,13 @@ check('asyncapi direction event', ($detail['definitions'][0]['messages'][0]['dir
 check('asyncapi field value', ($detail['definitions'][0]['messages'][0]['fields'][0]['name'] ?? '') === 'value');
 check('asyncapi external import', count($detail['_definitionFingerprints'] ?? []) === 2);
 
+// ---------- GraphQL ----------
+$detail = renderFixture(\Tests\Fixtures\Protocol\GraphqlFixture::class, 'user');
+check('graphql operation', ($detail['definitions'][0]['operation'] ?? '') === 'Query.user');
+check('graphql request id required', ($detail['definitions'][0]['messages'][0]['fields'][0]['require'] ?? false) === true);
+check('graphql response id', ($detail['definitions'][0]['messages'][1]['fields'][0]['name'] ?? '') === 'id');
+check('graphql list type', ($detail['definitions'][0]['messages'][1]['fields'][2]['type'] ?? '') === 'array');
+check('graphql import fingerprinted', count($detail['_definitionFingerprints'] ?? []) === 2);
+
 echo "\n{$pass} passed, {$fail} failed\n";
 exit($fail > 0 ? 1 : 0);

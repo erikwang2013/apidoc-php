@@ -28,6 +28,16 @@ class TokenStream
         return $this->pos >= $this->length;
     }
 
+    public function next(): string
+    {
+        if ($this->pos >= $this->length) {
+            return '';
+        }
+        $char = $this->source[$this->pos];
+        $this->advance();
+        return $char;
+    }
+
     public function peek(int $offset = 0): string
     {
         $savePos = $this->pos;
