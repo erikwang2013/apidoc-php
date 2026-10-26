@@ -35,13 +35,22 @@ spl_autoload_register(function (string $class): void {
     }
 });
 
+// UIC1_FIXTURE_OPEN=1 serves the same apps with global auth off, so the E2E can
+// probe anonymous export filtering of password-protected apps.
+$openAuth = getenv('UIC1_FIXTURE_OPEN') === '1';
 ConfigProvider::set([
     'title' => 'UIC-1 E2E',
     'definitions' => '',
     'apps' => [
         ['key' => 'default', 'title' => 'Default', 'path' => 'default'],
+        ['key' => 'secure', 'title' => 'Secure', 'path' => 'default', 'password' => 'app-pw'],
     ],
-    'auth' => ['enable' => true, 'password' => 'pw', 'secret_key' => 'uic1-e2e-secret', 'expire' => 3600],
+    'auth' => [
+        'enable' => !$openAuth,
+        'password' => 'pw',
+        'secret_key' => 'uic1-e2e-secret',
+        'expire' => 3600,
+    ],
     'cache' => ['enable' => false],
 ]);
 
