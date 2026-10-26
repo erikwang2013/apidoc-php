@@ -275,6 +275,18 @@ fn stream() {}
 
 api.json、四种导出、代码模板与 mock 响应均在构建期物化；`tests/latency.rs` 验证本地路由 p99 < 10ms（不含调试目标网络耗时）。
 
+## UIC-1 统一接口（开发中）
+
+Phase 1–2 增加 `/ui/v1` 契约，apidoc-ui 通过 capabilities 自动识别 Rust 并显示可用入口：
+
+- 读接口、文档、`verifyAuth`、调试启动/轮询/停止；原生 `/apidoc/api.json`、`/apidoc/debug` 继续保留。
+- 服务端中继按已编译 feature 暴露 HTTP/WebSocket/SSE、gRPC、Thrift、Dubbo、MQTT、TCP/UDP/Unix Socket 等子集。
+- Phase 2 管理：分享记录 CRUD/登录、构建期缓存管理、生成器与代码模板、`exportAllData`、AsyncAPI 导出。
+- `cache.mode:"build"` 表示文档在构建期物化，统一界面显示“无需运行时清理”；分享动作能力为 `actions:false`。
+- Bearer token 支持全局、应用与分享 scope；SSRF 守卫、限额与 feature gate 仍由原生执行路径负责。
+
+Phase 3（Go 执行器）、Phase 4（Go/Rust 外部定义解析）与 Phase 5（打包/静态 UI）尚未完成；发布版以仓库 `main` / Releases 为准。
+
 ## 鉴权
 
 ```rust

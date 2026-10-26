@@ -306,6 +306,18 @@ With a cache hit, document read endpoints and definition parsing/rendering targe
 - Caching reuses parsed documentation. Clear the cache when annotations do not appear after an edit.
 - Security releases add identifier allowlists, path checks and constant-time comparison.
 
+## UIC-1 unified endpoints (in progress)
+
+Phase 1–2 adds a `/ui/v1` contract alongside the existing routes so one apidoc-ui build can discover PHP, Go and Rust:
+
+- `capabilities`, `config`, `menus`, `detail`, `docMenus`, `docDetail`, `verifyAuth` and debug aliases.
+- Share record CRUD, cache clear/warm, generators, code templates and `exportAllData`.
+- Existing `apiMenus`, `apiDetail`, `apiShare*` and other legacy routes remain unchanged for older UI builds.
+- UIC-1 advertises `share.actions:false`; the unified UI never runs arbitrary PHP callables. Legacy `handleApiShareAction` remains on the old route.
+- `exportAllData` removes the per-endpoint fallback from share-page Swagger and full exports.
+
+Phase 3 (Go server executors) and Phase 4 (Go/Rust external definition parsing) are still in progress; released capabilities follow each repository's `main` and Releases.
+
 ## Exports, sharing and code generation
 
 - Every endpoint can produce JSON request/response examples and TypeScript type definitions.

@@ -274,6 +274,18 @@ Server execution is off by default: `DebugConfig { enable_server_side: true }` r
 
 api.json, all exports, code templates and mock responses are materialized when the router is built; `tests/latency.rs` verifies local routes at p99 < 10 ms, excluding the debug target's network time.
 
+## UIC-1 unified endpoints (in progress)
+
+Phase 1–2 adds a `/ui/v1` contract so apidoc-ui can discover Rust and gate entries from capabilities:
+
+- Read endpoints, docs, `verifyAuth`, debug start/poll/stop; native `/apidoc/api.json` and `/apidoc/debug` remain available.
+- Server relay exposes the compiled feature subset: HTTP/WebSocket/SSE, gRPC, Thrift, Dubbo, MQTT, TCP/UDP/Unix Socket and others.
+- Phase 2 management: share record CRUD/login, build-time cache management, generators and templates, `exportAllData`, AsyncAPI export.
+- `cache.mode:"build"` means docs are materialized at build time, so the UI explains there is no runtime cache to clear. Share actions are `actions:false`.
+- Bearer tokens cover global, app and share scopes; SSRF guards, limits and feature gates remain on the native execution path.
+
+Phase 3 (Go executors), Phase 4 (Go/Rust external definitions) and Phase 5 (packaging/static UI) are not complete. Released capabilities follow `main` and Releases.
+
 ## Auth
 
 ```rust

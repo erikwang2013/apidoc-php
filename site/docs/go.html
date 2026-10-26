@@ -44,7 +44,7 @@
   <meta name="twitter:image:alt" content="Apidoc：PHP、Go、Rust 通用 API 文档体系">
   <script type="application/ld+json">{"@context":"https://schema.org","@graph":[{"@type":"Person","@id":"https://apidoc.erik.xyz/#person","name":"erik","url":"https://erik.xyz","sameAs":["https://github.com/erikwang2013"]},{"@type":"Organization","@id":"https://apidoc.erik.xyz/#organization","name":"Apidoc","url":"https://apidoc.erik.xyz/","description":"Open-source API documentation for PHP, Go and Rust.","logo":{"@type":"ImageObject","url":"https://apidoc.erik.xyz/assets/img/apidoc-pet.svg"},"sameAs":["https://github.com/erikwang2013"],"founder":{"@id":"https://apidoc.erik.xyz/#person"}},{"@type":"WebSite","@id":"https://apidoc.erik.xyz/#website","url":"https://apidoc.erik.xyz/","name":"Apidoc","description":"API documentation for PHP, Go and Rust.","inLanguage":["zh-CN","en"],"publisher":{"@id":"https://apidoc.erik.xyz/#organization"}},{"@type":"TechArticle","@id":"https://apidoc.erik.xyz/docs/go.html#article","headline":"Go API 文档使用指南","description":"接口文档以类型化结构体随路由注册，输出 menus/protocols/detail/export 文档 API，由 apidoc-ui 渲染与调试；支持 @protocol 协议注解、响应缓存、Mock、鉴权与参数自动补全，兼容 8 个 Go 框架。","url":"https://apidoc.erik.xyz/docs/go.html","mainEntityOfPage":{"@id":"https://apidoc.erik.xyz/docs/go.html"},"inLanguage":"zh-CN","author":{"@id":"https://apidoc.erik.xyz/#person"},"publisher":{"@id":"https://apidoc.erik.xyz/#organization"},"isPartOf":{"@id":"https://apidoc.erik.xyz/docs/"},"about":"Go","articleSection":"Go","dateModified":"2026-10-26","image":"https://apidoc.erik.xyz/assets/img/social-preview.png","keywords":"Go API 文档, net/http, Gin, Echo, Chi, Fiber, beego, Kratos, go-zero, 协议注解, 响应缓存"},{"@type":"BreadcrumbList","@id":"https://apidoc.erik.xyz/docs/go.html#breadcrumb","itemListElement":[{"@type":"ListItem","position":1,"name":"首页","item":"https://apidoc.erik.xyz/"},{"@type":"ListItem","position":2,"name":"使用文档","item":"https://apidoc.erik.xyz/docs/"},{"@type":"ListItem","position":3,"name":"Go","item":"https://apidoc.erik.xyz/docs/go.html"}]}]}</script><meta property="article:modified_time" content="2026-10-26"><meta property="article:section" content="Go">
 </head>
-<body data-copy-label="复制" data-copied-label="已复制" data-menu-open="打开菜单" data-menu-close="关闭菜单" data-root="../" data-page="docs/go.html" data-search-version="d786ad17f778">
+<body data-copy-label="复制" data-copied-label="已复制" data-menu-open="打开菜单" data-menu-close="关闭菜单" data-root="../" data-page="docs/go.html" data-search-version="9d8d491d2181">
   <a class="skip-link" href="#main">跳到主要内容</a>
   <svg class="icon-sprite" aria-hidden="true" focusable="false" xmlns="http://www.w3.org/2000/svg">
   <symbol id="i-arrow" viewBox="0 0 20 20"><path d="M3 10h13M11 5l5 5-5 5"/></symbol>
@@ -124,11 +124,11 @@
 </section><div class="wrap docs-layout">
   <aside class="docs-sidebar">
     <p class="docs-sidebar-title">本页目录</p>
-    <ul class="docs-toc"><li><a href="#sec-1">适用场景</a></li><li><a href="#sec-2">安装</a></li><li><a href="#sec-3">最小示例（net/http）</a></li><li class="is-sub"><a href="#sec-4">任意协议注解</a></li><li><a href="#sec-5">核心模型与注册规则</a></li><li><a href="#sec-6">Config</a></li><li><a href="#sec-7">框架适配器</a></li><li><a href="#sec-8">写文档：Doc / Param / Response</a></li><li><a href="#sec-9">参数自动补全（reflect）</a></li><li><a href="#sec-10">注释解析（go/ast）</a></li><li><a href="#sec-11">Mock 与在线调试</a></li><li><a href="#sec-12">鉴权</a></li><li><a href="#sec-13">多应用与多版本</a></li><li><a href="#sec-14">导出</a></li><li><a href="#sec-15">典型场景</a></li><li class="is-sub"><a href="#sec-16">REST CRUD</a></li><li class="is-sub"><a href="#sec-17">分页</a></li><li class="is-sub"><a href="#sec-18">登录与 Token</a></li><li class="is-sub"><a href="#sec-19">文件上传</a></li><li class="is-sub"><a href="#sec-20">多版本</a></li><li class="is-sub"><a href="#sec-21">注释驱动</a></li><li><a href="#sec-22">规则与排错</a></li><li><a href="#sec-23">可视概览</a></li><li><a href="#sec-24">参考</a></li></ul>
+    <ul class="docs-toc"><li><a href="#sec-1">适用场景</a></li><li><a href="#sec-2">安装</a></li><li><a href="#sec-3">最小示例（net/http）</a></li><li class="is-sub"><a href="#sec-4">任意协议注解</a></li><li><a href="#sec-5">核心模型与注册规则</a></li><li><a href="#sec-6">Config</a></li><li><a href="#sec-7">框架适配器</a></li><li><a href="#sec-8">写文档：Doc / Param / Response</a></li><li><a href="#sec-9">参数自动补全（reflect）</a></li><li><a href="#sec-10">注释解析（go/ast）</a></li><li><a href="#sec-11">Mock 与在线调试</a></li><li><a href="#sec-12">UIC-1 统一接口（开发中）</a></li><li><a href="#sec-13">鉴权</a></li><li><a href="#sec-14">多应用与多版本</a></li><li><a href="#sec-15">导出</a></li><li><a href="#sec-16">典型场景</a></li><li class="is-sub"><a href="#sec-17">REST CRUD</a></li><li class="is-sub"><a href="#sec-18">分页</a></li><li class="is-sub"><a href="#sec-19">登录与 Token</a></li><li class="is-sub"><a href="#sec-20">文件上传</a></li><li class="is-sub"><a href="#sec-21">多版本</a></li><li class="is-sub"><a href="#sec-22">注释驱动</a></li><li><a href="#sec-23">规则与排错</a></li><li><a href="#sec-24">可视概览</a></li><li><a href="#sec-25">参考</a></li></ul>
     <a class="docs-edit" href="https://github.com/erikwang2013/apidoc-go/blob/main/README.md" target="_blank" rel="noopener">查看源文档 <svg class="icon icon-xs" aria-hidden="true"><use href="#i-external"></use></svg></a>
   </aside>
   <article class="docs-article">
-    <details class="docs-toc-mobile"><summary>本页目录</summary><ul class="docs-toc"><li><a href="#sec-1">适用场景</a></li><li><a href="#sec-2">安装</a></li><li><a href="#sec-3">最小示例（net/http）</a></li><li class="is-sub"><a href="#sec-4">任意协议注解</a></li><li><a href="#sec-5">核心模型与注册规则</a></li><li><a href="#sec-6">Config</a></li><li><a href="#sec-7">框架适配器</a></li><li><a href="#sec-8">写文档：Doc / Param / Response</a></li><li><a href="#sec-9">参数自动补全（reflect）</a></li><li><a href="#sec-10">注释解析（go/ast）</a></li><li><a href="#sec-11">Mock 与在线调试</a></li><li><a href="#sec-12">鉴权</a></li><li><a href="#sec-13">多应用与多版本</a></li><li><a href="#sec-14">导出</a></li><li><a href="#sec-15">典型场景</a></li><li class="is-sub"><a href="#sec-16">REST CRUD</a></li><li class="is-sub"><a href="#sec-17">分页</a></li><li class="is-sub"><a href="#sec-18">登录与 Token</a></li><li class="is-sub"><a href="#sec-19">文件上传</a></li><li class="is-sub"><a href="#sec-20">多版本</a></li><li class="is-sub"><a href="#sec-21">注释驱动</a></li><li><a href="#sec-22">规则与排错</a></li><li><a href="#sec-23">可视概览</a></li><li><a href="#sec-24">参考</a></li></ul></details>
+    <details class="docs-toc-mobile"><summary>本页目录</summary><ul class="docs-toc"><li><a href="#sec-1">适用场景</a></li><li><a href="#sec-2">安装</a></li><li><a href="#sec-3">最小示例（net/http）</a></li><li class="is-sub"><a href="#sec-4">任意协议注解</a></li><li><a href="#sec-5">核心模型与注册规则</a></li><li><a href="#sec-6">Config</a></li><li><a href="#sec-7">框架适配器</a></li><li><a href="#sec-8">写文档：Doc / Param / Response</a></li><li><a href="#sec-9">参数自动补全（reflect）</a></li><li><a href="#sec-10">注释解析（go/ast）</a></li><li><a href="#sec-11">Mock 与在线调试</a></li><li><a href="#sec-12">UIC-1 统一接口（开发中）</a></li><li><a href="#sec-13">鉴权</a></li><li><a href="#sec-14">多应用与多版本</a></li><li><a href="#sec-15">导出</a></li><li><a href="#sec-16">典型场景</a></li><li class="is-sub"><a href="#sec-17">REST CRUD</a></li><li class="is-sub"><a href="#sec-18">分页</a></li><li class="is-sub"><a href="#sec-19">登录与 Token</a></li><li class="is-sub"><a href="#sec-20">文件上传</a></li><li class="is-sub"><a href="#sec-21">多版本</a></li><li class="is-sub"><a href="#sec-22">注释驱动</a></li><li><a href="#sec-23">规则与排错</a></li><li><a href="#sec-24">可视概览</a></li><li><a href="#sec-25">参考</a></li></ul></details>
     <p>Go 版把接口文档声明成类型化结构体，并和路由注册放在一起。文档与路由同生；库输出 menus/protocols/detail/export 文档 API，由 apidoc-ui 负责渲染、在线调试与协议面板。它适合已经使用 Go HTTP 框架、希望文档跟着路由走的项目。</p>
 <figure class="doc-figure"><img fetchpriority="high" loading="eager" src="../assets/img/go/zh/architecture.svg" alt="apidoc-go architecture" width="900" height="600" decoding="async"><figcaption>apidoc-go 架构：路由注册、文档存储、响应缓存与外部文档 API。</figcaption></figure>
 
@@ -471,7 +471,17 @@
 <li>协议接口只返回元数据，调试面板与测试请求由外部 UI 负责；Go 库没有服务端中继端点。</li>
 <li><code>/api/menus</code>、<code>/api/protocols</code>、<code>/api/export</code> 的响应按文档版本预序列化缓存，<code>Register</code> / <code>SetAppMeta</code> 后自动失效；响应带 <code>ETag</code> 与 <code>Cache-Control: private, max-age=300</code>，重复访问可走 304。</li>
 </ul>
-<h2 id="sec-12">鉴权</h2>
+<h2 id="sec-12">UIC-1 统一接口（开发中）</h2>
+<p>Phase 1–2 增加 <code>/ui/v1</code> 契约，让 apidoc-ui 自动识别 Go 并按能力显示入口：</p>
+<ul>
+<li>读接口：<code>capabilities</code>、<code>config</code>、<code>menus</code>、<code>detail</code>、<code>docMenus</code>、<code>docDetail</code>、<code>verifyAuth</code>。</li>
+<li>浏览器调试：HTTP / WebSocket / SSE；服务端中继仍为空，Phase 3 才会加入 Go 原生执行器。</li>
+<li>Phase 2 管理能力：分享记录 CRUD/登录、缓存清理/预热、声明式生成器与代码模板、<code>exportAllData</code>。</li>
+<li>鉴权使用 Bearer token，并按应用/分享 scope 校验；不支持的能力通过 capabilities 明确关闭。</li>
+<li>原有 <code>GET /api/menus|protocols|detail|export</code> 保持兼容；UIC-1 是新增层，不替换原生 API。</li>
+</ul>
+<p>发布版能力以仓库 <code>main</code> / Releases 为准；Phase 3/4 完成前不要把 Go 标成完整协议执行后端。</p>
+<h2 id="sec-13">鉴权</h2>
 <p><code>Config.Auth</code> 开启后：</p>
 <ul>
 <li>文档 UI 会显示登录面板；<code>POST /apidoc/api/login</code> 校验全局密码并写入 HttpOnly Cookie。</li>
@@ -480,9 +490,9 @@
 <li><code>Secure: true</code> 会在 HTTPS 下为 Cookie 加 Secure 标记。</li>
 <li><code>DebugOrigins</code> 只放行明确列出的来源；不要使用任意来源。</li>
 </ul>
-<h2 id="sec-13">多应用与多版本</h2>
+<h2 id="sec-14">多应用与多版本</h2>
 <p><code>Doc.App</code> / <code>Doc.Version</code> 决定接口归属；<code>Config.Apps</code> 提供应用标题与访问密码。UI 的应用树按配置展示，同一份文档可切换应用和版本。版本号不是路由规则的一部分，实际路由仍由 handler 注册决定。</p>
-<h2 id="sec-14">导出</h2>
+<h2 id="sec-15">导出</h2>
 <div class="table-scroll"><table>
 <thead>
 <tr>
@@ -510,20 +520,20 @@
 </tbody>
 </table></div>
 <p>导出与文档接口一样受鉴权保护。前端联调时可以直接下载 TypeScript，或把 JSON 交给测试工具。</p>
-<h2 id="sec-15">典型场景</h2>
-<h3 id="sec-16">REST CRUD</h3>
+<h2 id="sec-16">典型场景</h2>
+<h3 id="sec-17">REST CRUD</h3>
 <p>为 list/detail/create/update/delete 分别注册 <code>Route</code>，用 <code>Doc.Controller</code> 归组，用 <code>Param.In</code> 区分 path/query/body。duplicate <code>(app, version, method, url)</code> 会以后注册为准，适合在初始化阶段覆盖默认文档。</p>
-<h3 id="sec-17">分页</h3>
+<h3 id="sec-18">分页</h3>
 <p>在多个接口重复的 <code>page</code> / <code>pageSize</code> 可以放进 <code>GlobalParams</code>，或在 handler 结构体里用 reflect 自动展开；显式 <code>Doc.Params</code> 更适合需要默认值与描述的接口。</p>
-<h3 id="sec-18">登录与 Token</h3>
+<h3 id="sec-19">登录与 Token</h3>
 <p>把 <code>Authorization</code> 放进 <code>GlobalParams</code>，所有接口自动带上；文档调试面板可以填写全局 Header。生产环境使用应用密码或全局密码保护文档本身。</p>
-<h3 id="sec-19">文件上传</h3>
+<h3 id="sec-20">文件上传</h3>
 <p><code>Param</code> 的 <code>Type</code> 设为 <code>file</code>（文档模型允许字符串类型描述），并在 handler 中按框架方式处理 multipart。文档 UI 的调试面板支持文件选择。</p>
-<h3 id="sec-20">多版本</h3>
+<h3 id="sec-21">多版本</h3>
 <p>用 <code>Doc.Version</code> 标记版本，<code>Config.Apps</code> 配置应用；不需要为每个版本复制一套文档服务。</p>
-<h3 id="sec-21">注释驱动</h3>
+<h3 id="sec-22">注释驱动</h3>
 <p>已有大量 handler 时，用 <code>parse.ParseDir</code> 从注释生成文档，再把 <code>parse.Result</code> 转成 <code>Route</code>，避免在路由文件里重复写字段。</p>
-<h2 id="sec-22">规则与排错</h2>
+<h2 id="sec-23">规则与排错</h2>
 <div class="table-scroll"><table>
 <thead>
 <tr>
@@ -566,12 +576,12 @@
 </tr>
 </tbody>
 </table></div>
-<h2 id="sec-23">可视概览</h2>
+<h2 id="sec-24">可视概览</h2>
 <figure class="doc-figure"><img loading="lazy" src="../assets/img/go/zh/features.svg" alt="apidoc-go features" width="900" height="710" decoding="async"><figcaption>apidoc-go 功能图：文档、协议注解、Mock、响应缓存、导出与适配器。</figcaption></figure>
 
 <figure class="doc-figure"><img loading="lazy" src="../assets/img/go/zh/lifecycle.svg" alt="apidoc-go lifecycle" width="900" height="300" decoding="async"><figcaption>apidoc-go 生命周期：注册、存储、响应缓存与外部 UI 调试。</figcaption></figure>
 
-<h2 id="sec-24">参考</h2>
+<h2 id="sec-25">参考</h2>
 <ul>
 <li><a href="https://github.com/erikwang2013/apidoc-go" target="_blank" rel="noopener">apidoc-go README</a></li>
 <li><a href="https://github.com/erikwang2013/apidoc-go/releases" target="_blank" rel="noopener">apidoc-go Releases</a></li>

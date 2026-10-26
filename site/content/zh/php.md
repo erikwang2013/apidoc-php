@@ -306,6 +306,18 @@ public function publishTemperature() {}
 - 缓存开启后，文档解析结果会被复用；修改注解后如果页面没更新，先清理缓存。
 - 安全修复版本加入了标识符白名单、路径校验、常量时间比较等边界防护。
 
+## UIC-1 统一接口（开发中）
+
+Phase 1–2 在原有接口之外增加 `/ui/v1` 统一契约，供同一份 apidoc-ui 自动识别 PHP、Go、Rust：
+
+- `capabilities` / `config` / `menus` / `detail` / `docMenus` / `docDetail` / `verifyAuth` 与调试别名。
+- 分享记录 CRUD、缓存清理/预热、生成器、代码模板与 `exportAllData`。
+- 原有 `apiMenus`、`apiDetail`、`apiShare*` 等 legacy 路由保持不变，旧版 UI 继续可用。
+- UIC-1 的分享动作能力为 `actions:false`：统一界面不执行任意 PHP callable；legacy `handleApiShareAction` 保留给旧接口。
+- `exportAllData` 让分享页的 Swagger/全量导出不再逐接口回退。
+
+Phase 3（Go 服务端执行器）与 Phase 4（Go/Rust 外部定义解析）仍在开发中；发布版能力以仓库 `main` / Releases 为准。
+
 ## 导出、分享与代码生成
 
 - 每个接口可生成 JSON 请求/响应示例与 TypeScript 类型定义，前端可以直接使用。

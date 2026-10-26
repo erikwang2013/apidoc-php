@@ -262,6 +262,18 @@ Supported tags include `@method`, `@url`, `@title`, `@desc`, `@author`, `@app`, 
 - Protocol endpoints only return metadata; the panel and test request are owned by the external UI. Go has no server-side relay endpoint.
 - `/api/menus`, `/api/protocols` and `/api/export` are pre-serialized and cached per document version; `Register` / `SetAppMeta` invalidates them. Responses carry `ETag` and `Cache-Control: private, max-age=300`, so repeat requests can return 304.
 
+## UIC-1 unified endpoints (in progress)
+
+Phase 1–2 adds a `/ui/v1` contract so apidoc-ui can discover Go and gate entries from capabilities:
+
+- Read endpoints: `capabilities`, `config`, `menus`, `detail`, `docMenus`, `docDetail`, `verifyAuth`.
+- Browser debugging: HTTP, WebSocket and SSE. The relay list stays empty until Phase 3 adds native Go executors.
+- Phase 2 management: share record CRUD/login, cache clear/warm, declarative generators and code templates, `exportAllData`.
+- Bearer auth with app/share scope checks; unsupported features are explicitly disabled through capabilities.
+- The existing `GET /api/menus|protocols|detail|export` routes remain compatible; UIC-1 is an additive layer, not a replacement.
+
+Released capabilities follow the repository `main` and Releases. Until Phase 3/4 lands, do not present Go as a complete protocol execution backend.
+
 ## Auth
 
 When `Config.Auth` is enabled:

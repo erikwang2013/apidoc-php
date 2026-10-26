@@ -44,7 +44,7 @@
   <meta name="twitter:image:alt" content="Apidoc: API documentation for PHP, Go and Rust">
   <script type="application/ld+json">{"@context":"https://schema.org","@graph":[{"@type":"Person","@id":"https://apidoc.erik.xyz/#person","name":"erik","url":"https://erik.xyz","sameAs":["https://github.com/erikwang2013"]},{"@type":"Organization","@id":"https://apidoc.erik.xyz/#organization","name":"Apidoc","url":"https://apidoc.erik.xyz/","description":"Open-source API documentation for PHP, Go and Rust.","logo":{"@type":"ImageObject","url":"https://apidoc.erik.xyz/assets/img/apidoc-pet.svg"},"sameAs":["https://github.com/erikwang2013"],"founder":{"@id":"https://apidoc.erik.xyz/#person"}},{"@type":"WebSite","@id":"https://apidoc.erik.xyz/#website","url":"https://apidoc.erik.xyz/","name":"Apidoc","description":"API documentation for PHP, Go and Rust.","inLanguage":["zh-CN","en"],"publisher":{"@id":"https://apidoc.erik.xyz/#organization"}},{"@type":"SoftwareApplication","@id":"https://apidoc.erik.xyz/#software","name":"Apidoc","description":"Declare docs next to your handlers and get a browsable, debuggable, exportable API portal. PHP, Go and Rust share one document model and one static UI.","applicationCategory":"DeveloperApplication","operatingSystem":"Any","programmingLanguage":["PHP","Go","Rust"],"license":"https://opensource.org/licenses/MIT","author":{"@id":"https://apidoc.erik.xyz/#person"},"publisher":{"@id":"https://apidoc.erik.xyz/#organization"},"url":"https://apidoc.erik.xyz/en/","inLanguage":"en","image":"https://apidoc.erik.xyz/assets/img/social-preview.png","screenshot":"https://apidoc.erik.xyz/assets/img/social-preview.png","sameAs":["https://github.com/erikwang2013"],"offers":{"@type":"Offer","price":"0","priceCurrency":"USD"}}]}</script>
 </head>
-<body data-copy-label="Copy" data-copied-label="Copied" data-menu-open="Open menu" data-menu-close="Close menu" data-root="../" data-page="en/index.html" data-search-version="d786ad17f778">
+<body data-copy-label="Copy" data-copied-label="Copied" data-menu-open="Open menu" data-menu-close="Close menu" data-root="../" data-page="en/index.html" data-search-version="9d8d491d2181">
   <a class="skip-link" href="#main">Skip to main content</a>
   <svg class="icon-sprite" aria-hidden="true" focusable="false" xmlns="http://www.w3.org/2000/svg">
   <symbol id="i-arrow" viewBox="0 0 20 20"><path d="M3 10h13M11 5l5 5-5 5"/></symbol>
@@ -195,7 +195,7 @@
       <div class="ui-band-copy">
         <div class="track-top"><span class="lang-badge">UI</span><span class="version-pill">v3.3.0</span></div>
         <h3>apidoc-ui Guide</h3>
-        <p>A Vue 3 + TypeScript documentation front-end with apps/versions, live debugging, arbitrary protocol panels, sharing, Swagger export, cache management and i18n. The build output is fully static.</p>
+        <p>A Vue 3 + TypeScript front-end that discovers PHP, Go and Rust backends through UIC-1 capability negotiation, with apps/versions, live debugging, protocol panels, sharing, cache, generators and multi-format exports. The build output is fully static.</p>
         <p class="ui-note">One static front-end for all three backends · Vue 3.5 · Vite 6 · Pinia · Monaco</p>
         <div class="command-box"><code id="cmd-ui">npm ci &amp;&amp; npm run build</code><button class="copy-btn copy-btn--light" type="button" data-copy="cmd-ui">Copy</button></div>
         <div class="track-links"><a href="docs/ui.html">Read the guide <svg class="icon icon-xs" aria-hidden="true"><use href="#i-arrow"></use></svg></a><a href="https://github.com/erikwang2013/apidoc-ui" target="_blank" rel="noopener">GitHub <svg class="icon icon-xs" aria-hidden="true"><use href="#i-external"></use></svg></a></div>
@@ -281,7 +281,7 @@
       <h3>Code generation</h3><p>PHP and Rust provide template-driven code generation; Go focuses on exports and comment parsing.</p><div class="gen-list"><span>API file</span><span>Handler</span><span>SQL</span></div>
     </article><article class="bento-card card-gen reveal">
       <span class="bento-icon" aria-hidden="true"><svg class="icon " aria-hidden="true"><use href="#i-spark"></use></svg></span>
-      <h3>Shared docs UI</h3><p>apidoc-ui serves PHP, Go and Rust backends. Protocol panels and definition validation are backend-driven and rendered through one contract.</p><div class="ui-mini"><img src="../assets/img/ui/apidoc-icon.svg" width="28" height="28" alt=""><span>apidoc-ui · Vue 3</span></div>
+      <h3>Shared docs UI</h3><p>apidoc-ui discovers PHP, Go and Rust through UIC-1 and gates protocol panels, sharing, cache and generator entries from the capability matrix.</p><div class="ui-mini"><img src="../assets/img/ui/apidoc-icon.svg" width="28" height="28" alt=""><span>apidoc-ui · Vue 3</span></div>
     </article><article class="bento-card card-security reveal">
       <span class="bento-icon" aria-hidden="true"><svg class="icon " aria-hidden="true"><use href="#i-shield"></use></svg></span>
       <h3>Security boundary</h3><p>HMAC tokens, CORS allowlists and path/identifier validation. Protocol relays also restrict targets, auth, rate, timeout and bytes.</p><div class="security-row"><code>HMAC-SHA256</code><span>CORS</span></div>
@@ -317,8 +317,8 @@
     </article><article class="docs-home-card reveal">
       <div class="docs-home-top"><span class="lang-badge">UI</span><span class="version-pill">v3.3.0</span></div>
       <h3>apidoc-ui Guide</h3>
-      <p>A Vue 3 + TypeScript documentation front-end with apps/versions, live debugging, arbitrary protocol panels, sharing, Swagger export, cache management and i18n. The build output is fully static.</p>
-      <ul><li>Build and deploy</li><li>config.js runtime config</li><li>Debug, protocol panels and auth</li><li>Exports, caching and troubleshooting</li></ul>
+      <p>A Vue 3 + TypeScript front-end that discovers PHP, Go and Rust backends through UIC-1 capability negotiation, with apps/versions, live debugging, protocol panels, sharing, cache, generators and multi-format exports. The build output is fully static.</p>
+      <ul><li>Build and deploy</li><li>config.js runtime config</li><li>UIC-1 multi-backend discovery</li><li>Debug, sharing, cache and troubleshooting</li></ul>
       <a class="text-link" href="docs/ui.html">Read the guide <svg class="icon icon-xs" aria-hidden="true"><use href="#i-arrow"></use></svg></a>
     </article></div>
     <div class="docs-home-cta reveal"><a class="btn btn-primary" href="docs/index.html">Open the guides <svg class="icon " aria-hidden="true"><use href="#i-arrow"></use></svg></a></div>
@@ -362,7 +362,7 @@
 
 <section class="section section-versions" id="versions" aria-labelledby="versions-title">
   <div class="wrap">
-    <div class="section-head reveal"><h2 id="versions-title">Current versions</h2><p>Full changelogs and release assets live on each repository's Releases page.</p></div>
+    <div class="section-head reveal"><h2 id="versions-title">Current versions</h2><p>Full changelogs and release assets live on each repository's Releases page; UIC-1 Phase 1–2 is complete on development branches, with releases following main.</p></div>
     <div class="version-grid"><article class="version-card reveal">
           <div class="track-top"><span class="lang-badge">PHP</span><strong>v1.1.0</strong></div>
           <h3>Arbitrary protocols and definitions</h3>

@@ -44,7 +44,7 @@
   <meta name="twitter:image:alt" content="Apidoc: API documentation for PHP, Go and Rust">
   <script type="application/ld+json">{"@context":"https://schema.org","@graph":[{"@type":"Person","@id":"https://apidoc.erik.xyz/#person","name":"erik","url":"https://erik.xyz","sameAs":["https://github.com/erikwang2013"]},{"@type":"Organization","@id":"https://apidoc.erik.xyz/#organization","name":"Apidoc","url":"https://apidoc.erik.xyz/","description":"Open-source API documentation for PHP, Go and Rust.","logo":{"@type":"ImageObject","url":"https://apidoc.erik.xyz/assets/img/apidoc-pet.svg"},"sameAs":["https://github.com/erikwang2013"],"founder":{"@id":"https://apidoc.erik.xyz/#person"}},{"@type":"WebSite","@id":"https://apidoc.erik.xyz/#website","url":"https://apidoc.erik.xyz/","name":"Apidoc","description":"API documentation for PHP, Go and Rust.","inLanguage":["zh-CN","en"],"publisher":{"@id":"https://apidoc.erik.xyz/#organization"}},{"@type":"TechArticle","@id":"https://apidoc.erik.xyz/en/docs/rust.html#article","headline":"Rust API Documentation Guide","description":"Proc macros materialize docs at compile time, linkme registers them statically and collection is zero-cost at runtime. Supports 45 protocol annotations with browser-direct and controlled server execution, plus auth, Mock, AsyncAPI/Swagger/TS exports, sharing and codegen for axum and actix-web.","url":"https://apidoc.erik.xyz/en/docs/rust.html","mainEntityOfPage":{"@id":"https://apidoc.erik.xyz/en/docs/rust.html"},"inLanguage":"en","author":{"@id":"https://apidoc.erik.xyz/#person"},"publisher":{"@id":"https://apidoc.erik.xyz/#organization"},"isPartOf":{"@id":"https://apidoc.erik.xyz/en/docs/"},"about":"Rust","articleSection":"Rust","dateModified":"2026-10-26","image":"https://apidoc.erik.xyz/assets/img/social-preview.png","keywords":"Rust API documentation, axum, actix-web, proc macros, MQTT, gRPC, WebSocket"},{"@type":"BreadcrumbList","@id":"https://apidoc.erik.xyz/en/docs/rust.html#breadcrumb","itemListElement":[{"@type":"ListItem","position":1,"name":"Home","item":"https://apidoc.erik.xyz/en/"},{"@type":"ListItem","position":2,"name":"Usage guides","item":"https://apidoc.erik.xyz/en/docs/"},{"@type":"ListItem","position":3,"name":"Rust","item":"https://apidoc.erik.xyz/en/docs/rust.html"}]}]}</script><meta property="article:modified_time" content="2026-10-26"><meta property="article:section" content="Rust">
 </head>
-<body data-copy-label="Copy" data-copied-label="Copied" data-menu-open="Open menu" data-menu-close="Close menu" data-root="../../" data-page="en/docs/rust.html" data-search-version="d786ad17f778">
+<body data-copy-label="Copy" data-copied-label="Copied" data-menu-open="Open menu" data-menu-close="Close menu" data-root="../../" data-page="en/docs/rust.html" data-search-version="9d8d491d2181">
   <a class="skip-link" href="#main">Skip to main content</a>
   <svg class="icon-sprite" aria-hidden="true" focusable="false" xmlns="http://www.w3.org/2000/svg">
   <symbol id="i-arrow" viewBox="0 0 20 20"><path d="M3 10h13M11 5l5 5-5 5"/></symbol>
@@ -124,11 +124,11 @@
 </section><div class="wrap docs-layout">
   <aside class="docs-sidebar">
     <p class="docs-sidebar-title">On this page</p>
-    <ul class="docs-toc"><li><a href="#sec-1">When to use it</a></li><li><a href="#sec-2">Installation and dependencies</a></li><li><a href="#sec-3">Core model and collection</a></li><li><a href="#sec-4">Writing annotations</a></li><li class="is-sub"><a href="#sec-5">Macro reference</a></li><li class="is-sub"><a href="#sec-6">Compile-time rules</a></li><li><a href="#sec-7">Collection, output and references</a></li><li><a href="#sec-8">axum setup</a></li><li><a href="#sec-9">actix-web setup</a></li><li><a href="#sec-10">Mock and live debugging</a></li><li><a href="#sec-11">Protocol annotations and debugging</a></li><li><a href="#sec-12">Auth</a></li><li><a href="#sec-13">Apps and versions</a></li><li><a href="#sec-14">Tables and document cache</a></li><li><a href="#sec-15">Sharing, exports and code generation</a></li><li><a href="#sec-16">Common scenarios</a></li><li class="is-sub"><a href="#sec-17">REST CRUD</a></li><li class="is-sub"><a href="#sec-18">Pagination and shared fields</a></li><li class="is-sub"><a href="#sec-19">Login and auth</a></li><li class="is-sub"><a href="#sec-20">Multiple versions</a></li><li class="is-sub"><a href="#sec-21">Front-end types and backend skeletons</a></li><li class="is-sub"><a href="#sec-22">Table-driven docs</a></li><li><a href="#sec-23">Rules and troubleshooting</a></li><li><a href="#sec-24">Visual overview</a></li><li><a href="#sec-25">Reference</a></li></ul>
+    <ul class="docs-toc"><li><a href="#sec-1">When to use it</a></li><li><a href="#sec-2">Installation and dependencies</a></li><li><a href="#sec-3">Core model and collection</a></li><li><a href="#sec-4">Writing annotations</a></li><li class="is-sub"><a href="#sec-5">Macro reference</a></li><li class="is-sub"><a href="#sec-6">Compile-time rules</a></li><li><a href="#sec-7">Collection, output and references</a></li><li><a href="#sec-8">axum setup</a></li><li><a href="#sec-9">actix-web setup</a></li><li><a href="#sec-10">Mock and live debugging</a></li><li><a href="#sec-11">Protocol annotations and debugging</a></li><li><a href="#sec-12">UIC-1 unified endpoints (in progress)</a></li><li><a href="#sec-13">Auth</a></li><li><a href="#sec-14">Apps and versions</a></li><li><a href="#sec-15">Tables and document cache</a></li><li><a href="#sec-16">Sharing, exports and code generation</a></li><li><a href="#sec-17">Common scenarios</a></li><li class="is-sub"><a href="#sec-18">REST CRUD</a></li><li class="is-sub"><a href="#sec-19">Pagination and shared fields</a></li><li class="is-sub"><a href="#sec-20">Login and auth</a></li><li class="is-sub"><a href="#sec-21">Multiple versions</a></li><li class="is-sub"><a href="#sec-22">Front-end types and backend skeletons</a></li><li class="is-sub"><a href="#sec-23">Table-driven docs</a></li><li><a href="#sec-24">Rules and troubleshooting</a></li><li><a href="#sec-25">Visual overview</a></li><li><a href="#sec-26">Reference</a></li></ul>
     <a class="docs-edit" href="https://github.com/erikwang2013/apidoc-rust/blob/HEAD/README.md" target="_blank" rel="noopener">View source <svg class="icon icon-xs" aria-hidden="true"><use href="#i-external"></use></svg></a>
   </aside>
   <article class="docs-article">
-    <details class="docs-toc-mobile"><summary>On this page</summary><ul class="docs-toc"><li><a href="#sec-1">When to use it</a></li><li><a href="#sec-2">Installation and dependencies</a></li><li><a href="#sec-3">Core model and collection</a></li><li><a href="#sec-4">Writing annotations</a></li><li class="is-sub"><a href="#sec-5">Macro reference</a></li><li class="is-sub"><a href="#sec-6">Compile-time rules</a></li><li><a href="#sec-7">Collection, output and references</a></li><li><a href="#sec-8">axum setup</a></li><li><a href="#sec-9">actix-web setup</a></li><li><a href="#sec-10">Mock and live debugging</a></li><li><a href="#sec-11">Protocol annotations and debugging</a></li><li><a href="#sec-12">Auth</a></li><li><a href="#sec-13">Apps and versions</a></li><li><a href="#sec-14">Tables and document cache</a></li><li><a href="#sec-15">Sharing, exports and code generation</a></li><li><a href="#sec-16">Common scenarios</a></li><li class="is-sub"><a href="#sec-17">REST CRUD</a></li><li class="is-sub"><a href="#sec-18">Pagination and shared fields</a></li><li class="is-sub"><a href="#sec-19">Login and auth</a></li><li class="is-sub"><a href="#sec-20">Multiple versions</a></li><li class="is-sub"><a href="#sec-21">Front-end types and backend skeletons</a></li><li class="is-sub"><a href="#sec-22">Table-driven docs</a></li><li><a href="#sec-23">Rules and troubleshooting</a></li><li><a href="#sec-24">Visual overview</a></li><li><a href="#sec-25">Reference</a></li></ul></details>
+    <details class="docs-toc-mobile"><summary>On this page</summary><ul class="docs-toc"><li><a href="#sec-1">When to use it</a></li><li><a href="#sec-2">Installation and dependencies</a></li><li><a href="#sec-3">Core model and collection</a></li><li><a href="#sec-4">Writing annotations</a></li><li class="is-sub"><a href="#sec-5">Macro reference</a></li><li class="is-sub"><a href="#sec-6">Compile-time rules</a></li><li><a href="#sec-7">Collection, output and references</a></li><li><a href="#sec-8">axum setup</a></li><li><a href="#sec-9">actix-web setup</a></li><li><a href="#sec-10">Mock and live debugging</a></li><li><a href="#sec-11">Protocol annotations and debugging</a></li><li><a href="#sec-12">UIC-1 unified endpoints (in progress)</a></li><li><a href="#sec-13">Auth</a></li><li><a href="#sec-14">Apps and versions</a></li><li><a href="#sec-15">Tables and document cache</a></li><li><a href="#sec-16">Sharing, exports and code generation</a></li><li><a href="#sec-17">Common scenarios</a></li><li class="is-sub"><a href="#sec-18">REST CRUD</a></li><li class="is-sub"><a href="#sec-19">Pagination and shared fields</a></li><li class="is-sub"><a href="#sec-20">Login and auth</a></li><li class="is-sub"><a href="#sec-21">Multiple versions</a></li><li class="is-sub"><a href="#sec-22">Front-end types and backend skeletons</a></li><li class="is-sub"><a href="#sec-23">Table-driven docs</a></li><li><a href="#sec-24">Rules and troubleshooting</a></li><li><a href="#sec-25">Visual overview</a></li><li><a href="#sec-26">Reference</a></li></ul></details>
     <p>The Rust edition declares documentation with proc macros on handlers. Fragments are statically registered at compile time and aggregated at zero runtime cost. It supports axum and actix-web, ships a web UI, 45 protocol annotations with browser/server debugging, Mock, auth, apps/versions, AsyncAPI/Swagger/TS exports, sharing and code generation. It fits Rust services that want docs to stay strict with the code and fail early at compile time.</p>
 <figure class="doc-figure"><img fetchpriority="high" loading="eager" src="../../assets/img/rust/social-preview.svg" alt="apidoc-rust social preview" width="1280" height="640" decoding="async"><figcaption>apidoc-rust: proc-macro API docs for axum and actix-web.</figcaption></figure>
 
@@ -517,7 +517,17 @@
 </ul>
 <p>Server execution is off by default: <code>DebugConfig { enable_server_side: true }</code> requires global auth. Targets pass an SSRF guard first (allowlist, loopback/private/link-local/CGNAT denied by default, cloud metadata always denied, DNS results checked per IP and pinned, redirects/proxies/CONNECT disabled) and are bounded by <code>max_bytes</code> / <code>max_frames</code> / <code>timeout</code>. Protocols without pinned TLS support (<code>wss</code>, gRPC <code>https</code>, MQTT/AMQP TLS) fail closed.</p>
 <p>api.json, all exports, code templates and mock responses are materialized when the router is built; <code>tests/latency.rs</code> verifies local routes at p99 &lt; 10 ms, excluding the debug target's network time.</p>
-<h2 id="sec-12">Auth</h2>
+<h2 id="sec-12">UIC-1 unified endpoints (in progress)</h2>
+<p>Phase 1–2 adds a <code>/ui/v1</code> contract so apidoc-ui can discover Rust and gate entries from capabilities:</p>
+<ul>
+<li>Read endpoints, docs, <code>verifyAuth</code>, debug start/poll/stop; native <code>/apidoc/api.json</code> and <code>/apidoc/debug</code> remain available.</li>
+<li>Server relay exposes the compiled feature subset: HTTP/WebSocket/SSE, gRPC, Thrift, Dubbo, MQTT, TCP/UDP/Unix Socket and others.</li>
+<li>Phase 2 management: share record CRUD/login, build-time cache management, generators and templates, <code>exportAllData</code>, AsyncAPI export.</li>
+<li><code>cache.mode:"build"</code> means docs are materialized at build time, so the UI explains there is no runtime cache to clear. Share actions are <code>actions:false</code>.</li>
+<li>Bearer tokens cover global, app and share scopes; SSRF guards, limits and feature gates remain on the native execution path.</li>
+</ul>
+<p>Phase 3 (Go executors), Phase 4 (Go/Rust external definitions) and Phase 5 (packaging/static UI) are not complete. Released capabilities follow <code>main</code> and Releases.</p>
+<h2 id="sec-13">Auth</h2>
 <pre class="highlight"><code class="language-rust"><span class="k">use</span><span class="w"> </span><span class="n">apidoc</span>::<span class="n">auth</span>::<span class="n">AuthConfig</span><span class="p">;</span>
 
 <span class="kd">let</span><span class="w"> </span><span class="n">config</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">ApidocConfig</span><span class="w"> </span><span class="p">{</span>
@@ -541,7 +551,7 @@
 <li>Repeated login failures use exponential backoff. Responses with credentials or tokens use <code>Cache-Control: no-store</code>.</li>
 </ol>
 <p>If <code>secret_key</code> is omitted, a process-local random key is used. Tokens die on restart. Multi-instance deployments must set a fixed shared <code>secret_key</code>.</p>
-<h2 id="sec-13">Apps and versions</h2>
+<h2 id="sec-14">Apps and versions</h2>
 <pre class="highlight"><code class="language-rust"><span class="cp">#[apidoc::app(</span><span class="s">&quot;demo&quot;</span><span class="cp">)]</span>
 <span class="cp">#[apidoc::title(</span><span class="s">&quot;Get user&quot;</span><span class="cp">)]</span>
 <span class="k">fn</span> <span class="nf">get_user_info</span><span class="p">()</span><span class="w"> </span>-&gt; <span class="nb">String</span> <span class="p">{</span><span class="w"> </span><span class="fm">unimplemented!</span><span class="p">()</span><span class="w"> </span><span class="p">}</span>
@@ -565,7 +575,7 @@
 <li>The UI shows an app/version selector; tokens are stored per appKey.</li>
 <li>An app with a <code>password</code> uses only its app token; the app password takes precedence over the global password.</li>
 </ul>
-<h2 id="sec-14">Tables and document cache</h2>
+<h2 id="sec-15">Tables and document cache</h2>
 <pre class="highlight"><code class="language-rust"><span class="n">ApidocConfig</span><span class="w"> </span><span class="p">{</span>
 <span class="w">    </span><span class="n">tables</span>: <span class="nc">vec</span><span class="o">!</span><span class="p">[</span><span class="n">TableDef</span><span class="w"> </span><span class="p">{</span>
 <span class="w">        </span><span class="n">key</span>: <span class="s">&quot;user&quot;</span><span class="p">.</span><span class="n">into</span><span class="p">(),</span>
@@ -581,7 +591,7 @@
 </code></pre>
 
 <p><code>#[apidoc::table("user")]</code> flattens the configured fields into <code>returned</code>. Missing keys only warn. <code>cache.ttl</code> controls the in-process <code>/apidoc/mock</code> cache; 0 means permanent. <code>api.json</code> and exports are materialized when the router is built and do not use this cache.</p>
-<h2 id="sec-15">Sharing, exports and code generation</h2>
+<h2 id="sec-16">Sharing, exports and code generation</h2>
 <pre class="highlight"><code class="language-text">GET /apidoc/share?app=api&amp;url=/api/user/info&amp;method=GET&amp;base=https://example.com
 GET /apidoc/export?format=md
 GET /apidoc/export?format=ts
@@ -595,20 +605,20 @@ GET /apidoc/generate?template=api.ts
 <li><code>export</code> supports Markdown, TypeScript, Swagger/OpenAPI 3.0.0 and AsyncAPI 2.6; an unknown format returns 400.</li>
 <li><code>generate</code> ships <code>api.ts</code>, <code>handler.rs</code> and <code>schema.sql</code> templates. A custom template with the same name overrides the built-in one. Templates support <code>{{variable}}</code> and <code>{{#each ...}}</code>, including endpoints, tables, field values and SQL fragment variables.</li>
 </ul>
-<h2 id="sec-16">Common scenarios</h2>
-<h3 id="sec-17">REST CRUD</h3>
+<h2 id="sec-17">Common scenarios</h2>
+<h3 id="sec-18">REST CRUD</h3>
 <p>Attach <code>title</code>, <code>url</code>, <code>method</code>, params and response fields to each handler, then group with <code>group</code> / <code>tag</code>. Compile-time checks catch bad URLs, methods and parameter names before commit.</p>
-<h3 id="sec-18">Pagination and shared fields</h3>
+<h3 id="sec-19">Pagination and shared fields</h3>
 <p>Use <code>ref</code> to reuse the list endpoint's <code>returned</code> fields, or extract pagination params into a shared definition. <code>table</code> is useful when the response mirrors a configured database table.</p>
-<h3 id="sec-19">Login and auth</h3>
+<h3 id="sec-20">Login and auth</h3>
 <p>With <code>AuthConfig</code>, the UI shows a password overlay. Use app passwords to separate teams. Multi-instance deployments need a fixed <code>secret_key</code>.</p>
-<h3 id="sec-20">Multiple versions</h3>
+<h3 id="sec-21">Multiple versions</h3>
 <p>Build the tree with <code>AppConfig.items</code> and attach endpoints with <code>#[apidoc::app("key")]</code>. The UI switches apps and versions.</p>
-<h3 id="sec-21">Front-end types and backend skeletons</h3>
+<h3 id="sec-22">Front-end types and backend skeletons</h3>
 <p><code>export?format=ts</code> hands types to the front-end. <code>generate?template=handler.rs</code> / <code>schema.sql</code> produces a backend skeleton and table SQL.</p>
-<h3 id="sec-22">Table-driven docs</h3>
+<h3 id="sec-23">Table-driven docs</h3>
 <p>Rust does not connect to the database. Define tables and fields in <code>ApidocConfig.tables</code>, then reference them with <code>table</code> so docs and configuration stay aligned.</p>
-<h2 id="sec-23">Rules and troubleshooting</h2>
+<h2 id="sec-24">Rules and troubleshooting</h2>
 <div class="table-scroll"><table>
 <thead>
 <tr>
@@ -659,14 +669,14 @@ GET /apidoc/generate?template=api.ts
 </tr>
 </tbody>
 </table></div>
-<h2 id="sec-24">Visual overview</h2>
+<h2 id="sec-25">Visual overview</h2>
 <figure class="doc-figure"><img loading="lazy" src="../../assets/img/rust/en/architecture.svg" alt="apidoc-rust architecture" width="940" height="860" decoding="async"><figcaption>apidoc-rust architecture: compile-time registry, build-time materialization and adapters.</figcaption></figure>
 
 <figure class="doc-figure"><img loading="lazy" src="../../assets/img/rust/en/features.svg" alt="apidoc-rust features" width="940" height="850" decoding="async"><figcaption>apidoc-rust features: docs, debugging, auth, exports and codegen.</figcaption></figure>
 
 <figure class="doc-figure"><img loading="lazy" src="../../assets/img/rust/en/lifecycle.svg" alt="apidoc-rust lifecycle" width="940" height="500" decoding="async"><figcaption>apidoc-rust lifecycle: declare, collect, materialize and deliver.</figcaption></figure>
 
-<h2 id="sec-25">Reference</h2>
+<h2 id="sec-26">Reference</h2>
 <ul>
 <li><a href="https://github.com/erikwang2013/apidoc-rust" target="_blank" rel="noopener">apidoc-rust README</a></li>
 <li><a href="https://github.com/erikwang2013/apidoc-rust/releases" target="_blank" rel="noopener">apidoc-rust Releases</a></li>

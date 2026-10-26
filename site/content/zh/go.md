@@ -262,6 +262,18 @@ for _, r := range results {
 - 协议接口只返回元数据，调试面板与测试请求由外部 UI 负责；Go 库没有服务端中继端点。
 - `/api/menus`、`/api/protocols`、`/api/export` 的响应按文档版本预序列化缓存，`Register` / `SetAppMeta` 后自动失效；响应带 `ETag` 与 `Cache-Control: private, max-age=300`，重复访问可走 304。
 
+## UIC-1 统一接口（开发中）
+
+Phase 1–2 增加 `/ui/v1` 契约，让 apidoc-ui 自动识别 Go 并按能力显示入口：
+
+- 读接口：`capabilities`、`config`、`menus`、`detail`、`docMenus`、`docDetail`、`verifyAuth`。
+- 浏览器调试：HTTP / WebSocket / SSE；服务端中继仍为空，Phase 3 才会加入 Go 原生执行器。
+- Phase 2 管理能力：分享记录 CRUD/登录、缓存清理/预热、声明式生成器与代码模板、`exportAllData`。
+- 鉴权使用 Bearer token，并按应用/分享 scope 校验；不支持的能力通过 capabilities 明确关闭。
+- 原有 `GET /api/menus|protocols|detail|export` 保持兼容；UIC-1 是新增层，不替换原生 API。
+
+发布版能力以仓库 `main` / Releases 为准；Phase 3/4 完成前不要把 Go 标成完整协议执行后端。
+
 ## 鉴权
 
 `Config.Auth` 开启后：

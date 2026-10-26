@@ -33,6 +33,7 @@ npm run build    # vue-tsc + Vite 构建，产物在 apidoc/
 ```js
 window.apidocFeConfig = {
   TITLE: "Apidoc",
+  BACKEND: "auto", // auto / php / go / rust
   SHOW_VERSION: true,
   HTTP: {
     HOSTS: ["https://api.example.com"], // 多个后端可切换；[] 表示同源
@@ -61,6 +62,7 @@ window.apidocFeConfig = {
 | 配置 | 说明 |
 | --- | --- |
 | `TITLE` | 页面标题。 |
+| `BACKEND` | 后端类型：`auto`（默认）、`php`、`go`、`rust`；`auto` 通过 UIC-1 能力接口自动识别。 |
 | `SHOW_VERSION` | 是否在首页底部显示版本号。 |
 | `CACHE.PREFIX` | 本地缓存键前缀；不同环境可以分开。 |
 | `HTTP.HOSTS` | 后端地址列表，可多个切换；留空使用同源。 |
@@ -76,6 +78,18 @@ window.apidocFeConfig = {
 | `MOCK_EXTENDS` | 自定义 Mock 规则。 |
 | `CUSTOM_METHODS` | 自定义方法。 |
 | `LANG` | 界面文案语言包，可增补。 |
+
+## 多后端识别与 UIC-1 契约
+
+apidoc-ui 正在从“只适配 PHP”升级为 **UIC-1 统一后端契约**：同一份构建通过 `GET /ui/v1/capabilities` 自动识别 PHP、Go、Rust 后端，再按 `features` 能力矩阵显示对应入口。
+
+<figure class="doc-figure"><img src="{{root}}assets/img/ui/{{imglang}}/uic1.svg" alt="UIC-1 统一后端契约：一份 UI 自动识别 PHP、Go、Rust"><figcaption>UIC-1：能力协商决定菜单、调试、分享、缓存与生成器入口；不支持的项显示原因。</figcaption></figure>
+
+- `BACKEND: "auto"` 先探测 `/ui/v1/capabilities`；404 或非契约响应时回退 legacy PHP `/config`。
+- 能力开关覆盖菜单/详情/文档、浏览器与服务端调试、分享、缓存、生成器、导出和鉴权；后端未实现的功能不会返回假成功。
+- UIC-1 token 通过 `Authorization: Bearer` 传递，并按 `host + scope` 缓存；legacy PHP 继续使用原有 MD5/body token 适配层。
+- Phase 1–2 已覆盖读接口、鉴权、文档、浏览器调试、分享、缓存、生成器和导出；Phase 3（Go 服务端协议执行器）与 Phase 4（Go/Rust 外部定义解析）仍在开发中。
+- Rust 的缓存管理为构建期物化模式（`cache.mode: "build"`），UI 会显示“无需运行时清理”，而不是伪造成功。
 
 ## 多应用、多 Host 与 appKey
 
