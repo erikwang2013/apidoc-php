@@ -29,6 +29,9 @@ class Controller
 
     protected $lang = "";
 
+    /** requireAdmin() already verified the global credential; skip init(true) re-checks. */
+    protected $adminVerified = false;
+
     public function init($checkAuth = false)
     {
         $this->config = ConfigProvider::get();
@@ -50,9 +53,25 @@ class Controller
             $this->lang = $this->requestParams['lang'];
             $this->config['lang_register_function']($this->lang);
         }
-        if ($checkAuth) {
+        if ($checkAuth && !$this->adminVerified) {
             (new Auth($this->config))->checkAuth($this->requestParams);
         }
+    }
+
+    /**
+     * UIC-1 管理端鉴权:只认全局 token,不接受应用密码 token。
+     * Auth::checkAuth 只要请求带 appKey 就会去校验应用密码,所以这里必须去掉 appKey。
+     * 全局鉴权关闭时管理端保持开放,与 Go/Rust 的 requireAdmin 一致。
+     */
+    protected function requireAdmin(): void
+    {
+        $this->adminVerified = true;
+        if (empty($this->config['auth']['enable'])) {
+            return;
+        }
+        $params = $this->requestParams;
+        unset($params['appKey']);
+        (new Auth($this->config))->checkAuth($params);
     }
 
     /**
@@ -211,7 +230,8 @@ class Controller
         $config = $this->config;
         $params = $this->requestParams;
         $cache = null;
-        $cacheKey = Helper::getCacheKey('allApiMenus_v1', 'all', $this->lang);
+        // v2: v1 缓存里可能存过应用密码明文,换 key 强制失效
+        $cacheKey = Helper::getCacheKey('allApiMenus_v2', 'all', $this->lang);
         if (!empty($config['cache']) && $config['cache']['enable']) {
             $cache = new Cache();
             $cacheData = $cache->get($cacheKey);
@@ -219,7 +239,8 @@ class Controller
                 return Helper::showJson(0, "", $cacheData);
             }
         }
-        $configApps = Helper::handleAppsConfig($config['apps'], false, $config);
+        // true: 移除应用密码,导出数据里绝不能出现明文密码
+        $configApps = Helper::handleAppsConfig($config['apps'], true, $config);
         $data = ApiShare::getAppShareApis($config, $configApps, "", [], false);
         if ($cache !== null) {
             $cache->set($cacheKey, $data);
@@ -416,10 +437,14 @@ class Controller
         if (empty($params['type'])) {
             throw new ErrorException('field not found', ['field' => 'type']);
         }
-        if ($params['type'] == 'app' && empty($params['appKeys'])) {
+        // 未知 type 会让按 apiKeys 过滤失效,必须 fail closed
+        if (!in_array($params['type'], ['all', 'app', 'api'], true)) {
+            throw new ErrorException('field not found', ['field' => 'type']);
+        }
+        if ($params['type'] == 'app' && (!is_array($params['appKeys'] ?? null) || empty($params['appKeys']))) {
             throw new ErrorException('field not found', ['field' => 'appKeys']);
         }
-        if ($params['type'] == 'api' && empty($params['apiKeys'])) {
+        if ($params['type'] == 'api' && (!is_array($params['apiKeys'] ?? null) || empty($params['apiKeys']))) {
             throw new ErrorException('field not found', ['field' => 'apiKeys']);
         }
         $res = (new ApiShare())->addApiShare($params);
@@ -765,17 +790,22 @@ class Controller
 
     public function uiAddApiShare()
     {
+        $this->init(false);
+        $this->requireAdmin();
         return $this->addApiShare();
     }
 
     public function uiGetApiShareList()
     {
+        $this->init(false);
+        $this->requireAdmin();
         return $this->getApiShareList();
     }
 
     public function uiGetApiShareDetail()
     {
-        $this->init(true);
+        $this->init(false);
+        $this->requireAdmin();
         $params = $this->requestParams;
         if (empty($params['key'])) {
             throw new ErrorException('field not found', ['field' => 'key']);
@@ -789,22 +819,31 @@ class Controller
 
     public function uiDeleteApiShare()
     {
+        $this->init(false);
+        $this->requireAdmin();
         return $this->deleteApiShare();
     }
 
     public function uiHandleApiShareAction()
     {
-        return $this->handleApiShareAction();
+        $this->init(false);
+        $this->requireAdmin();
+        // UIC-1: 分享动作只走声明式 {action,params},绝不执行 legacy PHP 回调
+        return Helper::showJson(0, "", false);
     }
 
     public function uiCacheClear()
     {
+        $this->init(false);
+        $this->requireAdmin();
         $this->cancelAllCache();
         return Helper::showJson(0, "", ['ok' => true, 'mode' => 'server']);
     }
 
     public function uiCacheWarm()
     {
+        $this->init(false);
+        $this->requireAdmin();
         $this->createAllCache();
         return Helper::showJson(0, "", ['ok' => true, 'mode' => 'server', 'message' => 'cache rebuilt']);
     }
@@ -816,11 +855,15 @@ class Controller
      */
     public function uiGenerator()
     {
+        $this->init(false);
+        $this->requireAdmin();
         return $this->createGenerator();
     }
 
     public function uiRenderCodeTemplate()
     {
+        $this->init(false);
+        $this->requireAdmin();
         return $this->renderCodeTemplate();
     }
 
@@ -832,10 +875,19 @@ class Controller
     {
         $this->init(false);
         $params = $this->requestParams;
+        $config = $this->config;
+        $globalAuth = !empty($config['auth']['enable']);
         if (!empty($params['key'])) {
-            // key 是属主导出(range 选择);只认全局/应用 token,分享 token 不能借 key 读取其他分享
-            (new Auth($this->config))->checkAuth($params);
+            // key 是属主导出(range 选择);只认全局 token,应用密码 token 不能读其他分享
+            $this->requireAdmin();
             $shareData = (new ApiShare())->getShareDetailByKey((string)$params['key']);
+            if (!$globalAuth && !empty($shareData['password'])) {
+                // 全局鉴权关闭时管理端是开放的,带密码的分享仍须分享 token
+                $token = (string)($params['token'] ?? '');
+                if ($token === '' || !(new Auth($config))->checkToken($token, (string)$shareData['password'])) {
+                    throw new ErrorException('token error');
+                }
+            }
             unset($shareData['password']);
         } else {
             $shareData = $this->checkAuth();
@@ -854,13 +906,35 @@ class Controller
         } elseif ($appKey !== '') {
             $filterAppKeys = [$appKey];
         }
-        $config = $this->config;
-        $apps = !empty($config['apps']) ? Helper::handleAppsConfig($config['apps'], false, $config) : [];
+        // true: 导出树不含应用密码明文(protected app 只留 hasPassword)
+        $apps = !empty($config['apps']) ? Helper::handleAppsConfig($config['apps'], true, $config) : [];
         $apiData = ApiShare::getAppShareApis($config, $apps, "", $filterAppKeys, true);
         if (is_array($shareData) && ($shareData['type'] ?? '') === 'api') {
             $apiData = Helper::filterTreeNodesByKeys($apiData, (array)($shareData['apiKeys'] ?? []), 'menuKey');
         }
+        if ($shareData === null && $appKey === '' && !$globalAuth) {
+            // 全局鉴权关闭且匿名导出全部:只导出无密码应用,应用密码不能被绕过
+            $apiData = $this->stripProtectedApps($apiData);
+        }
         return Helper::showJson(0, "", ['apiData' => $this->normalizeExportTree($apiData)]);
+    }
+
+    /**
+     * 移除带密码的应用节点(handleAppsConfig(..., true) 会给它们标 hasPassword)
+     */
+    private function stripProtectedApps(array $nodes): array
+    {
+        $result = [];
+        foreach ($nodes as $node) {
+            if (!is_array($node) || !empty($node['hasPassword'])) {
+                continue;
+            }
+            if (!empty($node['children']) && is_array($node['children'])) {
+                $node['children'] = $this->stripProtectedApps($node['children']);
+            }
+            $result[] = $node;
+        }
+        return $result;
     }
 
     /**

@@ -8,6 +8,7 @@ declare(strict_types=1);
 
 use erikwang2013\apidoc\Auth;
 use erikwang2013\apidoc\Controller;
+use erikwang2013\apidoc\exception\HttpException;
 use erikwang2013\apidoc\protocol\debug\DebugRegistry;
 use erikwang2013\apidoc\ui\UiCapabilities;
 use erikwang2013\apidoc\utils\ApiShare;
@@ -54,6 +55,23 @@ function export_leaves(array $nodes): array
     return $leaves;
 }
 
+/** Exact key match (hasPassword must not count as password) */
+function array_has_key_recursive(array $data, string $needle): bool
+{
+    foreach ($data as $key => $value) {
+        if ((string)$key === $needle) {
+            return true;
+        }
+        if (is_array($value) && array_has_key_recursive($value, $needle)) {
+            return true;
+        }
+    }
+    return false;
+}
+
+$fixtureAppPath = 'tests/fixtures/default';
+$protectedApp = ['key' => 'default', 'title' => 'Default', 'path' => $fixtureAppPath, 'password' => 'APPSECRET-XYZ'];
+
 $menus = contract_fixture('menus');
 check('menus fixture loads', is_array($menus) && isset($menus[0]['response']['code']));
 check('menus fixture envelope', ($menus[0]['response']['code'] ?? null) === 0);
@@ -92,7 +110,7 @@ check(
 check(
     'UIC capabilities management features',
     ($caps['features']['share']['records'] ?? null) === true
-    && ($caps['features']['share']['actions'] ?? null) === true
+    && ($caps['features']['share']['actions'] ?? null) === false
     && ($caps['features']['cache']['mode'] ?? '') === 'server'
     && ($caps['features']['auth']['shareToken'] ?? null) === true
     && in_array('asyncapi', $caps['features']['exports'] ?? [], true)
@@ -181,14 +199,17 @@ check(
     && ($warm['data']['message'] ?? '') === 'cache rebuilt'
 );
 
+$actionApiData = null;
 $shareActionConfig = [
     'share' => [
         'actions' => [
-            ['click' => function (array $shareData): array {
+            ['click' => function (array $shareData, array $apiData) use (&$actionApiData): array {
+                $actionApiData = $apiData;
                 return ['action' => 'copy', 'params' => ['name' => $shareData['name']]];
             }],
         ],
     ],
+    'apps' => [$protectedApp],
 ];
 ui_contract_config([
     'token' => $adminToken,
@@ -197,7 +218,7 @@ ui_contract_config([
     'type' => 'app',
     'appKeys' => ['default'],
     'password' => 'share-pw',
-], 'default', $shareActionConfig);
+], $fixtureAppPath, $shareActionConfig);
 $shareAdd = (new Controller())->uiAddApiShare();
 check('UIC share add', ($shareAdd['data'] ?? null) === true);
 
@@ -210,6 +231,11 @@ check(
     && ($listRow['key'] ?? '') === 'share-test-1'
     && !array_key_exists('password', $listRow)
 );
+check(
+    'UIC share list contract fields',
+    preg_match('/^\d{4}-\d{2}-\d{2} \d{2}:\d{2}:\d{2}$/', (string)($listRow['create_time'] ?? '')) === 1
+    && ($listRow['appKeys'] ?? []) === ['default']
+);
 
 ui_contract_config(['token' => $adminToken, 'key' => 'share-test-1']);
 $shareDetail = (new Controller())->uiGetApiShareDetail();
@@ -218,19 +244,40 @@ check(
     ($shareDetail['data']['key'] ?? '') === 'share-test-1'
     && ($shareDetail['data']['name'] ?? '') === 'Team'
     && ($shareDetail['data']['type'] ?? '') === 'app'
+    && preg_match('/^\d{4}-\d{2}-\d{2} \d{2}:\d{2}:\d{2}$/', (string)($shareDetail['data']['create_time'] ?? '')) === 1
     && !array_key_exists('password', $shareDetail['data'])
 );
 
+// Legacy /handleApiShareAction keeps executing callables, but never with app passwords.
 ui_contract_config([
     'token' => $adminToken,
     'key' => 'share-test-1',
     'index' => 0,
-], 'default', $shareActionConfig);
+], $fixtureAppPath, $shareActionConfig);
+$legacyShareAction = (new Controller())->handleApiShareAction();
+check(
+    'legacy share action still executes callable',
+    ($legacyShareAction['data']['action'] ?? '') === 'copy'
+    && ($legacyShareAction['data']['params']['name'] ?? '') === 'Team'
+);
+check(
+    'legacy share action payload has no app password',
+    is_array($actionApiData)
+    && strpos((string)json_encode($actionApiData), 'APPSECRET-XYZ') === false
+    && !array_has_key_recursive($actionApiData, 'password')
+);
+
+// UIC-1 alias must not execute configured PHP callables.
+$actionApiData = null;
+ui_contract_config([
+    'token' => $adminToken,
+    'key' => 'share-test-1',
+    'index' => 0,
+], $fixtureAppPath, $shareActionConfig);
 $shareAction = (new Controller())->uiHandleApiShareAction();
 check(
-    'UIC share action delegates',
-    ($shareAction['data']['action'] ?? '') === 'copy'
-    && ($shareAction['data']['params']['name'] ?? '') === 'Team'
+    'UIC share action does not execute callables',
+    ($shareAction['data'] ?? null) === false && $actionApiData === null
 );
 
 ui_contract_config(['password' => 'share-pw', 'shareKey' => 'share-test-1']);
@@ -242,7 +289,6 @@ check(
 );
 
 // Share-scoped config/menus/detail through the UIC-1 Bearer header path
-$fixtureAppPath = 'tests/fixtures/default';
 $menuKey = Helper::createApiKey('Tests\\Fixtures\\Ui\\UsersController', 'listUsers');
 // cache off: the warm probe above cached an empty menu for the placeholder app path
 ui_contract_config([], $fixtureAppPath, ['cache' => ['enable' => false]]);
@@ -326,5 +372,169 @@ check(
 ui_contract_config(['token' => $adminToken, 'key' => 'share-api-1']);
 $shareDelete = (new Controller())->uiDeleteApiShare();
 check('UIC share delete', ($shareDelete['data'] ?? null) === true);
+
+// ---------- Security regressions (review C1/C2/I2/M4/M9) ----------
+
+// C1: a public type:"all" share must never expose app passwords
+(new ApiShare())->addApiShare(['key' => 'share-all-public', 'name' => 'Public all', 'type' => 'all']);
+ui_contract_config(['shareKey' => 'share-all-public'], $fixtureAppPath, [
+    'apps' => [$protectedApp],
+    'cache' => ['enable' => false],
+]);
+$publicShareExport = (new Controller())->uiExportAllData();
+$publicShareLeaves = export_leaves($publicShareExport['data']['apiData'] ?? []);
+check(
+    'C1 public share export strips app password',
+    count($publicShareLeaves) === 1
+    && ($publicShareExport['data']['apiData'][0]['hasPassword'] ?? null) === true
+    && strpos((string)json_encode($publicShareExport), 'APPSECRET-XYZ') === false
+    && !array_has_key_recursive($publicShareExport['data']['apiData'] ?? [], 'password')
+);
+
+// C1 (legacy path): getAllApiMenus uses the same export tree
+ui_contract_config(['token' => $adminToken], $fixtureAppPath, [
+    'apps' => [$protectedApp],
+    'cache' => ['enable' => false],
+]);
+$legacyAllMenus = (new Controller())->getAllApiMenus();
+check(
+    'C1 legacy allApiMenus strips app password',
+    count(export_leaves($legacyAllMenus['data'] ?? [])) === 1
+    && strpos((string)json_encode($legacyAllMenus), 'APPSECRET-XYZ') === false
+    && !array_has_key_recursive($legacyAllMenus['data'] ?? [], 'password')
+);
+
+// C2: app-password tokens must not pass UIC-1 management endpoints
+ui_contract_config([], $fixtureAppPath, ['apps' => [$protectedApp]]);
+$appToken = (new Auth(ConfigProvider::get()))->verifyPlain('APPSECRET-XYZ', 'default');
+$appTokenCases = [
+    'uiAddApiShare' => ['name' => 'evil', 'type' => 'all'],
+    'uiGetApiShareList' => [],
+    'uiGetApiShareDetail' => ['key' => 'share-test-1'],
+    'uiDeleteApiShare' => ['key' => 'share-test-1'],
+    'uiHandleApiShareAction' => ['key' => 'share-test-1', 'index' => 0],
+    'uiCacheClear' => [],
+    'uiCacheWarm' => [],
+    'uiGenerator' => [],
+    'uiRenderCodeTemplate' => [],
+    'uiExportAllData' => ['key' => 'share-test-1'],
+];
+$appTokenStatuses = [];
+foreach ($appTokenCases as $method => $params) {
+    ui_contract_config(array_merge(['token' => $appToken, 'appKey' => 'default'], $params), $fixtureAppPath, [
+        'apps' => [$protectedApp],
+    ]);
+    try {
+        (new Controller())->{$method}();
+        $appTokenStatuses[$method] = 0;
+    } catch (HttpException $e) {
+        $appTokenStatuses[$method] = $e->getStatusCode();
+    } catch (\Throwable $e) {
+        $appTokenStatuses[$method] = -1;
+    }
+}
+check(
+    'C2 app token rejected with 401 on every management endpoint',
+    count($appTokenStatuses) === count($appTokenCases)
+    && array_unique(array_values($appTokenStatuses)) === [401]
+);
+
+// Global admin token still works even when the request names a protected appKey.
+ui_contract_config(['token' => $adminToken, 'appKey' => 'default', 'pageIndex' => 1], $fixtureAppPath, [
+    'apps' => [$protectedApp],
+]);
+$adminShareList = (new Controller())->uiGetApiShareList();
+check('C2 global token still manages shares', ($adminShareList['code'] ?? null) === 0);
+
+// I2: with global auth off, anonymous all-apps export serves unprotected apps only
+$mixedApps = [
+    ['key' => 'default', 'title' => 'Default', 'path' => $fixtureAppPath],
+    ['key' => 'secure', 'title' => 'Secure', 'path' => $fixtureAppPath, 'password' => 'APPSECRET-XYZ'],
+];
+$mixedExtra = [
+    'apps' => $mixedApps,
+    'auth' => ['enable' => false, 'secret_key' => 's', 'expire' => 3600],
+    'cache' => ['enable' => false],
+];
+ui_contract_config([], $fixtureAppPath, $mixedExtra);
+$mixedAnonExport = (new Controller())->uiExportAllData();
+check(
+    'I2 anonymous export omits protected apps',
+    array_column($mixedAnonExport['data']['apiData'] ?? [], 'appKey') === ['default']
+    && strpos((string)json_encode($mixedAnonExport), 'APPSECRET-XYZ') === false
+);
+
+// A protected app stays exportable with its own app token
+ui_contract_config([], $fixtureAppPath, $mixedExtra);
+$secureToken = (new Auth(ConfigProvider::get()))->verifyPlain('APPSECRET-XYZ', 'secure');
+ui_contract_config(['token' => $secureToken, 'appKey' => 'secure'], $fixtureAppPath, $mixedExtra);
+$mixedSecureExport = (new Controller())->uiExportAllData();
+check(
+    'I2 protected app export requires and accepts its app token',
+    array_column($mixedSecureExport['data']['apiData'] ?? [], 'appKey') === ['secure']
+    && count(export_leaves($mixedSecureExport['data']['apiData'] ?? [])) === 1
+);
+
+$missingAppTokenStatus = 0;
+ui_contract_config(['appKey' => 'secure'], $fixtureAppPath, $mixedExtra);
+try {
+    (new Controller())->uiExportAllData();
+} catch (HttpException $e) {
+    $missingAppTokenStatus = $e->getStatusCode();
+}
+check('I2 protected app export without token is 401', $missingAppTokenStatus === 401);
+
+// I2 (owner key path): a password-protected share requires its share token when global auth is off
+(new ApiShare())->addApiShare([
+    'key' => 'share-protected-all',
+    'name' => 'Protected all',
+    'type' => 'all',
+    'password' => 'share-pw',
+]);
+ui_contract_config(['key' => 'share-protected-all'], $fixtureAppPath, $mixedExtra);
+$keyExportStatus = 0;
+try {
+    (new Controller())->uiExportAllData();
+} catch (HttpException $e) {
+    $keyExportStatus = $e->getStatusCode();
+}
+check('I2 owner key export of password share without token is 401', $keyExportStatus === 401);
+$protectedShareToken = (new Auth(ConfigProvider::get()))->createToken(md5('share-pw'));
+ui_contract_config(['key' => 'share-protected-all', 'token' => $protectedShareToken], $fixtureAppPath, $mixedExtra);
+$keyShareExport = (new Controller())->uiExportAllData();
+check(
+    'I2 owner key export accepts the share token',
+    count(export_leaves($keyShareExport['data']['apiData'] ?? [])) === 2
+    && strpos((string)json_encode($keyShareExport), 'APPSECRET-XYZ') === false
+);
+
+// M4: unknown types and missing required scope keys fail closed
+$m4Rejected = 0;
+$m4Cases = [
+    ['name' => 'bad', 'type' => 'nope'],
+    ['name' => 'bad', 'type' => 'app'],
+    ['name' => 'bad', 'type' => 'api'],
+];
+foreach ($m4Cases as $m4Params) {
+    ui_contract_config(array_merge(['token' => $adminToken], $m4Params), $fixtureAppPath, ['apps' => [$protectedApp]]);
+    try {
+        (new Controller())->uiAddApiShare();
+    } catch (HttpException $e) {
+        $m4Rejected++;
+    }
+}
+check('M4 invalid share type/scope rejected', $m4Rejected === count($m4Cases));
+
+// M9: generated share keys are random hex, not uniqid()
+(new ApiShare())->addApiShare(['name' => 'Generated key', 'type' => 'all']);
+ui_contract_config(['token' => $adminToken, 'pageIndex' => 1], $fixtureAppPath, ['apps' => [$protectedApp]]);
+$generatedList = (new Controller())->uiGetApiShareList();
+$generatedKey = '';
+foreach (($generatedList['data']['data'] ?? []) as $row) {
+    if (($row['name'] ?? '') === 'Generated key') {
+        $generatedKey = (string)($row['key'] ?? '');
+    }
+}
+check('M9 generated share keys are random hex', preg_match('/^[0-9a-f]{32}$/', $generatedKey) === 1);
 
 contract_exit();

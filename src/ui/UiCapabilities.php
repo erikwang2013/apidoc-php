@@ -38,7 +38,8 @@ class UiCapabilities
                 'share' => [
                     'link' => true,
                     'records' => true,
-                    'actions' => true,
+                    // UIC-1 does not execute legacy PHP share-action callables
+                    'actions' => false,
                 ],
                 'cache' => [
                     'manage' => true,
