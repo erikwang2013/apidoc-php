@@ -86,7 +86,7 @@ HOME_IMAGE = {
 DOCS = {
     "php": {
         "label": "PHP",
-        "version": "v1.2.0",
+        "version": "v1.2.1",
         "repo": "https://github.com/erikwang2013/apidoc-php",
         "release_url": "https://github.com/erikwang2013/apidoc-php/releases",
         "source_url": "https://github.com/erikwang2013/apidoc-php/blob/main/docs/ATTRIBUTES.md",
@@ -128,7 +128,7 @@ DOCS = {
     },
     "go": {
         "label": "Go",
-        "version": "v1.1.0",
+        "version": "v1.1.1",
         "repo": "https://github.com/erikwang2013/apidoc-go",
         "release_url": "https://github.com/erikwang2013/apidoc-go/releases",
         "source_url": "https://github.com/erikwang2013/apidoc-go/blob/main/README.md",
@@ -270,7 +270,7 @@ FAQ = {
         ),
         (
             "三端能力已经完全一致了吗？",
-            "已对齐。UIC-1 的读接口、鉴权、文档、浏览器/中继调试、分享、缓存、生成器与导出由三端完整实现；Go 提供构建标签隔离的服务端执行器与 9 种定义解析，Rust 提供 9 种定义解析与 `ui: UiMode::Vue` 共享 UI。当前版本：UI 3.4.0 / PHP 1.2.0 / Go 1.1.0 / Rust 2.2.0。",
+            "已对齐。UIC-1 的读接口、鉴权、文档、浏览器/中继调试、分享、缓存、生成器与导出由三端完整实现；Go 提供构建标签隔离的服务端执行器与 9 种定义解析，Rust 提供 9 种定义解析与 `ui: UiMode::Vue` 共享 UI。当前版本：UI 3.4.0 / PHP 1.2.1 / Go 1.1.1 / Rust 2.2.0。",
         ),
         (
             "需要数据库或额外后端吗？",
@@ -296,7 +296,7 @@ FAQ = {
         ),
         (
             "Are all three backends fully aligned?",
-            "Yes. UIC-1 read endpoints, auth, docs, browser/relay debugging, sharing, cache, generators and exports are implemented on all three backends. Go adds build-tag-gated server executors and 9 definition formats; Rust adds 9 definition formats and the shared UI via `ui: UiMode::Vue`. Current versions: UI 3.4.0 / PHP 1.2.0 / Go 1.1.0 / Rust 2.2.0.",
+            "Yes. UIC-1 read endpoints, auth, docs, browser/relay debugging, sharing, cache, generators and exports are implemented on all three backends. Go adds build-tag-gated server executors and 9 definition formats; Rust adds 9 definition formats and the shared UI via `ui: UiMode::Vue`. Current versions: UI 3.4.0 / PHP 1.2.1 / Go 1.1.1 / Rust 2.2.0.",
         ),
         (
             "Does it need a database or extra backend?",
@@ -333,7 +333,7 @@ PETS = [
 VERSIONS = [
     {
         "key": "php",
-        "version": "v1.2.0",
+        "version": "v1.2.1",
         "title": {"zh": "UIC-1 完整实现与 27 个调试驱动", "en": "Full UIC-1 and 27 debug drivers"},
         "points": {
             "zh": ["UIC-1 /ui/v1 全量接口：读、调试、分享、缓存、生成器与导出；声明式生成器无副作用", "新增 thrift、dubbo、http2/3、kafka、amqp、xmpp、dnp3、iec104、bacnet、opcua、rtp/rtcp/rtmp、lwm2m，共 27 个驱动", "9 种定义解析、SSRF/TLS/解析上限与 DNP3/BACnet/IEC 104 修复"],
@@ -342,7 +342,7 @@ VERSIONS = [
     },
     {
         "key": "go",
-        "version": "v1.1.0",
+        "version": "v1.1.1",
         "title": {"zh": "UIC-1 服务端执行器与定义解析", "en": "UIC-1 server executors and definitions"},
         "points": {
             "zh": ["UIC-1 服务端调试执行器按构建标签编译，只声明已编译的协议", "9 种定义解析（proto、WSDL/XSD、GraphQL、OpenAPI、AsyncAPI、JSON Schema、JSON-RPC、XML-RPC、OData EDMX）", "UIPath 直接托管共享 Vue 构建；保留响应缓存、Mock 与 ETag/304"],
@@ -402,7 +402,7 @@ UI = {
         "install_sub": "下面是各语言的最小安装命令；框架接入、配置与完整示例在对应指南中。",
         "install_note": "每种指南都从最小可运行示例开始，再展开注解规则、场景与排错。",
         "versions_title": "当前版本",
-        "versions_sub": "版本日志与完整变更以各仓库 Releases 为准；四端均已完整实现 UIC-1，协作版本为 UI 3.4.0 / PHP 1.2.0 / Go 1.1.0 / Rust 2.2.0。",
+        "versions_sub": "版本日志与完整变更以各仓库 Releases 为准；四端均已完整实现 UIC-1，协作版本为 UI 3.4.0 / PHP 1.2.1 / Go 1.1.1 / Rust 2.2.0。",
         "release_notes": "查看 Releases",
         "pets_title": "项目宠物，十二种情绪。",
         "pets_sub": "它是一页会走路的文档。每个表情都是独立 SVG，自带动效，并遵循 prefers-reduced-motion。",
@@ -483,7 +483,7 @@ UI = {
         "install_sub": "The minimum install command for each stack. Framework setup, config and complete examples live in the guides.",
         "install_note": "Every guide starts from a minimal runnable example, then covers annotation rules, scenarios and troubleshooting.",
         "versions_title": "Current versions",
-        "versions_sub": "Full changelogs and release assets live on each repository's Releases page; all four editions implement UIC-1, at UI 3.4.0 / PHP 1.2.0 / Go 1.1.0 / Rust 2.2.0.",
+        "versions_sub": "Full changelogs and release assets live on each repository's Releases page; all four editions implement UIC-1, at UI 3.4.0 / PHP 1.2.1 / Go 1.1.1 / Rust 2.2.0.",
         "release_notes": "View Releases",
         "pets_title": "The project pet, twelve moods.",
         "pets_sub": "It is a walking documentation page. Every expression is a standalone SVG with its own motion, honoring prefers-reduced-motion.",

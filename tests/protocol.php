@@ -246,6 +246,10 @@ check('unknown protocol falls back', ProtocolCatalog::get('nope')['label'] === '
 
 // ---------- P2 回退:目录驱动与元数据 ----------
 $p2RawRef = new ReflectionClass(\Tests\Fixtures\Protocol\P2RawFixture::class);
+$hlsRef = new ReflectionClass(\Tests\Fixtures\Protocol\HlsFixture::class);
+$hlsMeta = $parser->metadata($hlsRef, $hlsRef->getMethod('stream'));
+check('hls metadata stays browser http', ($hlsMeta['debug']['mode'] ?? '') === 'browser-http' && ($hlsMeta['debug']['driver'] ?? '') === 'hls');
+
 $p2Raw = $parser->metadata($p2RawRef, $p2RawRef->getMethod('publish'));
 check('raw-socket keeps raw driver', ($p2Raw['debug']['driver'] ?? '') === 'raw');
 check('raw-socket fallback mode', ($p2Raw['debug']['mode'] ?? '') === 'relay-unary');

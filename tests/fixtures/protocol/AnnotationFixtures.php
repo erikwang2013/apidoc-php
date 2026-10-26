@@ -397,3 +397,13 @@ class Http3SchemeMismatchFixture
     #[Title('HTTP/3 over http')]
     public function echo() {}
 }
+
+
+#[Protocol('hls')]
+class HlsFixture
+{
+    #[Channel('https://example.com/live.m3u8', action: 'play')]
+    #[Debug(target: 'https://example.com/live.m3u8')]
+    #[Title('HLS stream')]
+    public function stream() {}
+}
