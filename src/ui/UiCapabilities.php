@@ -46,11 +46,10 @@ class UiCapabilities
                     'mode' => 'server',
                 ],
                 'generator' => [
-                    'forms' => true,
-                    'templates' => true,
-                    // PHP only has the legacy generator (middleware, writes files, may create
-                    // tables), so the UI must keep the legacy success flow, not a fake preview.
-                    'sideEffects' => true,
+                    // UIC-1 renders only configured ui_generator/code_template entries in memory
+                    'forms' => !empty($config['ui_generator']),
+                    'templates' => !empty($config['code_template']),
+                    'sideEffects' => false,
                 ],
                 'exports' => ['md', 'pdf', 'openapi', 'postman', 'asyncapi', 'typescript'],
                 'auth' => [

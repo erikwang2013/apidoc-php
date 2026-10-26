@@ -35,6 +35,10 @@ class ErrorException extends HttpException
         'ref method not exists' => ['status'=>412,'code' => 5005, 'msg' => 'ref引入${path} 中 ${method} 方法不存在'],
         'datatable create error' => ['status'=>412,'code' => 5006, 'msg' => '数据表[${table}]创建失败,error:${message},sql:${sql}'],
         'field not found' => ['status'=>412,'code' => 5006, 'msg' => '${field}字段不能为空'],
+        'generator not found' => ['status'=>412,'code' => 4012, 'msg' => '生成器配置不存在'],
+        'file not found' => ['status'=>412,'code' => 4013, 'msg' => '${file}文件配置不存在'],
+        'duplicate file name' => ['status'=>412,'code' => 4014, 'msg' => '${file}文件名重复'],
+        'invalid params' => ['status'=>412,'code' => 4015, 'msg' => '${field}参数格式错误'],
         'share not exists' => ['status'=>404,'code' => 4004, 'msg' => '该分享不存在'],
         'export config not enable' => ['status'=>404,'code' => 4004, 'msg' => '导出配置未启用'],
     ];

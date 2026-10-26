@@ -19,7 +19,12 @@ class ParseCodeTemplate
         $this->config = $config;
     }
 
-    public function renderCode($params)
+    /**
+     * @param array $params {appKey,template,selected,form}
+     * @param bool $filterOutOfScope UIC-1 路径:selected 中不属于 app 的 id 直接跳过;
+     *                               legacy 保持原行为(渲染时抛错)
+     */
+    public function renderCode($params, bool $filterOutOfScope = false)
     {
         $appKey = (string)($params['appKey'] ?? '');
 
@@ -30,17 +35,24 @@ class ParseCodeTemplate
         $tplData = [];
         if (($codeTemplate['select_mode'] ?? '') == 'controller'){
             $parseApiMenusService = new ParseApiMenus($this->config);
+            $scopeService = $filterOutOfScope ? new ParseApiDetail($this->config) : null;
             $controllers = $params['selected'] ?? [];
             if (!empty($controllers) && count($controllers) > 0) {
                 $controllerList = [];
                 foreach ($controllers as $class) {
+                    if (!is_string($class)) {
+                        continue;
+                    }
+                    if ($scopeService !== null && !$scopeService->isClassInAppScope($appKey, $class)) {
+                        continue;
+                    }
                     $classData = $parseApiMenusService->parseController($class, false, $appKey);
                     if ($classData !== false) {
                         $controllerList[] = $classData;
                     }
                 }
                 if (empty($codeTemplate['multiple'])){
-                    $tplData = $controllerList[0];
+                    $tplData = $controllerList[0] ?? [];
                 }else{
                     $tplData = $controllerList;
                 }
@@ -52,14 +64,20 @@ class ParseCodeTemplate
                 $parseApiDetailService = new ParseApiDetail($this->config);
                 $apiList = [];
                 foreach ($apis as $key) {
-                    $apiKey = urldecode($key);
+                    $apiKey = urldecode((string)$key);
+                    if ($filterOutOfScope) {
+                        $class = strstr($apiKey, '@', true);
+                        if ($class === false || !$parseApiDetailService->isClassInAppScope($appKey, $class)) {
+                            continue;
+                        }
+                    }
                     $apiDetail = $parseApiDetailService->renderApiDetail($appKey,$apiKey);
                     if ($apiDetail !== false) {
                         $apiList[] = $apiDetail;
                     }
                 }
                 if (empty($codeTemplate['multiple'])){
-                    $tplData = $apiList[0];
+                    $tplData = $apiList[0] ?? [];
                 }else{
                     $tplData = $apiList;
                 }

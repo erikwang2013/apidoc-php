@@ -25,6 +25,14 @@ spl_autoload_register(function (string $class): void {
         if (is_file($file)) {
             require $file;
         }
+        return;
+    }
+    $prefix = 'Tests\\Fixtures\\Other\\';
+    if (strpos($class, $prefix) === 0) {
+        $file = __DIR__ . '/fixtures/other/' . str_replace('\\', '/', substr($class, strlen($prefix))) . '.php';
+        if (is_file($file)) {
+            require $file;
+        }
     }
 });
 
@@ -102,10 +110,10 @@ check(
     count($driverNames) === 12 && in_array('mqtt', $driverNames, true)
 );
 check(
-    'UIC capabilities advertises legacy generator side effects',
-    ($caps['features']['generator']['sideEffects'] ?? null) === true
-    && ($caps['features']['generator']['forms'] ?? null) === true
-    && ($caps['features']['generator']['templates'] ?? null) === true
+    'UIC capabilities generator is off without declarative config',
+    ($caps['features']['generator']['sideEffects'] ?? null) === false
+    && ($caps['features']['generator']['forms'] ?? null) === false
+    && ($caps['features']['generator']['templates'] ?? null) === false
 );
 check(
     'UIC capabilities management features',
@@ -617,6 +625,172 @@ check(
     'N1 global token renders a configured template',
     trim((string)($n1GlobalRender['data']['code'] ?? '')) === 'Sample global'
 );
+
+// ---------- Phase 2b: declarative generator (in-memory, no side effects) ----------
+
+$generatorTemplate = 'tests/fixtures/templates/generator.tpl';
+$generatorItem = [
+    'name' => 'service',
+    'title' => 'Service',
+    'files' => [[
+        'name' => 'gen',
+        'path' => 'tests/fixtures/generated',
+        'namespace' => 'App\\Gen',
+        'template' => $generatorTemplate,
+    ]],
+    'form' => ['items' => [['name' => 'name', 'title' => 'Name', 'type' => 'input']]],
+];
+$legacyGeneratorItem = [
+    'name' => 'legacy',
+    'title' => 'Legacy',
+    'files' => [[
+        'name' => 'gen',
+        'path' => 'tests/fixtures/generated',
+        'template' => $generatorTemplate,
+    ]],
+    'middleware' => [],
+];
+$generatorExtra = [
+    'apps' => [$protectedApp],
+    'ui_generator' => [$generatorItem],
+    'generator' => [$legacyGeneratorItem],
+    'code_template' => [$codeTemplateItem],
+    'database_query_function' => fn () => false,
+    'cache' => ['enable' => false],
+];
+
+ui_contract_config(['token' => $adminToken], $fixtureAppPath, $generatorExtra);
+$genConfig = (new Controller())->uiConfig();
+$genDescriptor = $genConfig['data']['generator'][0] ?? [];
+check(
+    'P2b uiConfig exposes only declarative generator descriptors',
+    count($genConfig['data']['generator'] ?? []) === 1
+    && ($genDescriptor['name'] ?? '') === 'service'
+    && ($genDescriptor['title'] ?? '') === 'Service'
+    && count($genDescriptor['files'] ?? []) === 1
+    && !array_key_exists('template', $genDescriptor['files'][0] ?? [])
+    && ($genDescriptor['form']['items'][0]['name'] ?? '') === 'name'
+);
+check(
+    'P2b capabilities advertise configured declarative generator',
+    ($genConfig['data']['capabilities']['features']['generator']['forms'] ?? null) === true
+    && ($genConfig['data']['capabilities']['features']['generator']['templates'] ?? null) === true
+    && ($genConfig['data']['capabilities']['features']['generator']['sideEffects'] ?? null) === false
+);
+
+$genParams = [
+    'token' => $adminToken,
+    'index' => 0,
+    'form' => ['appKey' => 'default', 'name' => 'demo'],
+    'tables' => [],
+    // 请求里的 template 不受支持;value/path 按配置文件的 name 覆盖
+    'files' => [[
+        'name' => 'gen',
+        'value' => 'Demo',
+        'path' => 'tests/fixtures/generated/out',
+        'template' => '../composer.json',
+    ]],
+];
+ui_contract_config($genParams, $fixtureAppPath, $generatorExtra);
+$genRender = (new Controller())->uiGenerator();
+$expectedGen = "class Demo\n{\n    // demo\n    const PATH = 'tests/fixtures/generated/out';\n    const NS = 'App\\Gen';\n}\n";
+check(
+    'P2b generator renders configured template in memory',
+    ($genRender['code'] ?? null) === 0
+    && count($genRender['data']['files'] ?? []) === 1
+    && ($genRender['data']['files'][0]['name'] ?? '') === 'gen'
+    && ($genRender['data']['files'][0]['path'] ?? '') === 'tests/fixtures/generated/out'
+    && ($genRender['data']['files'][0]['content'] ?? '') === $expectedGen
+);
+check(
+    'P2b generator writes nothing and ignores request template paths',
+    !file_exists(__DIR__ . '/fixtures/generated/out.php')
+    && !file_exists(__DIR__ . '/fixtures/generated/Demo.php')
+);
+
+$badGeneratorCases = [
+    ['index' => 0, 'files' => [['name' => 'nope', 'value' => 'x']]],
+    ['index' => 0, 'files' => [['name' => 'gen', 'value' => 'x', 'path' => '../../tmp/evil']]],
+    ['index' => 9, 'files' => []],
+];
+$badGeneratorStatuses = [];
+foreach ($badGeneratorCases as $badGeneratorCase) {
+    ui_contract_config(array_merge($genParams, $badGeneratorCase), $fixtureAppPath, $generatorExtra);
+    try {
+        (new Controller())->uiGenerator();
+        $badGeneratorStatuses[] = 0;
+    } catch (HttpException $e) {
+        $badGeneratorStatuses[] = $e->getStatusCode();
+    }
+}
+check(
+    'P2b generator rejects unknown files, escaping paths and unknown index',
+    count($badGeneratorStatuses) === count($badGeneratorCases)
+    && array_unique($badGeneratorStatuses) === [412]
+);
+
+$generatedLegacyFile = __DIR__ . '/fixtures/generated/Legacy.php';
+@unlink($generatedLegacyFile);
+ui_contract_config([
+    'token' => $adminToken,
+    'index' => 0,
+    'form' => ['appKey' => 'default', 'name' => 'legacy'],
+    'tables' => [],
+    'files' => [['name' => 'gen', 'value' => 'Legacy', 'path' => 'tests/fixtures/generated']],
+], $fixtureAppPath, $generatorExtra);
+$legacyGenerated = (new Controller())->createGenerator();
+$legacyGeneratedContent = is_file($generatedLegacyFile) ? (string)file_get_contents($generatedLegacyFile) : '';
+check(
+    'P2b legacy generator still writes files',
+    ($legacyGenerated['data']['form']['name'] ?? '') === 'legacy'
+    && strpos($legacyGeneratedContent, 'class Legacy') !== false
+    && strpos($legacyGeneratedContent, '// legacy') !== false
+);
+@unlink($generatedLegacyFile);
+@rmdir(__DIR__ . '/fixtures/generated');
+
+// UIC-1 code templates skip selected APIs outside the authenticated app; legacy still rejects them.
+$countTemplateItem = array_merge($codeTemplateItem, ['template' => 'tests/fixtures/templates/count.tpl']);
+$outOfScopeKey = Helper::createApiKey('Tests\\Fixtures\\Other\\OtherController', 'listOther');
+$scopeTemplateExtra = [
+    'apps' => [$protectedApp],
+    'code_template' => [$countTemplateItem],
+    'cache' => ['enable' => false],
+];
+$scopeTemplateParams = [
+    'token' => $n1AppToken,
+    'appKey' => 'default',
+    'template' => $countTemplateItem,
+    'selected' => [$menuKey, $outOfScopeKey],
+    'form' => ['name' => 'scope'],
+];
+ui_contract_config($scopeTemplateParams, $fixtureAppPath, $scopeTemplateExtra);
+$scopeRender = (new Controller())->uiRenderCodeTemplate();
+check(
+    'P2b renderCodeTemplate filters selected ids outside the app',
+    trim((string)($scopeRender['data']['code'] ?? '')) === 'Count 1 scope'
+);
+$legacyScopeStatus = 0;
+ui_contract_config($scopeTemplateParams, $fixtureAppPath, $scopeTemplateExtra);
+try {
+    (new Controller())->renderCodeTemplate();
+} catch (HttpException $e) {
+    $legacyScopeStatus = $e->getStatusCode();
+}
+check('P2b legacy renderCodeTemplate still rejects out-of-scope selected ids', $legacyScopeStatus !== 0);
+
+$missingAppKeyStatus = 0;
+ui_contract_config([
+    'token' => $adminToken,
+    'template' => $countTemplateItem,
+    'selected' => [$menuKey],
+], $fixtureAppPath, $scopeTemplateExtra);
+try {
+    (new Controller())->uiRenderCodeTemplate();
+} catch (HttpException $e) {
+    $missingAppKeyStatus = $e->getStatusCode();
+}
+check('P2b renderCodeTemplate requires appKey', $missingAppKeyStatus === 412);
 
 // ---------- R2: legacy management routes require the global token ----------
 
