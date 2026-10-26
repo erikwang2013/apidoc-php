@@ -28,7 +28,8 @@ class UiCapabilities
                 'protocolDefinitions' => true,
                 'debug' => [
                     'browser' => ['http', 'websocket', 'sse'],
-                    'relay' => DebugRegistry::availableNames(),
+                    // hls 在 UIC 详情里固定走浏览器模式,不能声明为中继可用
+                    'relay' => array_values(array_diff(DebugRegistry::availableNames(), ['hls'])),
                     'modes' => [
                         'browser-http',
                         'browser-websocket',
