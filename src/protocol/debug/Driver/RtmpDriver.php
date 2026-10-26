@@ -113,7 +113,9 @@ class RtmpDriver implements DebugDriverInterface
                     max(0, Input::int($input, 'duration_ms', 1000, 0)),
                     max(1, (int)round($timeout * 1000))
                 );
-                $statusDeadline = microtime(true) + $wait / 1000;
+                $waitDeadline = microtime(true) + $wait / 1000;
+                // 等待 onStatus 不能越过会话截止时间,否则会拖长整个请求
+                $statusDeadline = min($waitDeadline, $deadline);
                 while (microtime(true) < $statusDeadline) {
                     try {
                         $values = $this->readCommand($socket, $statusDeadline, $maxBytes, $reader);
@@ -133,6 +135,10 @@ class RtmpDriver implements DebugDriverInterface
                     }
                     $status = $code;
                     break;
+                }
+                if ($status === null && $waitDeadline >= $deadline) {
+                    // 原等待窗口本会超出会话截止时间,按 Rust 外层 timeout 处理
+                    throw new RuntimeException('rtmp session timed out');
                 }
             }
         } catch (InvalidArgumentException $e) {

@@ -3,7 +3,7 @@ declare(strict_types=1);
 
 /**
  * DNP3 / IEC104 / RTMP / OPC UA 串行 TCP mock
- * 用法: php industrial_tcp_mock.php <dnp3|dnp3-truncated|iec104|iec104-nodata|rtmp|opcua|opcua-auth-fail|opcua-bad-policy|opcua-null|silent> <port>
+ * 用法: php industrial_tcp_mock.php <dnp3|dnp3-truncated|dnp3-noise|iec104|iec104-nodata|rtmp|rtmp-slow-status|opcua|opcua-auth-fail|opcua-bad-policy|opcua-null|silent> <port>
  */
 
 $protocol = $argv[1] ?? '';
@@ -289,6 +289,20 @@ for ($connection = 0; $connection < 16; $connection++) {
             $out = "\x05\x64\x06\x44" . pack('v', 0) . pack('v', 1);
             fwrite($client, $out . pack('v', dnp3Crc(substr($out, 2))) . "\xC0");
         }
+    } elseif ($protocol === 'dnp3-noise') {
+        $header = readExact($client, 10);
+        if ($header !== '' && substr($header, 0, 2) === "\x05\x64") {
+            $dataLength = ord($header[2]) - 5;
+            readExact($client, $dataLength + (int)ceil($dataLength / 16) * 2);
+            // 先发 1001 个不匹配的链路帧,再发真正的读响应
+            for ($i = 0; $i < 1001; $i++) {
+                fwrite($client, dnp3Frame(0x00, 0, 1, "\xC0"));
+            }
+            $objects = "\x1E\x01\x00\x00\x01"
+                . "\x01" . pack('V', 42)
+                . "\x01" . pack('V', 0xFFFFFFF9);
+            fwrite($client, dnp3Frame(0x44, 0, 1, "\xC0\xC0\x81\x00\x00" . $objects));
+        }
     } elseif ($protocol === 'iec104') {
         $apdu = readExact($client, 6);
         if ($apdu !== '' && ord($apdu[0]) === 0x68) {
@@ -317,7 +331,7 @@ for ($connection = 0; $connection < 16; $connection++) {
             }
         }
         usleep(500000);
-    } elseif ($protocol === 'rtmp') {
+    } elseif ($protocol === 'rtmp' || $protocol === 'rtmp-slow-status') {
         readExact($client, 1537);
         fwrite($client, "\x03" . str_repeat("\x00", 1536) . str_repeat("\x00", 1536));
         readExact($client, 1536);
@@ -340,6 +354,9 @@ for ($connection = 0; $connection < 16; $connection++) {
                     ['object', ['level' => ['string', 'status'], 'code' => ['string', 'NetConnection.Connect.Success'], 'description' => ['string', 'Connection succeeded.']]],
                 ], $chunkSize);
             } elseif ($name === 'createStream') {
+                if ($protocol === 'rtmp-slow-status') {
+                    usleep(300000);
+                }
                 rtmpCommand($client, [
                     ['string', '_result'],
                     ['number', 2.0],
@@ -347,6 +364,11 @@ for ($connection = 0; $connection < 16; $connection++) {
                     ['number', 1.0],
                 ], $chunkSize);
             } elseif ($name === 'publish' || $name === 'play') {
+                if ($protocol === 'rtmp-slow-status') {
+                    // 保留连接但不发 onStatus
+                    usleep(1000000);
+                    continue;
+                }
                 $code = $name === 'publish' ? 'NetStream.Publish.Start' : 'NetStream.Play.Start';
                 rtmpCommand($client, [
                     ['string', 'onStatus'],

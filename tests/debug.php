@@ -211,6 +211,8 @@ startFixture([PHP_BINARY, $root . '/tests/fixtures/debug/industrial_udp_mock.php
 startFixture([PHP_BINARY, $root . '/tests/fixtures/debug/industrial_tcp_mock.php', 'opcua-null', '19045'], $logDir . '/apidoc-debug-opcua-null.log');
 startFixture([PHP_BINARY, $root . '/tests/fixtures/debug/industrial_tcp_mock.php', 'dnp3-truncated', '19046'], $logDir . '/apidoc-debug-dnp3-truncated.log');
 startFixture([PHP_BINARY, $root . '/tests/fixtures/debug/industrial_tcp_mock.php', 'iec104-nodata', '19047'], $logDir . '/apidoc-debug-iec104-nodata.log');
+startFixture([PHP_BINARY, $root . '/tests/fixtures/debug/industrial_tcp_mock.php', 'rtmp-slow-status', '19048'], $logDir . '/apidoc-debug-rtmp-slow-status.log');
+startFixture([PHP_BINARY, $root . '/tests/fixtures/debug/industrial_tcp_mock.php', 'dnp3-noise', '19049'], $logDir . '/apidoc-debug-dnp3-noise.log');
 usleep(100000);
 if (!waitPort('127.0.0.1', 19011) || !waitPort('127.0.0.1', 19005) || !waitPort('127.0.0.1', 19003) || !waitPort('127.0.0.1', 19004)
     || !waitPort('127.0.0.1', 19007) || !waitPort('127.0.0.1', 19008) || !waitPort('127.0.0.1', 19009)
@@ -222,7 +224,8 @@ if (!waitPort('127.0.0.1', 19011) || !waitPort('127.0.0.1', 19005) || !waitPort(
     || !waitPort('127.0.0.1', 19026) || !waitPort('127.0.0.1', 19030) || !waitPort('127.0.0.1', 19031)
     || !waitPort('127.0.0.1', 19033) || !waitPort('127.0.0.1', 19036) || !waitPort('127.0.0.1', 19038)
     || !waitPort('127.0.0.1', 19039) || !waitPort('127.0.0.1', 19045) || !waitPort('127.0.0.1', 19046)
-    || !waitPort('127.0.0.1', 19047)) {
+    || !waitPort('127.0.0.1', 19047) || !waitPort('127.0.0.1', 19048)
+    || !waitPort('127.0.0.1', 19049)) {
     echo "FAIL  fixture 服务未就绪\n";
     exit(1);
 }
@@ -1563,6 +1566,13 @@ check('dnp3 zero duration is 1ms', ($dnp3Zero['error'] ?? '')
     === 'dnp3 timed out after 1ms without a data response');
 $dnp3Truncated = $dnp3->send(['duration_ms' => 50], $industrialCtx('dnp3://127.0.0.1:19046', 19046));
 check('dnp3 mid-frame eof is an error', ($dnp3Truncated['error'] ?? '') === 'truncated dnp3 frame');
+$dnp3Noise = $dnp3->send(['duration_ms' => 2000], $industrialCtx('dnp3://127.0.0.1:19049', 19049));
+check(
+    'dnp3 frame cap ignores filtered frames',
+    ($dnp3Noise['ok'] ?? false) === true
+    && (json_decode((string)($dnp3Noise['body'] ?? ''), true)['points'][0]['value'] ?? null) === 42
+    && ($dnp3Noise['meta']['frames'] ?? 0) === 1
+);
 check(
     'dnp3 rejects bad target and range',
     strpos((string)($dnp3->send([], ['target' => 'http://127.0.0.1:19030'])['error'] ?? ''), 'dnp3') !== false
@@ -1860,6 +1870,17 @@ $rtmpCap = $rtmp->send([], $industrialCtx('rtmp://127.0.0.1:19036', 19036, ['max
 check('rtmp message cap', strpos((string)($rtmpCap['error'] ?? ''), 'rtmp message exceeds max_bytes (1)') !== false);
 $rtmpTimeout = $rtmp->send([], $industrialCtx('rtmp://127.0.0.1:19043', 19043, ['timeout' => 0.2]));
 check('rtmp silent peer times out', ($rtmpTimeout['error'] ?? '') === 'rtmp session timed out');
+$rtmpSlowStart = microtime(true);
+$rtmpSlow = $rtmp->send(
+    ['operation' => 'publish', 'stream' => 'demo', 'duration_ms' => 500],
+    $industrialCtx('rtmp://127.0.0.1:19048', 19048, ['timeout' => 0.5])
+);
+$rtmpSlowElapsed = (microtime(true) - $rtmpSlowStart) * 1000;
+check(
+    'rtmp status wait respects session deadline',
+    ($rtmpSlow['ok'] ?? true) === false && ($rtmpSlow['error'] ?? '') === 'rtmp session timed out'
+    && $rtmpSlowElapsed < 650
+);
 check(
     'rtmp rejects bad target and stream',
     strpos((string)($rtmp->send([], ['target' => 'http://127.0.0.1:19036'])['error'] ?? ''), 'rtmp') !== false

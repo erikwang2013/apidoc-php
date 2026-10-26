@@ -152,7 +152,8 @@ class Dnp3Driver implements DebugDriverInterface
         $responses = 0;
         $app = '';
         $totalBytes = 0;
-        for ($frames = 0; $frames < self::MAX_FRAMES; $frames++) {
+        // 上限按完成的读响应计数,过滤帧/未完成分片不消耗预算(对齐 Rust)
+        while ($responses < self::MAX_FRAMES) {
             $frame = $this->readLinkFrame($socket, $deadline);
             if ($frame === null) {
                 break;
