@@ -18,6 +18,7 @@ class Dnp3Driver implements DebugDriverInterface
 {
     protected const MAX_FRAMES = 1000;
     protected const MAX_LINK_DATA = 250;
+    protected const MAX_POINTS = 10000;
 
     public function name(): string
     {
@@ -186,6 +187,9 @@ class Dnp3Driver implements DebugDriverInterface
                 continue;
             }
             foreach ($this->parseObjects(substr($app, 4)) as $point) {
+                if (count($points) >= self::MAX_POINTS) {
+                    throw new RuntimeException('dnp3 response exceeds ' . self::MAX_POINTS . ' points');
+                }
                 $points[] = $point;
             }
             $app = '';
@@ -318,6 +322,9 @@ class Dnp3Driver implements DebugDriverInterface
                     throw new InvalidArgumentException('dnp3 index-prefixed packed bit fields are not supported');
                 }
                 $bits = $group === 1 ? 1 : 2;
+                if (count($points) + $count > self::MAX_POINTS) {
+                    throw new InvalidArgumentException('dnp3 response exceeds ' . self::MAX_POINTS . ' points');
+                }
                 $bytes = (int)ceil($count * $bits / 8);
                 if ($pos + $bytes > $total) {
                     throw new InvalidArgumentException('truncated dnp3 packed bits');
@@ -340,6 +347,9 @@ class Dnp3Driver implements DebugDriverInterface
             // 每个受支持的点至少消费 1 字节,count 超过剩余字节必然截断
             if ($count > $total - $pos) {
                 throw new InvalidArgumentException('truncated dnp3 object value');
+            }
+            if (count($points) + $count > self::MAX_POINTS) {
+                throw new InvalidArgumentException('dnp3 response exceeds ' . self::MAX_POINTS . ' points');
             }
             for ($offset = 0; $offset < $count; $offset++) {
                 $index = $start + $offset;
