@@ -2,7 +2,7 @@
 """Benchmark the generated static site.
 
 Acceptance:
-  * Every page and static asset must have a median TTFB below 50 ms.
+  * Every page and static asset must have a max TTFB below 10 ms across the samples.
   * With --full, a warm full-page load must have a median at or below 1 s.
 
 Run from site/:
@@ -22,7 +22,8 @@ from http.server import SimpleHTTPRequestHandler, ThreadingHTTPServer
 from pathlib import Path
 
 ROOT = Path(__file__).resolve().parent
-TTFB_LIMIT_MS = 50.0
+TTFB_LIMIT_MS = 10.0
+TTFB_MAX_LIMIT_MS = 10.0
 FULL_LOAD_LIMIT_MS = 1000.0
 TTFB_RUNS = 7
 FULL_LOAD_RUNS = 5
@@ -97,17 +98,17 @@ def run_ttfb_benchmark() -> bool:
         server.server_close()
 
     rows.sort(key=lambda row: row[1], reverse=True)
-    print(f"TTFB benchmark ({TTFB_RUNS} runs, median; limit {TTFB_LIMIT_MS:.0f} ms)")
+    print(f"TTFB benchmark ({TTFB_RUNS} runs; median and max limit {TTFB_LIMIT_MS:.0f} ms)")
     print(f"{'path':<58} {'median':>8} {'max':>8}")
     for path, median, maximum in rows:
-        flag = " FAIL" if median >= TTFB_LIMIT_MS else ""
+        flag = " FAIL" if median >= TTFB_LIMIT_MS or maximum >= TTFB_MAX_LIMIT_MS else ""
         print(f"{path:<58} {median:>7.2f}ms {maximum:>7.2f}ms{flag}")
 
-    failures = [row for row in rows if row[1] >= TTFB_LIMIT_MS]
+    failures = [row for row in rows if row[1] >= TTFB_LIMIT_MS or row[2] >= TTFB_MAX_LIMIT_MS]
     print()
     print(f"checked {len(rows)} responses; slowest median {rows[0][1]:.2f} ms")
     if failures:
-        print(f"FAIL: {len(failures)} response(s) at or above {TTFB_LIMIT_MS:.0f} ms")
+        print(f"FAIL: {len(failures)} response(s) at or above {TTFB_LIMIT_MS:.0f} ms (median or max)")
         return False
     print(f"PASS: all responses below {TTFB_LIMIT_MS:.0f} ms")
     return True
