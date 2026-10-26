@@ -4,7 +4,7 @@
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <title>PHP API Documentation Guide · Laravel, ThinkPHP, Hyperf · Apidoc</title>
-  <meta name="description" content="PHP 8 attribute API docs for Laravel, ThinkPHP, Hyperf, Webman, Yii2 and Yii3, with MQTT/gRPC debugging and OpenAPI/protobuf/WSDL definitions.">
+  <meta name="description" content="PHP 8 attribute API docs for Laravel, ThinkPHP, Hyperf, Webman, Yii2 and Yii3, with UIC-1 shared UI, 27 protocol debug drivers and 9 definition formats.">
   <meta name="theme-color" content="#f7f6fc">
   <link rel="icon" href="../../assets/img/apidoc-pet.svg" type="image/svg+xml">
   <link rel="preload" href="../../assets/img/apidoc-pet.svg" as="image">
@@ -27,7 +27,7 @@
   </noscript>
   <meta property="og:type" content="article">
   <meta property="og:title" content="PHP API Documentation Guide · Laravel, ThinkPHP, Hyperf · Apidoc">
-  <meta property="og:description" content="PHP 8 attribute API docs for Laravel, ThinkPHP, Hyperf, Webman, Yii2 and Yii3, with MQTT/gRPC debugging and OpenAPI/protobuf/WSDL definitions.">
+  <meta property="og:description" content="PHP 8 attribute API docs for Laravel, ThinkPHP, Hyperf, Webman, Yii2 and Yii3, with UIC-1 shared UI, 27 protocol debug drivers and 9 definition formats.">
   <meta property="og:url" content="https://apidoc.erik.xyz/en/docs/php.html">
   <meta property="og:image" content="https://apidoc.erik.xyz/assets/img/php/social-preview-en.png">
   <meta property="og:image:type" content="image/png">
@@ -39,12 +39,12 @@
   <meta property="og:locale:alternate" content="zh_CN">
   <meta name="twitter:card" content="summary_large_image">
   <meta name="twitter:title" content="PHP API Documentation Guide · Laravel, ThinkPHP, Hyperf · Apidoc">
-  <meta name="twitter:description" content="PHP 8 attribute API docs for Laravel, ThinkPHP, Hyperf, Webman, Yii2 and Yii3, with MQTT/gRPC debugging and OpenAPI/protobuf/WSDL definitions.">
+  <meta name="twitter:description" content="PHP 8 attribute API docs for Laravel, ThinkPHP, Hyperf, Webman, Yii2 and Yii3, with UIC-1 shared UI, 27 protocol debug drivers and 9 definition formats.">
   <meta name="twitter:image" content="https://apidoc.erik.xyz/assets/img/php/social-preview-en.png">
   <meta name="twitter:image:alt" content="Apidoc: API documentation for PHP, Go and Rust">
   <script type="application/ld+json">{"@context":"https://schema.org","@graph":[{"@type":"Person","@id":"https://apidoc.erik.xyz/#person","name":"erik","url":"https://erik.xyz","sameAs":["https://github.com/erikwang2013"]},{"@type":"Organization","@id":"https://apidoc.erik.xyz/#organization","name":"Apidoc","url":"https://apidoc.erik.xyz/","description":"Open-source API documentation for PHP, Go and Rust.","logo":{"@type":"ImageObject","url":"https://apidoc.erik.xyz/assets/img/apidoc-pet.svg"},"sameAs":["https://github.com/erikwang2013"],"founder":{"@id":"https://apidoc.erik.xyz/#person"}},{"@type":"WebSite","@id":"https://apidoc.erik.xyz/#website","url":"https://apidoc.erik.xyz/","name":"Apidoc","description":"API documentation for PHP, Go and Rust.","inLanguage":["zh-CN","en"],"publisher":{"@id":"https://apidoc.erik.xyz/#organization"}},{"@type":"TechArticle","@id":"https://apidoc.erik.xyz/en/docs/php.html#article","headline":"PHP API Documentation Guide","description":"Write PHP 8 attributes in Laravel, ThinkPHP, Hyperf, Webman, Yii2 or Yii3 and get a browsable, debuggable, exportable API portal, with arbitrary protocol debugging and definition parsing.","url":"https://apidoc.erik.xyz/en/docs/php.html","mainEntityOfPage":{"@id":"https://apidoc.erik.xyz/en/docs/php.html"},"inLanguage":"en","author":{"@id":"https://apidoc.erik.xyz/#person"},"publisher":{"@id":"https://apidoc.erik.xyz/#organization"},"isPartOf":{"@id":"https://apidoc.erik.xyz/en/docs/"},"about":"PHP","articleSection":"PHP","dateModified":"2026-10-26","image":"https://apidoc.erik.xyz/assets/img/social-preview.png","keywords":"PHP API documentation, PHP 8 attributes, Laravel, ThinkPHP, Hyperf, Webman, Yii2, Yii3, MQTT, gRPC, WebSocket, protocol debugging"},{"@type":"BreadcrumbList","@id":"https://apidoc.erik.xyz/en/docs/php.html#breadcrumb","itemListElement":[{"@type":"ListItem","position":1,"name":"Home","item":"https://apidoc.erik.xyz/en/"},{"@type":"ListItem","position":2,"name":"Usage guides","item":"https://apidoc.erik.xyz/en/docs/"},{"@type":"ListItem","position":3,"name":"PHP","item":"https://apidoc.erik.xyz/en/docs/php.html"}]}]}</script><meta property="article:modified_time" content="2026-10-26"><meta property="article:section" content="PHP">
 </head>
-<body data-copy-label="Copy" data-copied-label="Copied" data-menu-open="Open menu" data-menu-close="Close menu" data-root="../../" data-page="en/docs/php.html" data-search-version="9d8d491d2181">
+<body data-copy-label="Copy" data-copied-label="Copied" data-menu-open="Open menu" data-menu-close="Close menu" data-root="../../" data-page="en/docs/php.html" data-search-version="555899f86d12">
   <a class="skip-link" href="#main">Skip to main content</a>
   <svg class="icon-sprite" aria-hidden="true" focusable="false" xmlns="http://www.w3.org/2000/svg">
   <symbol id="i-arrow" viewBox="0 0 20 20"><path d="M3 10h13M11 5l5 5-5 5"/></symbol>
@@ -115,20 +115,20 @@
   <section class="docs-hero">
   <div class="wrap">
     <p class="docs-breadcrumb"><a href="../index.html">Home</a><span>/</span><a href="index.html">Usage guides</a><span>/</span>PHP</p>
-    <div class="docs-badges"><span class="lang-badge">PHP</span><span class="version-pill">v1.1.0</span></div>
+    <div class="docs-badges"><span class="lang-badge">PHP</span><span class="version-pill">v1.2.0</span></div>
     <h1>PHP API Documentation Guide</h1>
     <p>Write PHP 8 attributes in Laravel, ThinkPHP, Hyperf, Webman, Yii2 or Yii3 and get a browsable, debuggable, exportable API portal, with arbitrary protocol debugging and definition parsing.</p>
     <div class="docs-actions"><a class="text-link" href="https://github.com/erikwang2013/apidoc-php" target="_blank" rel="noopener">GitHub <svg class="icon icon-xs" aria-hidden="true"><use href="#i-external"></use></svg></a><a class="text-link" href="https://github.com/erikwang2013/apidoc-php/blob/main/docs/ATTRIBUTES.md" target="_blank" rel="noopener">View source <svg class="icon icon-xs" aria-hidden="true"><use href="#i-external"></use></svg></a></div>
-    <p class="docs-meta">Version v1.1.0 / Full reference: docs/ATTRIBUTES.md</p>
+    <p class="docs-meta">Version v1.2.0 / Full reference: docs/ATTRIBUTES.md</p>
   </div>
 </section><div class="wrap docs-layout">
   <aside class="docs-sidebar">
     <p class="docs-sidebar-title">On this page</p>
-    <ul class="docs-toc"><li><a href="#sec-1">When to use it</a></li><li><a href="#sec-2">Requirements and installation</a></li><li><a href="#sec-3">Minimal setup</a></li><li><a href="#sec-4">Framework setup</a></li><li><a href="#sec-5">Parsing rules</a></li><li><a href="#sec-6">Controller and endpoint annotations</a></li><li><a href="#sec-7">Request parameters</a></li><li><a href="#sec-8">Responses and nesting</a></li><li><a href="#sec-9">Reuse: definitions, ref, models and entities</a></li><li><a href="#sec-10">Apps, versions and groups</a></li><li><a href="#sec-11">Mock and live debugging</a></li><li><a href="#sec-12">Arbitrary protocols and definition parsing</a></li><li><a href="#sec-13">Auth, caching and security</a></li><li><a href="#sec-14">UIC-1 unified endpoints (in progress)</a></li><li><a href="#sec-15">Exports, sharing and code generation</a></li><li><a href="#sec-16">Common scenarios</a></li><li class="is-sub"><a href="#sec-17">Lists and pagination</a></li><li class="is-sub"><a href="#sec-18">Login and tokens</a></li><li class="is-sub"><a href="#sec-19">File upload</a></li><li class="is-sub"><a href="#sec-20">Multiple versions</a></li><li class="is-sub"><a href="#sec-21">Front-end handoff</a></li><li><a href="#sec-22">Rules and troubleshooting</a></li><li><a href="#sec-23">Reference</a></li></ul>
+    <ul class="docs-toc"><li><a href="#sec-1">When to use it</a></li><li><a href="#sec-2">Requirements and installation</a></li><li><a href="#sec-3">Minimal setup</a></li><li><a href="#sec-4">Framework setup</a></li><li><a href="#sec-5">Parsing rules</a></li><li><a href="#sec-6">Controller and endpoint annotations</a></li><li><a href="#sec-7">Request parameters</a></li><li><a href="#sec-8">Responses and nesting</a></li><li><a href="#sec-9">Reuse: definitions, ref, models and entities</a></li><li><a href="#sec-10">Apps, versions and groups</a></li><li><a href="#sec-11">Mock and live debugging</a></li><li><a href="#sec-12">Arbitrary protocols and definition parsing</a></li><li><a href="#sec-13">Auth, caching and security</a></li><li><a href="#sec-14">UIC-1 unified endpoints</a></li><li><a href="#sec-15">Exports, sharing and code generation</a></li><li><a href="#sec-16">Common scenarios</a></li><li class="is-sub"><a href="#sec-17">Lists and pagination</a></li><li class="is-sub"><a href="#sec-18">Login and tokens</a></li><li class="is-sub"><a href="#sec-19">File upload</a></li><li class="is-sub"><a href="#sec-20">Multiple versions</a></li><li class="is-sub"><a href="#sec-21">Front-end handoff</a></li><li><a href="#sec-22">Rules and troubleshooting</a></li><li><a href="#sec-23">Reference</a></li></ul>
     <a class="docs-edit" href="https://github.com/erikwang2013/apidoc-php/blob/main/docs/ATTRIBUTES.md" target="_blank" rel="noopener">View source <svg class="icon icon-xs" aria-hidden="true"><use href="#i-external"></use></svg></a>
   </aside>
   <article class="docs-article">
-    <details class="docs-toc-mobile"><summary>On this page</summary><ul class="docs-toc"><li><a href="#sec-1">When to use it</a></li><li><a href="#sec-2">Requirements and installation</a></li><li><a href="#sec-3">Minimal setup</a></li><li><a href="#sec-4">Framework setup</a></li><li><a href="#sec-5">Parsing rules</a></li><li><a href="#sec-6">Controller and endpoint annotations</a></li><li><a href="#sec-7">Request parameters</a></li><li><a href="#sec-8">Responses and nesting</a></li><li><a href="#sec-9">Reuse: definitions, ref, models and entities</a></li><li><a href="#sec-10">Apps, versions and groups</a></li><li><a href="#sec-11">Mock and live debugging</a></li><li><a href="#sec-12">Arbitrary protocols and definition parsing</a></li><li><a href="#sec-13">Auth, caching and security</a></li><li><a href="#sec-14">UIC-1 unified endpoints (in progress)</a></li><li><a href="#sec-15">Exports, sharing and code generation</a></li><li><a href="#sec-16">Common scenarios</a></li><li class="is-sub"><a href="#sec-17">Lists and pagination</a></li><li class="is-sub"><a href="#sec-18">Login and tokens</a></li><li class="is-sub"><a href="#sec-19">File upload</a></li><li class="is-sub"><a href="#sec-20">Multiple versions</a></li><li class="is-sub"><a href="#sec-21">Front-end handoff</a></li><li><a href="#sec-22">Rules and troubleshooting</a></li><li><a href="#sec-23">Reference</a></li></ul></details>
+    <details class="docs-toc-mobile"><summary>On this page</summary><ul class="docs-toc"><li><a href="#sec-1">When to use it</a></li><li><a href="#sec-2">Requirements and installation</a></li><li><a href="#sec-3">Minimal setup</a></li><li><a href="#sec-4">Framework setup</a></li><li><a href="#sec-5">Parsing rules</a></li><li><a href="#sec-6">Controller and endpoint annotations</a></li><li><a href="#sec-7">Request parameters</a></li><li><a href="#sec-8">Responses and nesting</a></li><li><a href="#sec-9">Reuse: definitions, ref, models and entities</a></li><li><a href="#sec-10">Apps, versions and groups</a></li><li><a href="#sec-11">Mock and live debugging</a></li><li><a href="#sec-12">Arbitrary protocols and definition parsing</a></li><li><a href="#sec-13">Auth, caching and security</a></li><li><a href="#sec-14">UIC-1 unified endpoints</a></li><li><a href="#sec-15">Exports, sharing and code generation</a></li><li><a href="#sec-16">Common scenarios</a></li><li class="is-sub"><a href="#sec-17">Lists and pagination</a></li><li class="is-sub"><a href="#sec-18">Login and tokens</a></li><li class="is-sub"><a href="#sec-19">File upload</a></li><li class="is-sub"><a href="#sec-20">Multiple versions</a></li><li class="is-sub"><a href="#sec-21">Front-end handoff</a></li><li><a href="#sec-22">Rules and troubleshooting</a></li><li><a href="#sec-23">Reference</a></li></ul></details>
     <p>The PHP edition puts API documentation in PHP 8 attributes next to your controllers and endpoint methods. Install it, open <code>/apidoc</code>, and you get browsable, debuggable and exportable docs that stay next to the code. It fits projects that already have a controller structure and want documentation maintained with the code.</p>
 <figure class="doc-figure"><img fetchpriority="high" loading="eager" src="../../assets/img/php/social-preview-en.svg" alt="Apidoc PHP social preview" width="1280" height="640" decoding="async"><figcaption>Apidoc PHP: the pet and annotation code share one document model with the Go and Rust editions.</figcaption></figure>
 
@@ -506,13 +506,15 @@
 </code></pre>
 
 <ul>
-<li>HTTP/REST/SOAP/GraphQL/JSON-RPC/XML-RPC/OData/Webhooks: direct from the browser, using the existing debug panel.</li>
-<li>WebSocket/SSE: native browser WebSocket / EventSource.</li>
-<li>MQTT/STOMP, gRPC, TCP/UDP, CoAP, Modbus, ISO 8583, RTSP, SIP, HLS, Hessian: server-side relay.</li>
-<li>Protocols without a dedicated driver fall back to <code>raw</code> / <code>http-relay</code> / browser panels. WebRTC is read-only and states the reason.</li>
+<li>HTTP/REST/SOAP/GraphQL/JSON-RPC/XML-RPC/OData/Webhooks/MCP/A2A: direct from the browser, using the existing debug panel.</li>
+<li>WebSocket/SSE: native browser WebSocket / EventSource; HLS previews in the browser and never enters the server relay.</li>
+<li>Relay unary and stream: MQTT, STOMP.</li>
+<li>Relay unary: Kafka, AMQP, XMPP, gRPC, Thrift, Dubbo, Hessian, HTTP/2, HTTP/3, CoAP, Modbus TCP, ISO 8583, RTSP, SIP, DNP3, IEC 104, BACnet, OPC UA, RTP, RTCP, RTMP, LwM2M.</li>
+<li>Raw payloads: TCP/UDP/Unix socket use <code>raw</code>; binary HTTP bodies use <code>http-relay</code>; <code>websocket-binary</code>/<code>socket.io</code> use browser WebSocket frames; <code>stomp-binary</code> uses the STOMP relay; WebRTC is read-only and states the reason.</li>
 </ul>
+<p>There are 27 registered debug drivers: <code>raw</code>, <code>http-relay</code>, <code>mqtt</code>, <code>stomp</code>, <code>coap</code>, <code>modbus-tcp</code>, <code>iso8583</code>, <code>rtsp</code>, <code>sip</code>, <code>grpc</code>, <code>hessian</code>, <code>hls</code>, <code>thrift</code>, <code>dubbo</code>, <code>http2</code>, <code>http3</code>, <code>amqp</code>, <code>kafka</code>, <code>xmpp</code>, <code>dnp3</code>, <code>iec104</code>, <code>bacnet</code>, <code>opcua</code>, <code>rtp</code>, <code>rtcp</code>, <code>rtmp</code> and <code>lwm2m</code>. Protocol id aliases such as <code>iec-104</code>, <code>opc-ua</code> and <code>bacnet-ip</code> map to their drivers. HTTP/2 and HTTP/3 issue real requests; HTTP/3 is not advertised when the host curl lacks support.</p>
 <p>The relay is off by default. When enabled it requires a token or shareKey, takes the target only from annotations, and enforces rate, timeout, byte and session limits. See the <a href="https://github.com/erikwang2013/apidoc-php/blob/main/docs/ATTRIBUTES.md" target="_blank" rel="noopener">Attributes reference</a> for the full coverage table and config.</p>
-<p><code>#[Definition]</code> parses local <code>.proto</code>, WSDL/XSD, GraphQL SDL, OpenAPI/AsyncAPI, JSON Schema, JSON-RPC/XML-RPC and OData EDMX files, showing message fields and validation errors. Local imports and <code>$ref</code> are supported; no network requests are made, paths stay under <code>protocols.allowed_roots</code>, and symlinks escaping the root are rejected. Detail caches are invalidated by mtime + size fingerprints when a definition changes.</p>
+<p><code>#[Definition]</code> parses 9 local formats: <code>.proto</code>, WSDL/XSD, GraphQL SDL, OpenAPI, AsyncAPI, JSON Schema, JSON-RPC, XML-RPC and OData EDMX, showing message fields and validation errors. Local imports and <code>$ref</code> are supported; no network requests are made, paths stay under <code>protocols.allowed_roots</code>, and symlinks escaping the root are rejected. Detail caches are invalidated by mtime + size fingerprints when a definition changes.</p>
 <p>With a cache hit, document read endpoints and definition parsing/rendering target <strong>P95 &lt; 10 ms</strong> of local CPU processing; wall time also depends on host I/O and scheduling. Run <code>php tests/performance.php</code> to verify. The budget excludes framework startup, the HTTP server and external network time.</p>
 <h2 id="sec-13">Auth, caching and security</h2>
 <pre class="highlight"><code class="language-php"><span class="s1">&#39;auth&#39;</span> <span class="o">=&gt;</span> <span class="p">[</span>
@@ -530,16 +532,17 @@
 <li>Caching reuses parsed documentation. Clear the cache when annotations do not appear after an edit.</li>
 <li>Security releases add identifier allowlists, path checks and constant-time comparison.</li>
 </ul>
-<h2 id="sec-14">UIC-1 unified endpoints (in progress)</h2>
-<p>Phase 1–2 adds a <code>/ui/v1</code> contract alongside the existing routes so one apidoc-ui build can discover PHP, Go and Rust:</p>
+<h2 id="sec-14">UIC-1 unified endpoints</h2>
+<p>The <code>/ui/v1</code> contract is fully implemented in PHP, so one apidoc-ui build can discover PHP, Go and Rust:</p>
 <ul>
-<li><code>capabilities</code>, <code>config</code>, <code>menus</code>, <code>detail</code>, <code>docMenus</code>, <code>docDetail</code>, <code>verifyAuth</code> and debug aliases.</li>
+<li><code>capabilities</code>, <code>config</code>, <code>menus</code>, <code>detail</code>, <code>docMenus</code>, <code>docDetail</code>, <code>verifyAuth</code>, plus <code>debugSend</code>, <code>debugStart</code>, <code>debugPoll</code> and <code>debugStop</code>.</li>
 <li>Share record CRUD, cache clear/warm, generators, code templates and <code>exportAllData</code>.</li>
+<li>The declarative <code>/ui/v1/generator</code> reads only <code>ui_generator</code> config and renders in memory: no middleware, file writes or tables. Legacy <code>/generator</code> keeps its side effects.</li>
 <li>Existing <code>apiMenus</code>, <code>apiDetail</code>, <code>apiShare*</code> and other legacy routes remain unchanged for older UI builds.</li>
 <li>UIC-1 advertises <code>share.actions:false</code>; the unified UI never runs arbitrary PHP callables. Legacy <code>handleApiShareAction</code> remains on the old route.</li>
 <li><code>exportAllData</code> removes the per-endpoint fallback from share-page Swagger and full exports.</li>
 </ul>
-<p>Phase 3 (Go server executors) and Phase 4 (Go/Rust external definition parsing) are still in progress; released capabilities follow each repository's <code>main</code> and Releases.</p>
+<p>Deploy by running <code>npm run package:ui</code> in apidoc-ui and serving <code>dist/uic1-ui/</code> from a static host or CDN, with <code>BACKEND: "auto"</code> and <code>HTTP.API_PREFIX: "/apidoc"</code>. PHP does not serve the static files; the same build also serves Go and Rust.</p>
 <h2 id="sec-15">Exports, sharing and code generation</h2>
 <ul>
 <li>Every endpoint can produce JSON request/response examples and TypeScript type definitions.</li>

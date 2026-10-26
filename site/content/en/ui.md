@@ -81,14 +81,14 @@ window.apidocFeConfig = {
 
 ## Multi-backend discovery and the UIC-1 contract
 
-apidoc-ui is moving from a PHP-only contract to **UIC-1**, one backend contract for PHP, Go and Rust. A single build calls `GET /ui/v1/capabilities` at startup, detects the backend, and gates every entry from the `features` matrix.
+apidoc-ui fully implements **UIC-1**, one backend contract for PHP, Go and Rust. A single build calls `GET /ui/v1/capabilities` at startup, detects the backend, and gates every entry from the `features` matrix.
 
 <figure class="doc-figure"><img src="{{root}}assets/img/ui/{{imglang}}/uic1.svg" alt="UIC-1 unified backend contract: one UI auto-detects PHP, Go and Rust"><figcaption>UIC-1: capability negotiation drives menus, debug, sharing, cache and generator entries; unsupported features state why.</figcaption></figure>
 
 - `BACKEND: "auto"` probes `/ui/v1/capabilities`; on 404 or a non-contract response it falls back to legacy PHP `/config`.
 - Capabilities cover menus/detail/docs, browser and server debug, sharing, cache, generators, exports and auth. Unsupported features never return a fake success.
 - UIC-1 tokens travel in `Authorization: Bearer` and are cached per `host + scope`; legacy PHP keeps its MD5/body-token adapter.
-- Phase 1–2 covers read endpoints, auth, docs, browser debug, sharing, cache, generators and exports. Phase 3 (Go server protocol executors) and Phase 4 (Go/Rust external definitions) are still in progress.
+- All three backends implement read endpoints, auth, docs, browser/server debug, sharing, cache, generators and exports. Go adds build-tag-gated server executors and 9 definition formats; Rust adds 9 definition formats and the shared UI via `ui: UiMode::Vue`. One `dist/uic1-ui` build serves all three.
 - Rust advertises build-time materialization (`cache.mode: "build"`); the UI explains that there is no runtime cache to clear instead of faking success.
 
 ## Multi-host, apps and appKey

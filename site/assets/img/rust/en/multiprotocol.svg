@@ -11,20 +11,20 @@
   <rect x="0" y="0" width="940" height="820" fill="none" stroke="#333" stroke-width="2"/>
 
   <text x="470" y="36" text-anchor="middle" font-size="25" font-weight="bold" fill="#222">apidoc-rust Multi-Protocol Debug Architecture (P0–P6)</text>
-  <text x="470" y="58" text-anchor="middle" font-size="13" fill="#555">Annotations generate docs and debug panels · browser-direct + server-side execution · zero heavy deps by default</text>
+  <text x="470" y="58" text-anchor="middle" font-size="13" fill="#555">Annotations generate docs and debug panels · browser-direct + server execution · shared Vue UI · zero heavy deps</text>
 
   <!-- 1. Annotation layer -->
   <rect x="40" y="78" width="860" height="92" rx="10" fill="#fdf6e3" stroke="#b58900" stroke-width="2"/>
   <text x="58" y="104" font-size="16" font-weight="bold" fill="#5f4b00">1 · Annotation layer (compile time)</text>
   <text x="58" y="126" font-size="12.5" font-family="monospace" fill="#333">#[apidoc::grpc(...)]  #[apidoc::websocket("wss://…")]  #[apidoc::mqtt(..., topic="sensors/#")]</text>
   <text x="58" y="146" font-size="12.5" font-family="monospace" fill="#333">#[apidoc::event(direction="in", name="message")]  #[apidoc::param(..., field="1")]</text>
-  <text x="58" y="164" font-size="12" fill="#7a5b00">45 protocol aliases + generic protocol(kind) · kind / args / field numbers checked at compile time</text>
+  <text x="58" y="164" font-size="12" fill="#7a5b00">45 protocol aliases + generic protocol(kind) · 9 definition formats · kind / args / field numbers checked at compile time</text>
 
   <!-- 2. Docs and UI -->
   <rect x="40" y="186" width="860" height="98" rx="10" fill="#e8e4f8" stroke="#6c5ce7" stroke-width="2"/>
   <text x="58" y="212" font-size="16" font-weight="bold" fill="#3d2f8f">2 · Document model and UI</text>
   <text x="58" y="236" font-size="12.5" font-family="monospace" fill="#333">DocEndpoint { protocol, protocol_opts, events, params.field }</text>
-  <text x="58" y="256" font-size="12.5" fill="#333">api.json · protocol badges/options/events · protocol debug panels · md / ts / swagger / asyncapi export</text>
+  <text x="58" y="256" font-size="12.5" fill="#333">api.json · native / Vue UI · protocol badges/options/events · debug panels · md / ts / swagger / asyncapi export</text>
   <text x="58" y="274" font-size="12" fill="#4a3d99">Materialized at build time: request path is a table lookup + Bytes clone, local p99 &lt; 10ms</text>
 
   <!-- 3a. Browser direct -->

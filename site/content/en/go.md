@@ -1,12 +1,12 @@
-The Go edition declares API docs as typed structs next to route registration. Docs and routes live together; the library exposes menus/protocols/detail/export APIs for apidoc-ui to render, debug and display protocol panels. It fits Go HTTP services that want documentation to travel with the router.
+The Go edition declares API docs as typed structs next to route registration. Docs and routes live together; the library exposes menus/protocols/detail/export APIs, and UIC-1 adds a built-in Vue UI, server-side debug executors and 9 definition formats. It fits Go HTTP services that want documentation to travel with the router.
 
-<figure class="doc-figure"><img src="{{root}}assets/img/go/{{imglang}}/architecture.svg" alt="apidoc-go architecture"><figcaption>apidoc-go architecture: route registration, document store, response cache and external docs API.</figcaption></figure>
+<figure class="doc-figure"><img src="{{root}}assets/img/go/{{imglang}}/architecture.svg" alt="apidoc-go architecture"><figcaption>apidoc-go architecture: route registration, document store, response cache, UIC-1 and the shared Vue UI.</figcaption></figure>
 
 ## When to use it
 
 - Services built on net/http, Gin, Echo, Chi, Fiber, beego, Kratos or go-zero.
 - Teams that want route registration and documentation in the same place.
-- Projects that need apidoc-ui rendering, protocol annotations, Mock, apps/versions, password auth, response caching and JSON/TypeScript exports.
+- Projects that need a built-in Vue UI, protocol annotations, 9 definition formats, Mock, apps/versions, password auth, response caching and JSON/TypeScript exports.
 - Go 1.24+ projects that can add doc registration to the existing route setup.
 
 ## Installation
@@ -59,7 +59,7 @@ func main() {
 }
 ```
 
-The docs API lives under `http://localhost:8080/apidoc/api/...` and is consumed by apidoc-ui (or any client implementing the same contract). `Mount` only mounts the docs API; the built-in web UI has been removed.
+The docs API lives under `http://localhost:8080/apidoc/api/...` and is consumed by apidoc-ui (or any client implementing the same contract). `Mount` only mounts the docs API; with `Config.UIPath` set, Go can also serve the shared `dist/uic1-ui` Vue build.
 
 | Endpoint | Purpose |
 | --- | --- |
@@ -83,9 +83,9 @@ Non-HTTP endpoints reuse `@method` + `@url` and select a protocol with `@protoco
 func PublishTemp() {}
 ```
 
-`@protocol` accepts HTTP/2, HTTP/3, SOAP, GraphQL, gRPC, Dubbo, Thrift, Hessian, WebSocket, SSE, MQTT, STOMP, Kafka, CoAP, Modbus TCP, DNP3, TCP, UDP and aliases; see `GET /api/protocols` for the full list. Declare binary bodies with `@param ... type=binary` (or `hex`/`base64`) + `in=payload`.
+`@protocol` accepts HTTP/2, HTTP/3, SOAP, GraphQL, gRPC, Thrift, Dubbo, Hessian, WebSocket, SSE, MQTT, STOMP, Kafka, AMQP, XMPP, CoAP, LwM2M, Modbus TCP, DNP3, IEC 104, BACnet, OPC UA, ISO 8583, RTSP, SIP, RTP/RTCP, RTMP, TCP, UDP, Unix socket, raw and aliases; see `GET /api/protocols` for the full list. Declare binary bodies with `@param ... type=binary` (or `hex`/`base64`) + `in=payload`.
 
-Protocol execution stays out of the Go library: it only returns metadata, and apidoc-ui renders the panel and issues test requests. The library starts no protocol servers and exposes no `/api/debug/*` execution endpoint. Use PHP or Rust when server-side execution is required.
+UIC-1 server executors are compiled behind build tags (for example `apidoc_debug_all`) and run through `/ui/v1/debugSend|Start|Poll|Stop`; protocols that were not compiled are absent from capabilities. Browser-direct HTTP/WebSocket/SSE does not go through an executor.
 
 ## Core model and registration rules
 
@@ -259,20 +259,22 @@ Supported tags include `@method`, `@url`, `@title`, `@desc`, `@author`, `@app`, 
 - The detail page generates Mock examples automatically; `Param.Mock` and `Response.Mock` can override values.
 - Without a Mock value, the mock package generates values by type: `string`, `int`, `float`, `bool`, `object` and so on.
 - apidoc-ui calls the target service directly from the browser. Cross-origin origins must be listed in `DebugOrigins`; the adapter sends the CORS headers.
-- Protocol endpoints only return metadata; the panel and test request are owned by the external UI. Go has no server-side relay endpoint.
+- apidoc-ui connects browser protocols directly. Protocols that need server execution use UIC-1 executors, gated by Go build tags, and capabilities advertises only the compiled protocols.
 - `/api/menus`, `/api/protocols` and `/api/export` are pre-serialized and cached per document version; `Register` / `SetAppMeta` invalidates them. Responses carry `ETag` and `Cache-Control: private, max-age=300`, so repeat requests can return 304.
 
-## UIC-1 unified endpoints (in progress)
+## UIC-1 unified endpoints
 
-Phase 1–2 adds a `/ui/v1` contract so apidoc-ui can discover Go and gate entries from capabilities:
+The `/ui/v1` contract is fully implemented in Go, so apidoc-ui can discover Go and gate entries from capabilities:
 
 - Read endpoints: `capabilities`, `config`, `menus`, `detail`, `docMenus`, `docDetail`, `verifyAuth`.
-- Browser debugging: HTTP, WebSocket and SSE. The relay list stays empty until Phase 3 adds native Go executors.
-- Phase 2 management: share record CRUD/login, cache clear/warm, declarative generators and code templates, `exportAllData`.
+- Debug: browser-direct HTTP, WebSocket and SSE; server executors cover HTTP, HTTP/2, HTTP/3, SOAP, GraphQL, JSON-RPC, XML-RPC, OData, MCP, A2A, Webhook, TCP/UDP/Unix/raw, MQTT, STOMP, AMQP, Kafka, XMPP, CoAP, LwM2M, Modbus, DNP3, IEC 104, BACnet, OPC UA, RTSP, SIP, RTP/RTCP, RTMP, gRPC, Thrift, Dubbo, Hessian and ISO 8583 through `/ui/v1/debugSend|Start|Poll|Stop`, compiled selectively by build tag.
+- Management: share record CRUD/login, cache clear/warm, declarative generators and code templates, `exportAllData`.
+- Definitions: `@definition` annotations and `DefinitionRoot` config support 9 formats: proto, WSDL/XSD, GraphQL, OpenAPI, AsyncAPI, JSON Schema, JSON-RPC, XML-RPC and OData EDMX.
 - Bearer auth with app/share scope checks; unsupported features are explicitly disabled through capabilities.
+- `Config.UIPath` can serve the shared `dist/uic1-ui` build; the same artifact also serves PHP and Rust.
 - The existing `GET /api/menus|protocols|detail|export` routes remain compatible; UIC-1 is an additive layer, not a replacement.
 
-Released capabilities follow the repository `main` and Releases. Until Phase 3/4 lands, do not present Go as a complete protocol execution backend.
+Released capabilities follow the repository `main` and Releases. Go is now a complete protocol execution backend, with executors compiled selectively by build tag.
 
 ## Auth
 
@@ -341,7 +343,7 @@ For large existing handler sets, parse comments with `parse.ParseDir` and turn e
 
 <figure class="doc-figure"><img src="{{root}}assets/img/go/{{imglang}}/features.svg" alt="apidoc-go features"><figcaption>apidoc-go features: docs, protocol annotations, Mock, response cache, exports and adapters.</figcaption></figure>
 
-<figure class="doc-figure"><img src="{{root}}assets/img/go/{{imglang}}/lifecycle.svg" alt="apidoc-go lifecycle"><figcaption>apidoc-go lifecycle: registration, store, response cache and external UI debugging.</figcaption></figure>
+<figure class="doc-figure"><img src="{{root}}assets/img/go/{{imglang}}/lifecycle.svg" alt="apidoc-go lifecycle"><figcaption>apidoc-go lifecycle: registration, store, response cache, UIC-1 and the built-in Vue UI.</figcaption></figure>
 
 ## Reference
 

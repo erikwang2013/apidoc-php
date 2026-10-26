@@ -1,4 +1,4 @@
-The Rust edition declares documentation with proc macros on handlers. Fragments are statically registered at compile time and aggregated at zero runtime cost. It supports axum and actix-web, ships a web UI, 45 protocol annotations with browser/server debugging, Mock, auth, apps/versions, AsyncAPI/Swagger/TS exports, sharing and code generation. It fits Rust services that want docs to stay strict with the code and fail early at compile time.
+The Rust edition declares documentation with proc macros on handlers. Fragments are statically registered at compile time and aggregated at zero runtime cost. It supports axum and actix-web, a native web UI or the shared Vue UI via `ui: UiMode::Vue` + `ui_path`, 45 protocol annotations with browser/server debugging, 9 definition formats, Mock, auth, apps/versions, AsyncAPI/Swagger/TS exports, sharing and code generation. It fits Rust services that want docs to stay strict with the code and fail early at compile time.
 
 <figure class="doc-figure"><img src="{{root}}assets/img/rust/social-preview.svg" alt="apidoc-rust social preview"><figcaption>apidoc-rust: proc-macro API docs for axum and actix-web.</figcaption></figure>
 
@@ -6,14 +6,14 @@ The Rust edition declares documentation with proc macros on handlers. Fragments 
 
 - axum or actix-web services, with thin adapters for additional frameworks over time.
 - Teams that want docs generated at compile time so code and docs cannot drift.
-- Projects that need HTTP and MQTT/gRPC/WebSocket protocol debugging, Mock, HMAC auth, apps/versions and Markdown/TypeScript/Swagger/AsyncAPI exports.
+- Projects that need HTTP and MQTT/gRPC/WebSocket protocol debugging, 9 definition formats, Mock, HMAC auth, apps/versions and Markdown/TypeScript/Swagger/AsyncAPI exports.
 - Rust 1.82+ projects that accept proc macros plus `linkme` registration.
 
 ## Installation and dependencies
 
 ```toml
 [dependencies]
-apidoc-rust = "2.1"
+apidoc-rust = "2.2"
 serde_json = "1"
 linkme = "0.3"
 ```
@@ -178,7 +178,7 @@ Mounted routes:
 
 | Path | Purpose |
 | --- | --- |
-| `/apidoc` | Documentation UI. |
+| `/apidoc` | Documentation UI (native, or the shared Vue UI with `ui: UiMode::Vue`). |
 | `/apidoc/api.json` | Document data. |
 | `/apidoc/mock` | Mock response. |
 | `/apidoc/export` | Exports: Markdown / TypeScript / Swagger. |
@@ -264,27 +264,29 @@ Each protocol has its own annotation; the positional argument is `target`:
 fn stream() {}
 ```
 
-The generic `#[apidoc::protocol("kind", ...)]` form is equivalent. Coverage spans P1–P6:
+The generic `#[apidoc::protocol("kind", ...)]` form is equivalent. Full coverage:
 
 - Browser-direct: SOAP/GraphQL, JSON-RPC/XML-RPC, OData, MCP/A2A, Webhooks, WebSocket, SSE, Socket.IO, STOMP, WebRTC and HLS.
 - Server-side: gRPC, Thrift, Dubbo/Hessian, ISO 8583, TCP/UDP/Unix Socket, MQTT, AMQP, Kafka, XMPP, CoAP, Modbus, DNP3, IEC 104, BACnet, OPC UA, HTTP/2, HTTP/3, RTP/RTCP, RTSP, SIP and RTMP.
-- P6: inbound webhook capture, AsyncAPI 2.6 export, `.proto` / `.thrift` IDL import, Nacos Dubbo and event Mock examples.
+- Enhancements: inbound webhook capture, AsyncAPI 2.6 export, Nacos Dubbo and event Mock examples; `#[apidoc::definition]` + `definition_roots` parses 9 formats: proto, WSDL/XSD, GraphQL, OpenAPI, AsyncAPI, JSON Schema, JSON-RPC, XML-RPC and OData EDMX.
 
 Server execution is off by default: `DebugConfig { enable_server_side: true }` requires global auth. Targets pass an SSRF guard first (allowlist, loopback/private/link-local/CGNAT denied by default, cloud metadata always denied, DNS results checked per IP and pinned, redirects/proxies/CONNECT disabled) and are bounded by `max_bytes` / `max_frames` / `timeout`. Protocols without pinned TLS support (`wss`, gRPC `https`, MQTT/AMQP TLS) fail closed.
 
 api.json, all exports, code templates and mock responses are materialized when the router is built; `tests/latency.rs` verifies local routes at p99 < 10 ms, excluding the debug target's network time.
 
-## UIC-1 unified endpoints (in progress)
+## UIC-1 unified endpoints
 
-Phase 1–2 adds a `/ui/v1` contract so apidoc-ui can discover Rust and gate entries from capabilities:
+The `/ui/v1` contract is fully implemented in Rust, so apidoc-ui can discover Rust and gate entries from capabilities:
 
 - Read endpoints, docs, `verifyAuth`, debug start/poll/stop; native `/apidoc/api.json` and `/apidoc/debug` remain available.
-- Server relay exposes the compiled feature subset: HTTP/WebSocket/SSE, gRPC, Thrift, Dubbo, MQTT, TCP/UDP/Unix Socket and others.
-- Phase 2 management: share record CRUD/login, build-time cache management, generators and templates, `exportAllData`, AsyncAPI export.
+- The server relay exposes the compiled feature subset (HTTP/2, gRPC, Thrift, Dubbo, MQTT, Kafka and others); uncompiled protocols are absent from capabilities.
+- Management: share record CRUD/login, build-time cache management, generators and templates, `exportAllData`, AsyncAPI export.
+- Definitions: `#[apidoc::definition]` + `definition_roots` support 9 formats, returned to the unified UI over UIC-1.
 - `cache.mode:"build"` means docs are materialized at build time, so the UI explains there is no runtime cache to clear. Share actions are `actions:false`.
 - Bearer tokens cover global, app and share scopes; SSRF guards, limits and feature gates remain on the native execution path.
+- `ui: UiMode::Vue` + `ui_path` can serve the `dist/uic1-ui` build shared with PHP and Go; the library still defaults to the native UI.
 
-Phase 3 (Go executors), Phase 4 (Go/Rust external definitions) and Phase 5 (packaging/static UI) are not complete. Released capabilities follow `main` and Releases.
+Released capabilities follow `main` and Releases. Rust fully implements UIC-1, 9 definition formats and native/Vue UI.
 
 ## Auth
 

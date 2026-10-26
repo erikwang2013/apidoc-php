@@ -1,4 +1,4 @@
-Rust 版用过程宏在 handler 上声明文档，文档片段在编译期静态注册，运行期零成本聚合。它兼容 axum 与 actix-web，内置 Web UI、45 种协议注解与浏览器/服务端双通道调试，并提供 Mock、鉴权、多应用版本、AsyncAPI/Swagger/TS 导出、分享与代码生成。适合希望文档严格跟随代码、并在编译期发现错误的 Rust 服务。
+Rust 版用过程宏在 handler 上声明文档，文档片段在编译期静态注册，运行期零成本聚合。它兼容 axum 与 actix-web，提供原生 Web UI 或通过 `ui: UiMode::Vue` + `ui_path` 复用共享 Vue UI，支持 45 种协议注解、浏览器/服务端双通道调试与 9 种定义解析，并提供 Mock、鉴权、多应用版本、AsyncAPI/Swagger/TS 导出、分享与代码生成。适合希望文档严格跟随代码、并在编译期发现错误的 Rust 服务。
 
 <figure class="doc-figure"><img src="{{root}}assets/img/rust/social-preview.svg" alt="apidoc-rust social preview"><figcaption>apidoc-rust：过程宏驱动的 API 文档，兼容 axum 与 actix-web。</figcaption></figure>
 
@@ -6,14 +6,14 @@ Rust 版用过程宏在 handler 上声明文档，文档片段在编译期静态
 
 - axum 或 actix-web 服务；后续版本通过薄适配器扩展其他框架。
 - 希望文档在编译期生成，接口与文档不会失同步。
-- 需要 HTTP 与 MQTT、gRPC、WebSocket 等协议调试，Mock、HMAC 鉴权、多应用/版本、Markdown/TypeScript/Swagger/AsyncAPI 导出。
+- 需要 HTTP 与 MQTT、gRPC、WebSocket 等协议调试、9 种定义解析、Mock、HMAC 鉴权、多应用/版本、Markdown/TypeScript/Swagger/AsyncAPI 导出。
 - 项目使用 Rust 1.82+，接受过程宏 + `linkme` 的注册方式。
 
 ## 安装与依赖
 
 ```toml
 [dependencies]
-apidoc-rust = "2.1"
+apidoc-rust = "2.2"
 serde_json = "1"
 linkme = "0.3"
 ```
@@ -179,7 +179,7 @@ let app = Router::new()
 
 | 路径 | 作用 |
 | --- | --- |
-| `/apidoc` | 文档 UI。 |
+| `/apidoc` | 文档 UI（原生，或 `ui: UiMode::Vue` 共享 Vue UI）。 |
 | `/apidoc/api.json` | 文档数据。 |
 | `/apidoc/mock` | Mock 响应。 |
 | `/apidoc/export` | 导出：Markdown / TypeScript / Swagger。 |
@@ -265,27 +265,29 @@ return 'HTTP ' + ctx.status + ' · ' + ctx.ms + 'ms\n' + ctx.text;
 fn stream() {}
 ```
 
-也支持通用形式 `#[apidoc::protocol("kind", ...)]`。覆盖 P1–P6：
+也支持通用形式 `#[apidoc::protocol("kind", ...)]`。完整覆盖：
 
 - 浏览器直连：SOAP/GraphQL、JSON-RPC/XML-RPC、OData、MCP/A2A、Webhooks、WebSocket、SSE、Socket.IO、STOMP、WebRTC、HLS 等。
 - 服务端执行：gRPC、Thrift、Dubbo/Hessian、ISO 8583、TCP/UDP/Unix Socket、MQTT、AMQP、Kafka、XMPP、CoAP、Modbus、DNP3、IEC 104、BACnet、OPC UA、HTTP/2、HTTP/3、RTP/RTCP、RTSP、SIP、RTMP 等。
-- P6 增强：webhook 入站捕获、AsyncAPI 2.6 导出、`.proto` / `.thrift` IDL 导入、Nacos Dubbo 与事件 Mock。
+- 增强能力：webhook 入站捕获、AsyncAPI 2.6 导出、Nacos Dubbo 与事件 Mock；`#[apidoc::definition]` + `definition_roots` 解析 proto、WSDL/XSD、GraphQL、OpenAPI、AsyncAPI、JSON Schema、JSON-RPC、XML-RPC、OData EDMX 共 9 种定义。
 
 服务端执行默认关闭：`DebugConfig { enable_server_side: true }` 必须同时配置全局鉴权；目标先过 SSRF 守卫（allowlist、默认拒绝回环/私网/链路本地/CGNAT、云元数据永久拒绝、DNS 解析后逐 IP 校验并钉住连接、禁重定向/代理/CONNECT），并受 `max_bytes` / `max_frames` / `timeout` 限制。未实现 pinned TLS 的 `wss`、gRPC `https`、MQTT/AMQP TLS 会 fail closed。
 
 api.json、四种导出、代码模板与 mock 响应均在构建期物化；`tests/latency.rs` 验证本地路由 p99 < 10ms（不含调试目标网络耗时）。
 
-## UIC-1 统一接口（开发中）
+## UIC-1 统一接口
 
-Phase 1–2 增加 `/ui/v1` 契约，apidoc-ui 通过 capabilities 自动识别 Rust 并显示可用入口：
+`/ui/v1` 统一契约已在 Rust 完整实现，apidoc-ui 通过 capabilities 自动识别 Rust 并显示可用入口：
 
 - 读接口、文档、`verifyAuth`、调试启动/轮询/停止；原生 `/apidoc/api.json`、`/apidoc/debug` 继续保留。
-- 服务端中继按已编译 feature 暴露 HTTP/WebSocket/SSE、gRPC、Thrift、Dubbo、MQTT、TCP/UDP/Unix Socket 等子集。
-- Phase 2 管理：分享记录 CRUD/登录、构建期缓存管理、生成器与代码模板、`exportAllData`、AsyncAPI 导出。
+- 服务端中继按已编译 feature 暴露 HTTP/2、gRPC、Thrift、Dubbo、MQTT、Kafka 等协议子集；未编译的协议不会出现在 capabilities 中。
+- 管理：分享记录 CRUD/登录、构建期缓存管理、生成器与代码模板、`exportAllData`、AsyncAPI 导出。
+- 定义解析：`#[apidoc::definition]` + `definition_roots` 支持 9 种格式，结果经 UIC-1 返回给统一界面。
 - `cache.mode:"build"` 表示文档在构建期物化，统一界面显示“无需运行时清理”；分享动作能力为 `actions:false`。
 - Bearer token 支持全局、应用与分享 scope；SSRF 守卫、限额与 feature gate 仍由原生执行路径负责。
+- `ui: UiMode::Vue` + `ui_path` 可托管与 PHP/Go 共用的 `dist/uic1-ui` 构建；库默认仍使用原生 UI。
 
-Phase 3（Go 执行器）、Phase 4（Go/Rust 外部定义解析）与 Phase 5（打包/静态 UI）尚未完成；发布版以仓库 `main` / Releases 为准。
+发布版能力以仓库 `main` / Releases 为准；Rust 已完整实现 UIC-1、9 种定义解析与原生/Vue 双 UI。
 
 ## 鉴权
 

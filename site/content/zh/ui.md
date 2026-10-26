@@ -81,14 +81,14 @@ window.apidocFeConfig = {
 
 ## 多后端识别与 UIC-1 契约
 
-apidoc-ui 正在从“只适配 PHP”升级为 **UIC-1 统一后端契约**：同一份构建通过 `GET /ui/v1/capabilities` 自动识别 PHP、Go、Rust 后端，再按 `features` 能力矩阵显示对应入口。
+apidoc-ui 已完整适配 **UIC-1 统一后端契约**：同一份构建通过 `GET /ui/v1/capabilities` 自动识别 PHP、Go、Rust 后端，再按 `features` 能力矩阵显示对应入口。
 
 <figure class="doc-figure"><img src="{{root}}assets/img/ui/{{imglang}}/uic1.svg" alt="UIC-1 统一后端契约：一份 UI 自动识别 PHP、Go、Rust"><figcaption>UIC-1：能力协商决定菜单、调试、分享、缓存与生成器入口；不支持的项显示原因。</figcaption></figure>
 
 - `BACKEND: "auto"` 先探测 `/ui/v1/capabilities`；404 或非契约响应时回退 legacy PHP `/config`。
 - 能力开关覆盖菜单/详情/文档、浏览器与服务端调试、分享、缓存、生成器、导出和鉴权；后端未实现的功能不会返回假成功。
 - UIC-1 token 通过 `Authorization: Bearer` 传递，并按 `host + scope` 缓存；legacy PHP 继续使用原有 MD5/body token 适配层。
-- Phase 1–2 已覆盖读接口、鉴权、文档、浏览器调试、分享、缓存、生成器和导出；Phase 3（Go 服务端协议执行器）与 Phase 4（Go/Rust 外部定义解析）仍在开发中。
+- 三套后端均已实现读接口、鉴权、文档、浏览器/服务端调试、分享、缓存、生成器和导出；Go 提供构建标签隔离的服务端执行器与 9 种定义解析，Rust 提供 9 种定义解析与 `ui: UiMode::Vue` 共享 UI。同一份 `dist/uic1-ui` 构建可同时服务三端。
 - Rust 的缓存管理为构建期物化模式（`cache.mode: "build"`），UI 会显示“无需运行时清理”，而不是伪造成功。
 
 ## 多应用、多 Host 与 appKey

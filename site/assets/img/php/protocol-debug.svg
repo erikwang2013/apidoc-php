@@ -48,22 +48,37 @@
   <rect x="742" y="122" width="330" height="300" rx="18" fill="#FFFFFF" stroke="#E3DFF7" stroke-width="2"/>
   <text x="766" y="162" font-family="Noto Sans CJK SC, sans-serif" font-size="22" font-weight="700" fill="#3B3663">服务端中继</text>
   <text x="766" y="188" font-family="Noto Sans CJK SC, sans-serif" font-size="14" fill="#8B86AD">目标只来自注解，客户端不可改</text>
-  <g font-family="Source Han Mono, Noto Sans Mono CJK SC, monospace" font-size="15" fill="#4B4470">
-    <rect x="766" y="210" width="138" height="38" rx="10" fill="#F1EEFF" stroke="#DCD7F7"/>
-    <text x="782" y="235">MQTT · STOMP</text>
-    <rect x="916" y="210" width="132" height="38" rx="10" fill="#F1EEFF" stroke="#DCD7F7"/>
-    <text x="932" y="235">gRPC</text>
-    <rect x="766" y="258" width="138" height="38" rx="10" fill="#F1EEFF" stroke="#DCD7F7"/>
-    <text x="782" y="283">TCP / UDP</text>
-    <rect x="916" y="258" width="132" height="38" rx="10" fill="#F1EEFF" stroke="#DCD7F7"/>
-    <text x="932" y="283">CoAP</text>
-    <rect x="766" y="306" width="138" height="38" rx="10" fill="#F1EEFF" stroke="#DCD7F7"/>
-    <text x="782" y="331">Modbus</text>
-    <rect x="916" y="306" width="132" height="38" rx="10" fill="#F1EEFF" stroke="#DCD7F7"/>
-    <text x="932" y="331">RTSP / SIP</text>
+  <g font-family="Source Han Mono, Noto Sans Mono CJK SC, monospace" font-size="11" fill="#4B4470">
+    <rect x="766" y="200" width="138" height="26" rx="8" fill="#F1EEFF" stroke="#DCD7F7"/>
+    <text x="782" y="217">MQTT · STOMP</text>
+    <rect x="916" y="200" width="150" height="26" rx="8" fill="#F1EEFF" stroke="#DCD7F7"/>
+    <text x="932" y="217">Kafka · AMQP</text>
+    <rect x="766" y="229" width="138" height="26" rx="8" fill="#F1EEFF" stroke="#DCD7F7"/>
+    <text x="782" y="246">XMPP · gRPC</text>
+    <rect x="916" y="229" width="150" height="26" rx="8" fill="#F1EEFF" stroke="#DCD7F7"/>
+    <text x="932" y="246">Thrift · Dubbo</text>
+    <rect x="766" y="258" width="138" height="26" rx="8" fill="#F1EEFF" stroke="#DCD7F7"/>
+    <text x="782" y="275">HTTP/2 · HTTP/3</text>
+    <rect x="916" y="258" width="150" height="26" rx="8" fill="#F1EEFF" stroke="#DCD7F7"/>
+    <text x="932" y="275">CoAP · LwM2M</text>
+    <rect x="766" y="287" width="138" height="26" rx="8" fill="#F1EEFF" stroke="#DCD7F7"/>
+    <text x="782" y="304">Modbus · DNP3</text>
+    <rect x="916" y="287" width="150" height="26" rx="8" fill="#F1EEFF" stroke="#DCD7F7"/>
+    <text x="932" y="304">IEC 104 · BACnet</text>
+    <rect x="766" y="316" width="138" height="26" rx="8" fill="#F1EEFF" stroke="#DCD7F7"/>
+    <text x="782" y="333">OPC UA · RTSP</text>
+    <rect x="916" y="316" width="150" height="26" rx="8" fill="#F1EEFF" stroke="#DCD7F7"/>
+    <text x="932" y="333">SIP · RTMP</text>
+    <rect x="766" y="345" width="138" height="26" rx="8" fill="#F1EEFF" stroke="#DCD7F7"/>
+    <text x="782" y="362">RTP · RTCP</text>
+    <rect x="916" y="345" width="150" height="26" rx="8" fill="#F1EEFF" stroke="#DCD7F7"/>
+    <text x="932" y="362" font-size="10">ISO 8583 · Hessian</text>
+    <rect x="766" y="374" width="138" height="26" rx="8" fill="#F1EEFF" stroke="#DCD7F7"/>
+    <text x="782" y="391">TCP/UDP · Unix</text>
+    <rect x="916" y="374" width="150" height="26" rx="8" fill="#F1EEFF" stroke="#DCD7F7"/>
+    <text x="932" y="391">raw · http-relay</text>
   </g>
-  <text x="766" y="374" font-family="Noto Sans CJK SC, sans-serif" font-size="14" fill="#C0392B">默认关闭 · 鉴权 · 限速</text>
-  <text x="766" y="398" font-family="Noto Sans CJK SC, sans-serif" font-size="14" fill="#C0392B">超时 / 字节 / 会话上限</text>
+  <text x="766" y="414" font-family="Noto Sans CJK SC, sans-serif" font-size="12" fill="#C0392B">默认关闭 · 鉴权 · 限速 · 超时/字节/会话上限</text>
 
   <!-- 连接箭头 -->
   <path d="M 384 272 L 388 272" stroke="#B9B1E8" stroke-width="4" stroke-linecap="round"/>

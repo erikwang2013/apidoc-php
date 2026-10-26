@@ -86,7 +86,7 @@ HOME_IMAGE = {
 DOCS = {
     "php": {
         "label": "PHP",
-        "version": "v1.1.0",
+        "version": "v1.2.0",
         "repo": "https://github.com/erikwang2013/apidoc-php",
         "release_url": "https://github.com/erikwang2013/apidoc-php/releases",
         "source_url": "https://github.com/erikwang2013/apidoc-php/blob/main/docs/ATTRIBUTES.md",
@@ -109,8 +109,8 @@ DOCS = {
             "en": "PHP API Documentation Guide · Laravel, ThinkPHP, Hyperf · Apidoc",
         },
         "meta_description": {
-            "zh": "在 Laravel、ThinkPHP、Hyperf、Webman、Yii2、Yii3 中用 PHP 8 attributes 声明接口文档，自动生成可浏览、可调试、可导出的 API 文档；支持 MQTT、gRPC、WebSocket、TCP/UDP 调试与 OpenAPI、protobuf、WSDL 等定义解析。",
-            "en": "PHP 8 attribute API docs for Laravel, ThinkPHP, Hyperf, Webman, Yii2 and Yii3, with MQTT/gRPC debugging and OpenAPI/protobuf/WSDL definitions.",
+            "zh": "在 Laravel、ThinkPHP、Hyperf、Webman、Yii2、Yii3 中用 PHP 8 attributes 声明接口文档，自动生成可浏览、可调试、可导出的 API 文档；支持 UIC-1 共享 UI、27 个协议调试驱动与 9 种定义解析。",
+            "en": "PHP 8 attribute API docs for Laravel, ThinkPHP, Hyperf, Webman, Yii2 and Yii3, with UIC-1 shared UI, 27 protocol debug drivers and 9 definition formats.",
         },
         "seo_keywords": {
             "zh": "PHP API 文档, PHP 8 attributes, Laravel, ThinkPHP, Hyperf, Webman, Yii2, Yii3, MQTT, gRPC, WebSocket, 协议调试",
@@ -121,14 +121,14 @@ DOCS = {
             "en": ["Install and framework setup", "Annotations, params and responses", "Protocol debugging and definitions", "Auth, exports, scenarios and troubleshooting"],
         },
         "facts": {
-            "zh": ["PHP 8 attributes", "6 个框架适配", "任意协议调试 + 定义解析", "读接口 P95 < 10ms"],
-            "en": ["PHP 8 attributes", "6 framework adapters", "Protocol debug + definitions", "Read APIs P95 < 10 ms"],
+            "zh": ["PHP 8 attributes", "6 个框架适配", "27 个调试驱动 + 9 种定义", "读接口 P95 < 10ms"],
+            "en": ["PHP 8 attributes", "6 framework adapters", "27 debug drivers + 9 definitions", "Read APIs P95 < 10 ms"],
         },
         "frameworks": "Laravel · ThinkPHP · Hyperf · Webman · Yii2 · Yii3",
     },
     "go": {
         "label": "Go",
-        "version": "v1.0.15",
+        "version": "v1.1.0",
         "repo": "https://github.com/erikwang2013/apidoc-go",
         "release_url": "https://github.com/erikwang2013/apidoc-go/releases",
         "source_url": "https://github.com/erikwang2013/apidoc-go/blob/main/README.md",
@@ -143,16 +143,16 @@ DOCS = {
         "h1": {"zh": "Go API 文档使用指南", "en": "Go API Documentation Guide"},
         "tagline": {"zh": "类型化结构体随路由注册", "en": "Typed docs registered with routes"},
         "summary": {
-            "zh": "接口文档以类型化结构体随路由注册，输出 menus/protocols/detail/export 文档 API，由 apidoc-ui 渲染与调试；支持 @protocol 协议注解、响应缓存、Mock、鉴权与参数自动补全，兼容 8 个 Go 框架。",
-            "en": "Declare docs as typed structs next to route registration and expose menus/protocols/detail/export APIs for apidoc-ui to render and debug. Supports @protocol annotations, response caching, Mock, auth and param inference across 8 Go frameworks.",
+            "zh": "接口文档以类型化结构体随路由注册，通过 UIC-1 输出文档 API，内置 Vue UI 与服务端调试执行器；支持 @protocol 协议注解、9 种定义解析、响应缓存、Mock、鉴权与参数自动补全，兼容 8 个 Go 框架。",
+            "en": "Declare docs as typed structs next to route registration and serve them over UIC-1 with a built-in Vue UI and server-side debug executors. Supports @protocol annotations, 9 definition formats, response caching, Mock, auth and param inference across 8 Go frameworks.",
         },
         "seo_title": {
             "zh": "Go API 文档生成指南 · Gin / Echo / Fiber / net/http · Apidoc",
             "en": "Go API Documentation Guide · Gin, Echo, Fiber · Apidoc",
         },
         "meta_description": {
-            "zh": "用类型化结构体随路由注册声明 Go API 文档，输出 menus/protocols/detail/export API；支持 @protocol 协议注解、响应缓存、Mock、鉴权与参数推断，兼容 net/http、Gin、Echo、Chi、Fiber、beego、Kratos、go-zero。",
-            "en": "Go API docs from typed structs at route registration, with protocol annotations, response cache, Mock and 8 framework adapters.",
+            "zh": "用类型化结构体随路由注册声明 Go API 文档，通过 UIC-1 提供内置 Vue UI、服务端调试执行器与 9 种定义解析；兼容 net/http、Gin、Echo、Chi、Fiber、beego、Kratos、go-zero。",
+            "en": "Go API docs from typed structs at route registration, with UIC-1, built-in Vue UI, server executors, 9 definition formats and 8 framework adapters.",
         },
         "seo_keywords": {
             "zh": "Go API 文档, net/http, Gin, Echo, Chi, Fiber, beego, Kratos, go-zero, 协议注解, 响应缓存",
@@ -163,19 +163,19 @@ DOCS = {
             "en": ["Install, Config and Router", "Route / Doc / protocol annotations", "8 framework adapters", "Auth, response cache, exports and troubleshooting"],
         },
         "facts": {
-            "zh": ["类型化 Doc 结构体", "8 个框架适配", "@protocol 协议注解", "响应缓存 · ETag/304"],
-            "en": ["Typed Doc structs", "8 framework adapters", "@protocol annotations", "Response cache · ETag/304"],
+            "zh": ["类型化 Doc 结构体", "8 个框架适配", "UIC-1 + 服务端执行器", "9 种定义 · ETag/304"],
+            "en": ["Typed Doc structs", "8 framework adapters", "UIC-1 + server executors", "9 definitions · ETag/304"],
         },
         "frameworks": "net/http · Gin · Echo · Chi · Fiber · beego · Kratos · go-zero",
     },
     "rust": {
         "label": "Rust",
-        "version": "v2.1.0",
+        "version": "v2.2.0",
         "repo": "https://github.com/erikwang2013/apidoc-rust",
         "release_url": "https://github.com/erikwang2013/apidoc-rust/releases",
         "source_url": "https://github.com/erikwang2013/apidoc-rust/blob/HEAD/README.md",
         "source_label": {"zh": "完整参考：Rust README", "en": "Full reference: Rust README"},
-        "install": 'apidoc-rust = "2.1"',
+        "install": 'apidoc-rust = "2.2"',
         "install_lang": "toml",
         "pet": "knocking.svg",
         "accent": "rust",
@@ -185,16 +185,16 @@ DOCS = {
         "h1": {"zh": "Rust API 文档使用指南", "en": "Rust API Documentation Guide"},
         "tagline": {"zh": "过程宏在编译期生成文档", "en": "Proc-macro docs generated at compile time"},
         "summary": {
-            "zh": "过程宏在编译期生成文档，linkme 静态注册、运行期零成本聚合；支持 45 种协议注解与浏览器直连/服务端受控执行，内置鉴权、Mock、AsyncAPI/Swagger/TS 导出、分享与代码生成，兼容 axum 与 actix-web。",
-            "en": "Proc macros materialize docs at compile time, linkme registers them statically and collection is zero-cost at runtime. Supports 45 protocol annotations with browser-direct and controlled server execution, plus auth, Mock, AsyncAPI/Swagger/TS exports, sharing and codegen for axum and actix-web.",
+            "zh": "过程宏在编译期生成文档，linkme 静态注册、运行期零成本聚合；支持 45 种协议注解、浏览器直连/服务端受控执行与 9 种定义解析，可通过 `ui: UiMode::Vue` + `ui_path` 复用共享 Vue UI，兼容 axum 与 actix-web。",
+            "en": "Proc macros materialize docs at compile time, linkme registers them statically and collection is zero-cost at runtime. Supports 45 protocol annotations, browser and controlled server execution, 9 definition formats, and the shared Vue UI via `ui: UiMode::Vue` + `ui_path`, for axum and actix-web.",
         },
         "seo_title": {
             "zh": "Rust API 文档生成指南 · axum / actix-web · Apidoc",
             "en": "Rust API Documentation Guide · axum, actix-web · Apidoc",
         },
         "meta_description": {
-            "zh": "Rust 过程宏在编译期生成 API 文档，支持 45 种协议注解、浏览器直连与服务端受控执行；兼容 axum/actix-web，内置鉴权、Mock、AsyncAPI/Swagger/TS 导出与代码生成。",
-            "en": "Rust proc-macro API docs with 45 protocol annotations, browser/server debugging, auth, Mock and AsyncAPI/Swagger/TS exports.",
+            "zh": "Rust 过程宏在编译期生成 API 文档，支持 45 种协议注解、浏览器直连与服务端受控执行、9 种定义解析与原生/Vue 双 UI；兼容 axum/actix-web，内置鉴权、Mock、AsyncAPI/Swagger/TS 导出与代码生成。",
+            "en": "Rust proc-macro API docs with 45 protocol annotations, browser/server debugging, 9 definition formats, native/Vue UI and AsyncAPI/Swagger/TS exports.",
         },
         "seo_keywords": {
             "zh": "Rust API 文档, axum, actix-web, 过程宏, proc macro, MQTT, gRPC, WebSocket",
@@ -205,14 +205,14 @@ DOCS = {
             "en": ["Dependencies, macros and compile-time rules", "axum / actix-web setup", "Protocol annotations and debugging", "Auth, exports, codegen and troubleshooting"],
         },
         "facts": {
-            "zh": ["20+ 属性宏", "45 种协议注解", "浏览器直连 + 服务端执行", "本地 p99 < 10ms"],
-            "en": ["20+ attribute macros", "45 protocol annotations", "Browser + server execution", "Local p99 < 10 ms"],
+            "zh": ["20+ 属性宏", "45 种协议注解", "9 种定义 · 原生/Vue UI", "本地 p99 < 10ms"],
+            "en": ["20+ attribute macros", "45 protocol annotations", "9 definitions · native/Vue UI", "Local p99 < 10 ms"],
         },
         "frameworks": "axum · actix-web",
     },
     "ui": {
         "label": "UI",
-        "version": "v3.3.0",
+        "version": "v3.4.0",
         "repo": "https://github.com/erikwang2013/apidoc-ui",
         "release_url": "https://github.com/erikwang2013/apidoc-ui",
         "source_url": "https://github.com/erikwang2013/apidoc-ui/blob/main/README.md",
@@ -266,11 +266,11 @@ FAQ = {
         ),
         (
             "支持非 HTTP 协议吗？",
-            "三种语言都支持协议注解：PHP 用 Protocol / Channel / Debug，支持浏览器直连与受控中继，并能解析 OpenAPI、AsyncAPI、protobuf、WSDL 等定义；Go 用 @protocol 输出协议元数据，由 apidoc-ui 渲染调试；Rust 提供 45 种协议注解、浏览器直连与服务端受控执行，并支持 proto / thrift IDL 导入。",
+            "三种语言都支持协议注解与定义解析：PHP 用 Protocol / Channel / Debug，内置 27 个调试驱动，支持浏览器直连与受控中继，并解析 9 种定义格式；Go 用 @protocol，内置 Vue UI 与按构建标签编译的服务端执行器，同样解析 9 种定义；Rust 提供 45 种协议注解、浏览器直连与服务端执行，以及 9 种定义和原生/Vue 双 UI。",
         ),
         (
             "三端能力已经完全一致了吗？",
-            "UIC-1 统一契约的 Phase 1–2 已在开发分支覆盖读接口、鉴权、文档、浏览器调试、分享、缓存、生成器与导出；Go 服务端协议执行器（Phase 3）和 Go/Rust 外部定义解析（Phase 4）仍在开发中。发布版能力以各仓库 main / Releases 为准。",
+            "已对齐。UIC-1 的读接口、鉴权、文档、浏览器/中继调试、分享、缓存、生成器与导出由三端完整实现；Go 提供构建标签隔离的服务端执行器与 9 种定义解析，Rust 提供 9 种定义解析与 `ui: UiMode::Vue` 共享 UI。当前版本：UI 3.4.0 / PHP 1.2.0 / Go 1.1.0 / Rust 2.2.0。",
         ),
         (
             "需要数据库或额外后端吗？",
@@ -292,11 +292,11 @@ FAQ = {
         ),
         (
             "Are non-HTTP protocols supported?",
-            "All three editions support protocol annotations. PHP uses Protocol / Channel / Debug with browser-direct and controlled relay debugging, plus OpenAPI, AsyncAPI, protobuf and WSDL definition parsing. Go emits @protocol metadata for apidoc-ui to render and debug. Rust offers 45 protocol annotations, browser and controlled server execution, and proto / thrift IDL import.",
+            "All three editions support protocol annotations and definitions. PHP uses Protocol / Channel / Debug with 27 debug drivers, browser-direct and controlled relay debugging, and 9 definition formats. Go uses @protocol with a built-in Vue UI and build-tag-gated server executors, plus the same 9 formats. Rust offers 45 protocol annotations, browser and server execution, 9 definition formats and native/Vue UI.",
         ),
         (
-            "Are all three backends fully aligned yet?",
-            "UIC-1 Phase 1–2 covers read endpoints, auth, docs, browser debugging, sharing, cache, generators and exports on the development branches. Go server protocol executors (Phase 3) and Go/Rust external definition parsing (Phase 4) are still in progress. Released capabilities follow each repository's main and Releases.",
+            "Are all three backends fully aligned?",
+            "Yes. UIC-1 read endpoints, auth, docs, browser/relay debugging, sharing, cache, generators and exports are implemented on all three backends. Go adds build-tag-gated server executors and 9 definition formats; Rust adds 9 definition formats and the shared UI via `ui: UiMode::Vue`. Current versions: UI 3.4.0 / PHP 1.2.0 / Go 1.1.0 / Rust 2.2.0.",
         ),
         (
             "Does it need a database or extra backend?",
@@ -333,38 +333,38 @@ PETS = [
 VERSIONS = [
     {
         "key": "php",
-        "version": "v1.1.0",
-        "title": {"zh": "任意协议调试与定义解析", "en": "Arbitrary protocols and definitions"},
+        "version": "v1.2.0",
+        "title": {"zh": "UIC-1 完整实现与 27 个调试驱动", "en": "Full UIC-1 and 27 debug drivers"},
         "points": {
-            "zh": ["Protocol / Channel / Debug 注解与浏览器直连/受控中继面板", "OpenAPI、AsyncAPI、protobuf、WSDL、GraphQL、JSON Schema 等定义解析与校验", "文档读接口与协议渲染纳入 10ms 本机 CPU 预算"],
-            "en": ["Protocol / Channel / Debug annotations with browser-direct and controlled relay panels", "Definition parsing and validation for OpenAPI, AsyncAPI, protobuf, WSDL, GraphQL, JSON Schema and more", "10 ms local CPU budget for read APIs and protocol rendering"],
+            "zh": ["UIC-1 /ui/v1 全量接口：读、调试、分享、缓存、生成器与导出；声明式生成器无副作用", "新增 thrift、dubbo、http2/3、kafka、amqp、xmpp、dnp3、iec104、bacnet、opcua、rtp/rtcp/rtmp、lwm2m，共 27 个驱动", "9 种定义解析、SSRF/TLS/解析上限与 DNP3/BACnet/IEC 104 修复"],
+            "en": ["Full UIC-1 /ui/v1 surface: read, debug, sharing, cache, generator and exports; the declarative generator has no side effects", "Adds thrift, dubbo, http2/3, kafka, amqp, xmpp, dnp3, iec104, bacnet, opcua, rtp/rtcp/rtmp and lwm2m, for 27 drivers", "9 definition formats, SSRF/TLS/parser limits and DNP3/BACnet/IEC 104 fixes"],
         },
     },
     {
         "key": "go",
-        "version": "v1.0.15",
-        "title": {"zh": "协议注解与响应缓存", "en": "Protocol annotations and response cache"},
+        "version": "v1.1.0",
+        "title": {"zh": "UIC-1 服务端执行器与定义解析", "en": "UIC-1 server executors and definitions"},
         "points": {
-            "zh": ["@protocol 协议注解与 /api/protocols，detail 返回协议元数据", "版本化预序列化响应缓存 + ETag/304", "聚焦注解文档 API，由 apidoc-ui 渲染协议面板"],
-            "en": ["@protocol annotations and /api/protocols; detail returns protocol metadata", "Versioned pre-serialized response cache with ETag/304", "Annotation-only docs API rendered by apidoc-ui"],
+            "zh": ["UIC-1 服务端调试执行器按构建标签编译，只声明已编译的协议", "9 种定义解析（proto、WSDL/XSD、GraphQL、OpenAPI、AsyncAPI、JSON Schema、JSON-RPC、XML-RPC、OData EDMX）", "UIPath 直接托管共享 Vue 构建；保留响应缓存、Mock 与 ETag/304"],
+            "en": ["UIC-1 server debug executors gated by build tags, advertising only compiled protocols", "9 definition formats (proto, WSDL/XSD, GraphQL, OpenAPI, AsyncAPI, JSON Schema, JSON-RPC, XML-RPC, OData EDMX)", "UIPath serves the shared Vue build; response cache, Mock and ETag/304 remain"],
         },
     },
     {
         "key": "rust",
-        "version": "v2.1.0",
-        "title": {"zh": "多协议调试 P1–P6", "en": "Multi-protocol debugging P1–P6"},
+        "version": "v2.2.0",
+        "title": {"zh": "9 种定义解析与共享 Vue UI", "en": "9 definitions and shared Vue UI"},
         "points": {
-            "zh": ["45 种协议注解，浏览器直连 + 服务端受控执行", "SSRF 守卫、字节/帧/超时上限与 feature 隔离", "AsyncAPI 导出、proto/thrift IDL 导入、webhook 捕获；本地 p99 < 10ms"],
-            "en": ["45 protocol annotations with browser and controlled server execution", "SSRF guards, byte/frame/timeout caps and feature isolation", "AsyncAPI export, proto/thrift IDL import, webhook capture; local p99 < 10 ms"],
+            "zh": ["45 种协议注解，浏览器直连 + 服务端受控执行，能力列表按编译 feature 生成", "9 种本地定义格式解析（proto、WSDL/XSD、GraphQL、OpenAPI、AsyncAPI、JSON Schema、JSON-RPC、XML-RPC、OData EDMX）", "ui: UiMode::Vue + ui_path 复用三端共享 UI；AsyncAPI 导出与 webhook 捕获保留"],
+            "en": ["45 protocol annotations with browser and controlled server execution; capabilities follow compiled features", "9 local definition formats (proto, WSDL/XSD, GraphQL, OpenAPI, AsyncAPI, JSON Schema, JSON-RPC, XML-RPC, OData EDMX)", "Shared UI via ui: UiMode::Vue + ui_path; AsyncAPI export and webhook capture remain"],
         },
     },
     {
         "key": "ui",
-        "version": "v3.3.0",
-        "title": {"zh": "协议调试面板", "en": "Protocol debug panels"},
+        "version": "v3.4.0",
+        "title": {"zh": "UIC-1 全量适配与共享构建", "en": "Full UIC-1 and shared build"},
         "points": {
-            "zh": ["协议徽标与协议标签，展示定义消息和校验结果", "浏览器直连 + 中继单次/流式面板", "Markdown 导出包含协议与定义结构"],
-            "en": ["Protocol badge and tab with definition messages and validation", "Browser-direct and relay unary/stream panels", "Markdown exports include protocol and definition structures"],
+            "zh": ["同一份 dist/uic1-ui 构建服务 PHP、Go、Rust，含 manifest 与 sha256", "能力协商驱动调试、分享、缓存、生成器与导出入口", "浏览器直连 + 中继单次/流式面板，9 种定义展示与校验"],
+            "en": ["One dist/uic1-ui build serves PHP, Go and Rust, with manifest and sha256", "Capability negotiation gates debug, sharing, cache, generator and export entries", "Browser-direct and relay unary/stream panels, with 9 definition formats displayed and validated"],
         },
     },
 ]
@@ -381,7 +381,7 @@ UI = {
         "choose_language": "选择语言", "read_guides": "阅读使用文档",
         "stats_languages": "后端语言", "stats_adapters": "框架适配器", "stats_ui": "共享文档 UI", "stats_pets": "宠物表情",
         "intro_title": "一个项目家族，一套文档体验。",
-        "intro_p1": "Apidoc 把接口文档从手写 Markdown 变成代码旁的声明。PHP 版使用 PHP 8 attributes，Go 版使用类型化结构体，Rust 版使用过程宏；三者共享同一套文档模型、在线调试与静态前端，也都支持协议注解。PHP 与 Rust 还能执行服务端调试、解析定义或 IDL，Go 由 apidoc-ui 渲染协议面板。",
+        "intro_p1": "Apidoc 把接口文档从手写 Markdown 变成代码旁的声明。PHP 版使用 PHP 8 attributes，Go 版使用类型化结构体，Rust 版使用过程宏；三者共享同一套文档模型、在线调试与静态前端，也都支持协议注解。三端都能执行服务端调试并解析定义或 IDL，其中 Go 与 Rust 还可直接托管同一份 Vue UI 构建。",
         "intro_p2": "PHP 版源自 <a href='https://github.com/HGthecode/apidoc-php' target='_blank' rel='noopener'>HGthecode/apidoc-php</a>（<a href='https://packagist.org/packages/hg/apidoc' target='_blank' rel='noopener'>hg/apidoc</a>）；Go、Rust 与 apidoc-ui 由 erikwang2013 维护。每种语言保留自己的安装与接入方式，文档体验保持一致。",
         "intro_source": "从声明到交付，三种语言走同一条文档流水线。",
         "intro_caption": "项目家族 Social Preview。宠物与注解代码。",
@@ -402,7 +402,7 @@ UI = {
         "install_sub": "下面是各语言的最小安装命令；框架接入、配置与完整示例在对应指南中。",
         "install_note": "每种指南都从最小可运行示例开始，再展开注解规则、场景与排错。",
         "versions_title": "当前版本",
-        "versions_sub": "版本日志与完整变更以各仓库 Releases 为准；UIC-1 统一契约 Phase 1–2 已在开发分支完成，发布状态以 main 为准。",
+        "versions_sub": "版本日志与完整变更以各仓库 Releases 为准；四端均已完整实现 UIC-1，协作版本为 UI 3.4.0 / PHP 1.2.0 / Go 1.1.0 / Rust 2.2.0。",
         "release_notes": "查看 Releases",
         "pets_title": "项目宠物，十二种情绪。",
         "pets_sub": "它是一页会走路的文档。每个表情都是独立 SVG，自带动效，并遵循 prefers-reduced-motion。",
@@ -426,11 +426,11 @@ UI = {
         "compare_rows": [
             ["声明方式", "PHP 8 attributes", "类型化 Doc 结构体", "过程宏属性"],
             ["文档生成时机", "运行时解析控制器", "路由注册时写入", "编译期静态注册"],
-            ["UIC-1 统一契约", "Phase 1–2", "Phase 1–2", "Phase 1–2"],
+            ["UIC-1 统一契约", "完整", "完整", "完整"],
             ["框架适配", "6 个", "8 个", "axum / actix-web"],
-            ["在线调试 / Mock", "支持 / 规则表达式", "外部 UI / 按类型生成", "支持 / 15 条 fake 规则"],
-            ["协议调试", "浏览器 + 受控中继", "@protocol + 外部 UI", "45 种，P1–P6"],
-            ["协议定义解析", "OpenAPI / protobuf / WSDL 等", "—", "proto / thrift IDL 导入"],
+            ["在线调试 / Mock", "支持 / 规则表达式", "内置 UI / 按类型生成", "支持 / 15 条 fake 规则"],
+            ["协议调试", "27 个驱动，浏览器 + 中继", "@protocol + 服务端执行器", "45 种，浏览器 + 执行器"],
+            ["协议定义解析", "9 种格式", "9 种格式", "9 种格式"],
             ["鉴权", "全局与应用密码", "Cookie session + 应用 token", "HMAC-SHA256 token"],
             ["导出", "JSON / TS / Swagger / 分享", "JSON / TS", "Markdown / TS / Swagger / AsyncAPI / 分享"],
         ],
@@ -462,7 +462,7 @@ UI = {
         "choose_language": "Choose a language", "read_guides": "Read the guides",
         "stats_languages": "backend languages", "stats_adapters": "framework adapters", "stats_ui": "shared docs UI", "stats_pets": "pet moods",
         "intro_title": "One project family, one documentation experience.",
-        "intro_p1": "Apidoc turns API docs from hand-written Markdown into declarations next to your code. PHP uses PHP 8 attributes, Go uses typed structs, and Rust uses proc macros. All three share one document model, live debugging and the same static front-end, and all support protocol annotations. PHP and Rust can execute server-side and parse definitions or IDL; Go renders protocol panels in apidoc-ui.",
+        "intro_p1": "Apidoc turns API docs from hand-written Markdown into declarations next to your code. PHP uses PHP 8 attributes, Go uses typed structs, and Rust uses proc macros. All three share one document model, live debugging and the same static front-end, and all support protocol annotations. All three execute server-side debug and parse definitions or IDL; Go and Rust can also serve the same Vue UI build directly.",
         "intro_p2": "The PHP edition started from <a href='https://github.com/HGthecode/apidoc-php' target='_blank' rel='noopener'>HGthecode/apidoc-php</a> (<a href='https://packagist.org/packages/hg/apidoc' target='_blank' rel='noopener'>hg/apidoc</a>). Go, Rust and apidoc-ui are maintained by erikwang2013. Each language keeps its native setup while the documentation experience stays consistent.",
         "intro_source": "From declaration to delivery, all three languages follow the same documentation pipeline.",
         "intro_caption": "Project family social preview. The pet and annotation code.",
@@ -483,7 +483,7 @@ UI = {
         "install_sub": "The minimum install command for each stack. Framework setup, config and complete examples live in the guides.",
         "install_note": "Every guide starts from a minimal runnable example, then covers annotation rules, scenarios and troubleshooting.",
         "versions_title": "Current versions",
-        "versions_sub": "Full changelogs and release assets live on each repository's Releases page; UIC-1 Phase 1–2 is complete on development branches, with releases following main.",
+        "versions_sub": "Full changelogs and release assets live on each repository's Releases page; all four editions implement UIC-1, at UI 3.4.0 / PHP 1.2.0 / Go 1.1.0 / Rust 2.2.0.",
         "release_notes": "View Releases",
         "pets_title": "The project pet, twelve moods.",
         "pets_sub": "It is a walking documentation page. Every expression is a standalone SVG with its own motion, honoring prefers-reduced-motion.",
@@ -507,11 +507,11 @@ UI = {
         "compare_rows": [
             ["Declaration", "PHP 8 attributes", "Typed Doc structs", "Attribute macros"],
             ["Docs built at", "Runtime controller scan", "Route registration", "Compile time, static registry"],
-            ["UIC-1 contract", "Phase 1–2", "Phase 1–2", "Phase 1–2"],
+            ["UIC-1 contract", "Complete", "Complete", "Complete"],
             ["Framework adapters", "6", "8", "axum / actix-web"],
-            ["Debug / Mock", "Yes / rule expressions", "External UI / generated by type", "Yes / 15 fake rules"],
-            ["Protocol debug", "Browser + controlled relay", "@protocol + external UI", "45 protocols, P1–P6"],
-            ["Protocol definitions", "OpenAPI / protobuf / WSDL and more", "—", "proto / thrift IDL import"],
+            ["Debug / Mock", "Yes / rule expressions", "Built-in UI / generated by type", "Yes / 15 fake rules"],
+            ["Protocol debug", "27 drivers, browser + relay", "@protocol + server executors", "45 protocols, browser + executors"],
+            ["Protocol definitions", "9 formats", "9 formats", "9 formats"],
             ["Auth", "Global and app passwords", "Cookie session + app token", "HMAC-SHA256 token"],
             ["Exports", "JSON / TS / Swagger / share", "JSON / TS", "Markdown / TS / Swagger / AsyncAPI / share"],
         ],
@@ -548,7 +548,7 @@ FEATURE_CARDS = [
 
 FEATURE_TEXT = {
     "zh": [
-        ("任意协议调试", "三种语言都支持协议注解。HTTP/WebSocket/SSE 由浏览器直连；PHP 与 Rust 支持服务端受控执行，Go 输出协议元数据由 apidoc-ui 调试。中继默认关闭。"),
+        ("任意协议调试", "三种语言都支持协议注解。HTTP/WebSocket/SSE 由浏览器直连；PHP、Go 与 Rust 都提供服务端受控执行器，Go 按构建标签编译、只声明已编译的协议，Rust 按 feature 生成能力列表。中继默认关闭。"),
         ("Mock 数据", "字段级 Mock 示例。PHP 支持规则表达式，Go 按类型生成，Rust 提供 15 条 fake 规则。"),
         ("多应用 / 多版本", "一套文档管理多个应用与版本，按应用树切换；接口归属与访问密码可以独立配置。"),
         ("鉴权与缓存", "全局密码与应用独立密码；文档缓存、ETag/304 与常量时间比较，读接口本机处理 P95 < 10ms。"),
@@ -556,10 +556,10 @@ FEATURE_TEXT = {
         ("代码生成", "PHP 与 Rust 提供配置/模板驱动的代码生成；Go 侧重文档导出与注释解析。"),
         ("共享文档 UI", "apidoc-ui 通过 UIC-1 自动识别 PHP、Go、Rust，并按能力矩阵显示协议面板、分享、缓存与生成器入口。"),
         ("安全边界", "HMAC 令牌、CORS 白名单、路径与标识符校验；协议中继还限制目标、鉴权、速率、超时与字节数。"),
-        ("从声明到交付", "声明、浏览、调试、导出、部署沿同一条路径完成；Definition 可解析 OpenAPI、protobuf、WSDL 等本地定义。"),
+        ("从声明到交付", "声明、浏览、调试、导出、部署沿同一条路径完成；三种语言都能解析 proto、WSDL/XSD、GraphQL、OpenAPI、AsyncAPI、JSON Schema、JSON-RPC、XML-RPC、OData EDMX 共 9 种本地定义。"),
     ],
     "en": [
-        ("Arbitrary protocol debug", "All three editions support protocol annotations. HTTP, WebSocket and SSE connect from the browser; PHP and Rust can execute server-side, while Go emits protocol metadata for apidoc-ui. The relay is off by default."),
+        ("Arbitrary protocol debug", "All three editions support protocol annotations. HTTP, WebSocket and SSE connect from the browser; PHP, Go and Rust all provide controlled server executors. Go gates them by build tag and advertises only compiled protocols; Rust derives capabilities from compiled features. The relay is off by default."),
         ("Mock data", "Field-level Mock examples. PHP supports rule expressions, Go generates values by type, and Rust ships 15 fake rules."),
         ("Apps and versions", "Manage multiple apps and versions in one portal, switch by the app tree, and scope access passwords per app."),
         ("Auth and caching", "Global and per-app passwords, document caching, ETag/304 and constant-time comparison, with local read-path P95 under 10 ms."),
@@ -567,7 +567,7 @@ FEATURE_TEXT = {
         ("Code generation", "PHP and Rust provide template-driven code generation; Go focuses on exports and comment parsing."),
         ("Shared docs UI", "apidoc-ui discovers PHP, Go and Rust through UIC-1 and gates protocol panels, sharing, cache and generator entries from the capability matrix."),
         ("Security boundary", "HMAC tokens, CORS allowlists and path/identifier validation. Protocol relays also restrict targets, auth, rate, timeout and bytes."),
-        ("From declaration to delivery", "Declare, browse, debug, export and deploy on one path. Definition parsing covers OpenAPI, protobuf, WSDL and more."),
+        ("From declaration to delivery", "Declare, browse, debug, export and deploy on one path. All three languages parse 9 local definition formats: proto, WSDL/XSD, GraphQL, OpenAPI, AsyncAPI, JSON Schema, JSON-RPC, XML-RPC and OData EDMX."),
     ],
 }
 
@@ -1338,9 +1338,9 @@ async fn get_user() {}''', "rust", "user.rs", "cmp-rust"),
     download_links = [
         ("Packagist", "PHP package", "https://packagist.org/packages/erikwang2013/apidoc-php"),
         ("apidoc-php", "GitHub", DOCS["php"]["repo"]),
-        ("apidoc-go", "v1.0.15", DOCS["go"]["repo"]),
-        ("apidoc-rust", "v2.1.0", DOCS["rust"]["repo"]),
-        ("apidoc-ui", "v3.3.0", DOCS["ui"]["repo"]),
+        ("apidoc-go", "v1.1.0", DOCS["go"]["repo"]),
+        ("apidoc-rust", "v2.2.0", DOCS["rust"]["repo"]),
+        ("apidoc-ui", "v3.4.0", DOCS["ui"]["repo"]),
     ]
     download_links_html = "".join(
         f'<a href="{url}" target="_blank" rel="noopener">{label}<span>{meta}</span></a>' for label, meta, url in download_links
