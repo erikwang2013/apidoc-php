@@ -3,12 +3,14 @@ declare(strict_types = 1);
 
 namespace erikwang2013\apidoc\parses;
 
+use InvalidArgumentException;
 use erikwang2013\apidoc\protocol\ProtocolCatalog;
 use erikwang2013\apidoc\protocol\ProtocolContext;
 use erikwang2013\apidoc\protocol\ProtocolParseException;
 use erikwang2013\apidoc\protocol\ProtocolPaths;
 use erikwang2013\apidoc\protocol\ProtocolRegistry;
 use erikwang2013\apidoc\protocol\debug\DebugRegistry;
+use erikwang2013\apidoc\protocol\debug\DebugTarget;
 use erikwang2013\apidoc\protocol\debug\Driver\GrpcDriver;
 use erikwang2013\apidoc\protocol\debug\Driver\Http2Driver;
 use erikwang2013\apidoc\protocol\debug\Driver\Http3Driver;
@@ -144,6 +146,9 @@ class ParseProtocol
         } elseif (!$driverExists) {
             $debuggable = false;
             $debugReason = $protocol['debugReason'] !== '' ? $protocol['debugReason'] : '未支持的协议驱动（P2）';
+        } elseif (in_array($driver, ['http2', 'http3'], true) && !$this->schemeMatches($driver, $target, $reason)) {
+            $debuggable = false;
+            $debugReason = $reason;
         } elseif ($driver === 'grpc' && !GrpcDriver::available()) {
             $debuggable = false;
             $debugReason = 'curl HTTP/2 is required for gRPC';
@@ -565,6 +570,33 @@ class ParseProtocol
      * 方法 url:显式 Url 注解优先,否则沿用自动生成规则
      * @return string
      */
+    /**
+     * HTTP/2 支持 http(s),HTTP/3 仅 https;scheme 不符时给出明确原因
+     * @param string $driver
+     * @param string $target
+     * @param string|null $reason
+     * @return bool
+     */
+    protected function schemeMatches(string $driver, string $target, ?string &$reason): bool
+    {
+        $reason = '';
+        try {
+            $parsed = DebugTarget::parse($target);
+        } catch (InvalidArgumentException $e) {
+            $reason = '调试目标无法解析: ' . $e->getMessage();
+            return false;
+        }
+        if ($driver === 'http2' && !in_array($parsed['scheme'], ['http', 'https'], true)) {
+            $reason = 'HTTP/2 需要 http:// 或 https:// 目标,当前为 ' . $parsed['scheme'] . '://';
+            return false;
+        }
+        if ($driver === 'http3' && $parsed['scheme'] !== 'https') {
+            $reason = 'HTTP/3 需要 https:// 目标,当前为 ' . $parsed['scheme'] . '://';
+            return false;
+        }
+        return true;
+    }
+
     protected function methodUrl(ReflectionClass $refClass, ReflectionMethod $refMethod, array $methodAnnotations): string
     {
         $url = isset($methodAnnotations['url']) ? $methodAnnotations['url'] : '';

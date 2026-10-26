@@ -8,6 +8,7 @@ use erikwang2013\apidoc\protocol\debug\DebugDriverInterface;
 use erikwang2013\apidoc\protocol\debug\DebugTarget;
 use erikwang2013\apidoc\protocol\debug\Support\Hex;
 use erikwang2013\apidoc\protocol\debug\Support\HttpClient;
+use erikwang2013\apidoc\protocol\debug\Support\TargetGuard;
 
 /**
  * HTTP 中继驱动:由服务端发起单次 HTTP 请求
@@ -88,7 +89,7 @@ class HttpRelayDriver implements DebugDriverInterface
             'body' => $body,
             'timeout' => (float)($context['timeout'] ?? 5),
             'maxBytes' => $maxBytes,
-        ], $this->httpOptions($target['scheme'])));
+        ], $this->httpOptions($target['scheme']), TargetGuard::httpOptions($target, $context)));
         if (isset($result['error'])) {
             return ['ok' => false, 'error' => $result['error']];
         }

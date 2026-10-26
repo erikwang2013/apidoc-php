@@ -8,6 +8,7 @@ use erikwang2013\apidoc\protocol\debug\DebugDriverInterface;
 use erikwang2013\apidoc\protocol\debug\DebugTarget;
 use erikwang2013\apidoc\protocol\debug\Support\Hex;
 use erikwang2013\apidoc\protocol\debug\Support\HttpClient;
+use erikwang2013\apidoc\protocol\debug\Support\TargetGuard;
 
 /**
  * Thrift TBinaryProtocol 一元驱动:schema 来自 Debug.meta.schema(params/returned),
@@ -30,6 +31,9 @@ class ThriftDriver implements DebugDriverInterface
     private const T_LIST = 15;
     private const CALL = 1;
     private const EXCEPTION = 3;
+    // 响应来自对端,限制嵌套与集合元素数,避免小报文放大成 CPU/内存开销
+    private const MAX_DEPTH = 32;
+    private const MAX_ELEMENTS = 65536;
 
     public function name(): string
     {
@@ -95,14 +99,14 @@ class ThriftDriver implements DebugDriverInterface
             if (!in_array($target['scheme'], ['http', 'https'], true)) {
                 return ['ok' => false, 'error' => 'thrift http 传输需要 http/https 目标'];
             }
-            $result = HttpClient::request([
+            $result = HttpClient::request(array_merge([
                 'url' => (string)$context['target'],
                 'method' => 'POST',
                 'headers' => ['Content-Type: application/x-thrift', 'Accept: application/x-thrift'],
                 'body' => $frame,
                 'timeout' => $timeout,
                 'maxBytes' => $maxBytes,
-            ]);
+            ], TargetGuard::httpOptions($target, $context)));
             if (isset($result['error'])) {
                 return ['ok' => false, 'error' => $result['error']];
             }
@@ -121,7 +125,7 @@ class ThriftDriver implements DebugDriverInterface
             if ($target['scheme'] !== 'tcp') {
                 return ['ok' => false, 'error' => 'thrift tcp 传输需要 tcp://host:port 目标'];
             }
-            $exchange = $this->tcpExchange($target['host'] . ':' . $target['port'], $frame, $timeout, $maxBytes, $schema['returned']);
+            $exchange = $this->tcpExchange(TargetGuard::connectHost($target, $context) . ':' . $target['port'], $frame, $timeout, $maxBytes, $schema['returned']);
             if (($exchange['ok'] ?? false) !== true) {
                 return $exchange;
             }
@@ -235,11 +239,14 @@ class ThriftDriver implements DebugDriverInterface
      * @return array 内部 spec
      * @throws InvalidArgumentException
      */
-    protected function parseSpec(string $ty, array $children): array
+    protected function parseSpec(string $ty, array $children, int $depth = 0): array
     {
+        if ($depth > self::MAX_DEPTH) {
+            throw new InvalidArgumentException('thrift schema nesting exceeds ' . self::MAX_DEPTH);
+        }
         $ty = trim($ty);
         if (preg_match('/^list\s*<(.+)>$/i', $ty, $matches) === 1) {
-            return $this->spec('list', self::T_LIST, ['item' => $this->parseSpec($matches[1], [])]);
+            return $this->spec('list', self::T_LIST, ['item' => $this->parseSpec($matches[1], [], $depth + 1)]);
         }
         if (preg_match('/^map\s*<(.+)>$/i', $ty, $matches) === 1) {
             $pos = strpos($matches[1], ',');
@@ -247,8 +254,8 @@ class ThriftDriver implements DebugDriverInterface
                 throw new InvalidArgumentException('invalid thrift map type `' . $ty . '`');
             }
             return $this->spec('map', self::T_MAP, [
-                'key' => $this->parseSpec(substr($matches[1], 0, $pos), []),
-                'value' => $this->parseSpec(substr($matches[1], $pos + 1), []),
+                'key' => $this->parseSpec(substr($matches[1], 0, $pos), [], $depth + 1),
+                'value' => $this->parseSpec(substr($matches[1], $pos + 1), [], $depth + 1),
             ]);
         }
         $simple = [
@@ -280,7 +287,7 @@ class ThriftDriver implements DebugDriverInterface
                 $fields[] = [
                     'name' => (string)($child['name'] ?? ''),
                     'id' => $this->fieldId($child),
-                    'spec' => $this->parseSpec((string)($child['type'] ?? ''), (array)($child['children'] ?? [])),
+                    'spec' => $this->parseSpec((string)($child['type'] ?? ''), (array)($child['children'] ?? []), $depth + 1),
                 ];
             }
             return $this->spec($lower, self::T_STRUCT, ['fields' => $fields]);
@@ -358,7 +365,8 @@ class ThriftDriver implements DebugDriverInterface
                 return pack('N', strlen($value)) . $value;
             case self::T_LIST:
             case self::T_SET:
-                if (!is_array($value)) {
+                // JSON 数组必须是 list,关联数组会让顺序/键语义不可预测
+                if (!is_array($value) || !$this->isListArray($value)) {
                     throw new InvalidArgumentException('expected array');
                 }
                 $out = chr($spec['item']['wire']) . pack('N', count($value));
@@ -368,6 +376,11 @@ class ThriftDriver implements DebugDriverInterface
                 return $out;
             case self::T_MAP:
                 if (!is_array($value)) {
+                    throw new InvalidArgumentException('expected object');
+                }
+                // PHP 关联数组对应 JSON 对象;数字键 map 允许 list(JSON 数组序号即键)
+                $numericKeys = in_array($spec['key']['wire'], [self::T_BOOL, self::T_BYTE, self::T_I16, self::T_I32, self::T_I64], true);
+                if ($value !== [] && !$numericKeys && $this->isListArray($value)) {
                     throw new InvalidArgumentException('expected object');
                 }
                 $out = chr($spec['key']['wire']) . chr($spec['value']['wire']) . pack('N', count($value));
@@ -390,6 +403,16 @@ class ThriftDriver implements DebugDriverInterface
                 return $out . chr(self::T_STOP);
         }
         throw new InvalidArgumentException('unsupported thrift wire type ' . $spec['wire']);
+    }
+
+    /**
+     * PHP 8.0 无 array_is_list
+     * @param array $value
+     * @return bool
+     */
+    protected function isListArray(array $value): bool
+    {
+        return $value === [] || array_keys($value) === range(0, count($value) - 1);
     }
 
     /**
@@ -439,8 +462,11 @@ class ThriftDriver implements DebugDriverInterface
      * @return mixed
      * @throws InvalidArgumentException
      */
-    protected function readValue(string $data, int &$offset, int $wire, ?array $spec)
+    protected function readValue(string $data, int &$offset, int $wire, ?array $spec, int $depth = 0)
     {
+        if ($depth > self::MAX_DEPTH) {
+            throw new InvalidArgumentException('thrift value nesting exceeds ' . self::MAX_DEPTH);
+        }
         switch ($wire) {
             case self::T_BOOL:
                 return $this->readByte($data, $offset) !== 0;
@@ -464,32 +490,40 @@ class ThriftDriver implements DebugDriverInterface
                 }
                 return $bytes;
             case self::T_STRUCT:
-                return $this->readStruct($data, $offset, $spec);
+                return $this->readStruct($data, $offset, $spec, $depth);
             case self::T_LIST:
             case self::T_SET:
                 $elementWire = $this->readByte($data, $offset);
                 $length = $this->readLength($data, $offset);
+                // 每个元素至少 1 字节,长度大于剩余字节说明报文伪造或截断
+                if ($length > self::MAX_ELEMENTS || $length > strlen($data) - $offset) {
+                    throw new InvalidArgumentException('thrift list length ' . $length . ' exceeds bounds');
+                }
                 $elementSpec = $spec !== null && isset($spec['item']) ? $spec['item'] : null;
                 $items = [];
                 for ($i = 0; $i < $length; $i++) {
-                    $items[] = $this->readValue($data, $offset, $elementWire, $elementSpec);
+                    $items[] = $this->readValue($data, $offset, $elementWire, $elementSpec, $depth + 1);
                 }
                 return $items;
             case self::T_MAP:
                 $keyWire = $this->readByte($data, $offset);
                 $valueWire = $this->readByte($data, $offset);
                 $length = $this->readLength($data, $offset);
+                // 每对键值至少 2 字节
+                if ($length > self::MAX_ELEMENTS || $length > intdiv(strlen($data) - $offset, 2)) {
+                    throw new InvalidArgumentException('thrift map length ' . $length . ' exceeds bounds');
+                }
                 $keySpec = $spec['key'] ?? null;
                 $valueSpec = $spec['value'] ?? null;
                 $map = [];
                 for ($i = 0; $i < $length; $i++) {
-                    $key = $this->readValue($data, $offset, $keyWire, $keySpec);
+                    $key = $this->readValue($data, $offset, $keyWire, $keySpec, $depth + 1);
                     if (is_bool($key)) {
                         $key = $key ? 'true' : 'false';
                     } elseif ($key !== null) {
                         $key = (string)$key;
                     }
-                    $map[(string)$key] = $this->readValue($data, $offset, $valueWire, $valueSpec);
+                    $map[(string)$key] = $this->readValue($data, $offset, $valueWire, $valueSpec, $depth + 1);
                 }
                 return $map;
         }
@@ -503,8 +537,11 @@ class ThriftDriver implements DebugDriverInterface
      * @return array
      * @throws InvalidArgumentException
      */
-    protected function readStruct(string $data, int &$offset, ?array $spec): array
+    protected function readStruct(string $data, int &$offset, ?array $spec, int $depth = 0): array
     {
+        if ($depth > self::MAX_DEPTH) {
+            throw new InvalidArgumentException('thrift struct nesting exceeds ' . self::MAX_DEPTH);
+        }
         $known = [];
         if ($spec !== null && isset($spec['fields']) && is_array($spec['fields'])) {
             foreach ($spec['fields'] as $field) {
@@ -520,7 +557,7 @@ class ThriftDriver implements DebugDriverInterface
             $id = $this->readI16($data, $offset);
             $field = $known[$id] ?? null;
             $name = $field !== null ? $field['name'] : 'field_' . $id;
-            $value[$name] = $this->readValue($data, $offset, $wire, $field !== null ? $field['spec'] : null);
+            $value[$name] = $this->readValue($data, $offset, $wire, $field !== null ? $field['spec'] : null, $depth + 1);
         }
     }
 

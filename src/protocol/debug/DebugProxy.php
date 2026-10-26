@@ -6,6 +6,7 @@ namespace erikwang2013\apidoc\protocol\debug;
 use InvalidArgumentException;
 use Throwable;
 use erikwang2013\apidoc\parses\ParseApiDetail;
+use erikwang2013\apidoc\protocol\debug\Support\TargetGuard;
 use erikwang2013\apidoc\utils\Cache;
 
 /**
@@ -122,6 +123,7 @@ class DebugProxy
             'rateKeyHash' => $rateKeyHash,
             'driver' => $driverName,
             'target' => $request['target'],
+            'guard' => $request['guard'],
             'fields' => $request['input'],
             'channel' => $channel,
         ]);
@@ -173,6 +175,7 @@ class DebugProxy
         $timeout = $maxTimeout > 0 ? min(25.0, $maxTimeout) : 25.0;
         $context = [
             'target' => (string)($session['target'] ?? ''),
+            'guard' => is_array($session['guard'] ?? null) ? $session['guard'] : [],
             'timeout' => $timeout,
             'maxBytes' => max(1, (int)($debugConfig['max_bytes'] ?? 1048576)),
             'maxMessages' => 100,
@@ -220,6 +223,7 @@ class DebugProxy
             try {
                 $driver->stop($sessionId, [
                     'target' => (string)($session['target'] ?? ''),
+                    'guard' => is_array($session['guard'] ?? null) ? $session['guard'] : [],
                     'fields' => is_array($session['fields'] ?? null) ? $session['fields'] : [],
                     'channel' => is_array($session['channel'] ?? null) ? $session['channel'] : [],
                 ]);
@@ -254,7 +258,9 @@ class DebugProxy
             return ['ok' => false, 'error' => 'debug target not configured'];
         }
         try {
-            DebugTarget::parse($target);
+            $parsedTarget = DebugTarget::parse($target);
+            // SSRF 守卫在驱动连接前执行:解析并校验全部地址,驱动只连接固定 IP
+            $guard = TargetGuard::check($parsedTarget, $debugConfig);
         } catch (InvalidArgumentException $e) {
             return ['ok' => false, 'error' => $e->getMessage()];
         }
@@ -295,6 +301,7 @@ class DebugProxy
         return [
             'ok' => true,
             'target' => $target,
+            'guard' => $guard,
             'meta' => $debug,
             'timeout' => $timeout,
             'maxBytes' => $maxBytes,
@@ -306,6 +313,7 @@ class DebugProxy
     {
         return [
             'target' => $request['target'],
+            'guard' => $request['guard'],
             'meta' => $request['meta'],
             'timeout' => $request['timeout'],
             'maxBytes' => $request['maxBytes'],

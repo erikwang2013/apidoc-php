@@ -11,6 +11,7 @@ use erikwang2013\apidoc\exception\ErrorException;
 use erikwang2013\apidoc\parses\ParseProtocol;
 use erikwang2013\apidoc\protocol\debug\DebugProxy;
 use erikwang2013\apidoc\protocol\debug\DebugRegistry;
+use erikwang2013\apidoc\protocol\debug\DebugTarget;
 use erikwang2013\apidoc\protocol\debug\Driver\CoapDriver;
 use erikwang2013\apidoc\protocol\debug\Driver\DubboDriver;
 use erikwang2013\apidoc\protocol\debug\Driver\GrpcDriver;
@@ -21,12 +22,14 @@ use erikwang2013\apidoc\protocol\debug\Driver\Http3Driver;
 use erikwang2013\apidoc\protocol\debug\Driver\Iso8583Driver;
 use erikwang2013\apidoc\protocol\debug\Driver\ModbusTcpDriver;
 use erikwang2013\apidoc\protocol\debug\Driver\MqttDriver;
+use erikwang2013\apidoc\protocol\debug\Driver\RawDriver;
 use erikwang2013\apidoc\protocol\debug\Driver\RtspDriver;
 use erikwang2013\apidoc\protocol\debug\Driver\SipDriver;
 use erikwang2013\apidoc\protocol\debug\Driver\StompDriver;
 use erikwang2013\apidoc\protocol\debug\Driver\ThriftDriver;
 use erikwang2013\apidoc\protocol\debug\Support\HttpClient;
 use erikwang2013\apidoc\protocol\debug\Support\Protobuf;
+use erikwang2013\apidoc\protocol\debug\Support\TargetGuard;
 use erikwang2013\apidoc\providers\BaseService;
 use erikwang2013\apidoc\utils\ApiShare;
 use erikwang2013\apidoc\utils\Cache;
@@ -112,6 +115,31 @@ register_shutdown_function(function () use (&$procs) {
     }
 });
 
+/**
+ * 生成自签证书(CN/SAN localhost + 127.0.0.1)供 TLS 降级用例使用
+ * @return array [cert, key]
+ */
+function ensureDebugTlsCert(): array
+{
+    $dir = APIDOC_STORAGE_PATH;
+    $certFile = $dir . 'tls-cert.pem';
+    $keyFile = $dir . 'tls-key.pem';
+    if (is_file($certFile) && is_file($keyFile)) {
+        return [$certFile, $keyFile];
+    }
+    $cnf = $dir . 'openssl.cnf';
+    file_put_contents($cnf, "[req]\ndistinguished_name=dn\nprompt=no\n[dn]\nCN=localhost\n"
+        . "[v3_req]\nsubjectAltName=DNS:localhost,IP:127.0.0.1\nbasicConstraints=CA:FALSE\n");
+    $key = openssl_pkey_new(['private_key_bits' => 2048, 'private_key_type' => OPENSSL_KEYTYPE_RSA, 'config' => $cnf]);
+    $csr = openssl_csr_new(['commonName' => 'localhost'], $key, ['digest_alg' => 'sha256', 'config' => $cnf, 'req_extensions' => 'v3_req']);
+    $cert = openssl_csr_sign($csr, null, $key, 365, ['digest_alg' => 'sha256', 'config' => $cnf, 'x509_extensions' => 'v3_req']);
+    openssl_x509_export($cert, $certPem);
+    openssl_pkey_export($key, $keyPem);
+    file_put_contents($certFile, $certPem);
+    file_put_contents($keyFile, $keyPem);
+    return [$certFile, $keyFile];
+}
+
 $logDir = sys_get_temp_dir();
 // 本机 19001 已被 minio 占用,TCP 回显使用 19011
 startFixture([PHP_BINARY, $root . '/tests/fixtures/debug/tcp_echo_server.php', '127.0.0.1', '19011'], $logDir . '/apidoc-debug-tcp.log');
@@ -132,12 +160,15 @@ startFixture([PHP_BINARY, $root . '/tests/fixtures/debug/h2_server.php', '127.0.
 startFixture([PHP_BINARY, $root . '/tests/fixtures/debug/thrift_server.php', '127.0.0.1', '19017', 'silent'], $logDir . '/apidoc-debug-silent.log');
 startFixture([PHP_BINARY, $root . '/tests/fixtures/debug/thrift_server.php', '127.0.0.1', '19018', 'large'], $logDir . '/apidoc-debug-thrift-large.log');
 startFixture([PHP_BINARY, $root . '/tests/fixtures/debug/dubbo_server.php', '127.0.0.1', '19019', 'large'], $logDir . '/apidoc-debug-dubbo-large.log');
+[$tlsCert, $tlsKey] = ensureDebugTlsCert();
+startFixture([PHP_BINARY, $root . '/tests/fixtures/debug/tls_http1_server.php', '127.0.0.1', '19020', $tlsCert, $tlsKey], $logDir . '/apidoc-debug-tls.log');
 usleep(100000);
 if (!waitPort('127.0.0.1', 19011) || !waitPort('127.0.0.1', 19005) || !waitPort('127.0.0.1', 19003) || !waitPort('127.0.0.1', 19004)
     || !waitPort('127.0.0.1', 19007) || !waitPort('127.0.0.1', 19008) || !waitPort('127.0.0.1', 19009)
     || !waitPort('127.0.0.1', 19012) || !waitPort('127.0.0.1', 19013)
     || !waitPort('127.0.0.1', 19014) || !waitPort('127.0.0.1', 19015) || !waitPort('127.0.0.1', 19016)
-    || !waitPort('127.0.0.1', 19017) || !waitPort('127.0.0.1', 19018) || !waitPort('127.0.0.1', 19019)) {
+    || !waitPort('127.0.0.1', 19017) || !waitPort('127.0.0.1', 19018) || !waitPort('127.0.0.1', 19019)
+    || !waitPort('127.0.0.1', 19020)) {
     echo "FAIL  fixture 服务未就绪\n";
     exit(1);
 }
@@ -147,11 +178,101 @@ usleep(100000);
 $config = require $root . '/src/config.php';
 $config['apps'] = [['key' => 'api', 'title' => 'API', 'path' => 'tests/fixtures/protocol']];
 $config['cache'] = ['enable' => false, 'folder' => 'apidoc'];
-$config['protocols']['debug'] = ['relay_enable' => true];
+// 测试固定使用回环 fixture;默认拒绝私网的策略由下方 SSRF 用例单独验证
+$config['protocols']['debug'] = ['relay_enable' => true, 'allow_private_networks' => true];
 ConfigProvider::set($config);
 
 $rawApi = 'Tests\Fixtures\Protocol\RawFixture@echo';
 $httpApi = 'Tests\Fixtures\Protocol\HttpRelayFixture@echo';
+
+// ---------- SSRF 守卫 ----------
+/**
+ * @return bool 目标是否被守卫拒绝
+ */
+function guardRejects(string $target, array $config): bool
+{
+    try {
+        TargetGuard::check(DebugTarget::parse($target), $config);
+        return false;
+    } catch (InvalidArgumentException $e) {
+        return true;
+    }
+}
+
+$strictGuard = ['allow_private_networks' => false, 'allow_hosts' => [], 'allow_unix_sockets' => false];
+$privateGuard = ['allow_private_networks' => true, 'allow_hosts' => [], 'allow_unix_sockets' => false];
+$blockedTargets = [
+    'loopback v4' => 'http://127.0.0.1:80/',
+    'private 10/8' => 'http://10.0.0.1:80/',
+    'private 172.16/12' => 'http://172.16.0.1:80/',
+    'private 192.168/16' => 'http://192.168.1.1:80/',
+    'link local' => 'http://169.254.1.1:80/',
+    'cgnat' => 'http://100.64.0.1:80/',
+    'unspecified' => 'http://0.0.0.0:80/',
+    'multicast' => 'http://224.0.0.1:80/',
+    'loopback v6' => 'http://[::1]:80/',
+    'link local v6' => 'http://[fe80::1]:80/',
+    'ula v6' => 'http://[fc00::1]:80/',
+    'mapped v4' => 'http://[::ffff:127.0.0.1]:80/',
+    'compatible v4' => 'http://[::127.0.0.1]:80/',
+    'nat64 v4' => 'http://[64:ff9b::7f00:1]:80/',
+    '6to4 v4' => 'http://[2002:7f00:1::]:80/',
+    'translated v4' => 'http://[::ffff:0:127.0.0.1]:80/',
+];
+foreach ($blockedTargets as $label => $blockedTarget) {
+    check('ssrf blocks ' . $label, guardRejects($blockedTarget, $strictGuard));
+}
+$metadataTargets = [
+    'aws v4' => 'http://169.254.169.254/latest/meta-data/',
+    'aws v6' => 'http://[fd00:ec2::254]/',
+    'mapped metadata' => 'http://[::ffff:169.254.169.254]/',
+    'alibaba' => 'http://100.100.100.200/',
+];
+foreach ($metadataTargets as $label => $metadataTarget) {
+    check('ssrf blocks metadata ' . $label . ' even with private networks', guardRejects($metadataTarget, $privateGuard));
+}
+check('ssrf allows loopback when explicitly enabled', !guardRejects('http://127.0.0.1:19005/', $privateGuard));
+check('ssrf allows public v4', !guardRejects('http://8.8.8.8:80/', $strictGuard));
+check('ssrf allows public v6', !guardRejects('http://[2606:4700::1111]:80/', $strictGuard));
+check('ssrf blocks host resolving to loopback', guardRejects('http://localhost:19005/', $strictGuard));
+check('ssrf allow_hosts exact', TargetGuard::hostAllowed(['allow_hosts' => ['api.example.com']], 'api.example.com')
+    && !TargetGuard::hostAllowed(['allow_hosts' => ['api.example.com']], 'evil.example.com'));
+check('ssrf allow_hosts wildcard', TargetGuard::hostAllowed(['allow_hosts' => ['*.internal.example.com']], 'a.internal.example.com')
+    && !TargetGuard::hostAllowed(['allow_hosts' => ['*.internal.example.com']], 'notinternal.example.com')
+    && !TargetGuard::hostAllowed(['allow_hosts' => ['*.internal.example.com']], 'internal.example.com.evil'));
+check('ssrf allow_hosts checked before DNS', (function () use ($strictGuard) {
+    $config = $strictGuard;
+    $config['allow_hosts'] = ['api.example.com'];
+    try {
+        TargetGuard::check(DebugTarget::parse('http://not-in-list.invalid:80/'), $config);
+        return false;
+    } catch (InvalidArgumentException $e) {
+        return strpos($e->getMessage(), 'allow_hosts') !== false;
+    }
+})());
+check('ssrf unix sockets disabled by default', guardRejects('unix:///tmp/apidoc.sock', $strictGuard));
+check('ssrf unix sockets gated by config', !guardRejects('unix:///tmp/apidoc.sock', [
+    'allow_private_networks' => false, 'allow_hosts' => [], 'allow_unix_sockets' => true,
+]));
+$strictProxyConfig = $config;
+$strictProxyConfig['protocols']['debug'] = ['relay_enable' => true, 'allow_private_networks' => false];
+$ssrfProxy = (new DebugProxy($strictProxyConfig))->send('api', $rawApi, ['payload' => 'x', 'timeout' => 1]);
+check('debug relay rejects private target by default', ($ssrfProxy['ok'] ?? true) === false
+    && strpos((string)($ssrfProxy['error'] ?? ''), 'private/loopback/link-local') !== false);
+$pinnedRaw = (new RawDriver())->send(['payload' => 'pin', 'encoding' => 'text', 'timeout' => 2], [
+    'target' => 'tcp://pinned.invalid:19011',
+    'guard' => ['host' => 'pinned.invalid', 'port' => 19011, 'ips' => ['127.0.0.1'], 'unix' => false],
+    'timeout' => 2,
+]);
+check('raw driver connects only to the pinned IP', ($pinnedRaw['body'] ?? '') === 'pin');
+$pinnedTarget = DebugTarget::parse('http://localhost:19005/headers.php');
+$pinnedInfo = TargetGuard::check($pinnedTarget, $privateGuard);
+$pinnedHttp = HttpClient::request(array_merge([
+    'url' => 'http://localhost:19005/headers.php',
+    'timeout' => 3,
+    'maxBytes' => 1024,
+], TargetGuard::httpOptions($pinnedTarget, ['guard' => $pinnedInfo])));
+check('http relay pins hostname but preserves Host header', ($pinnedHttp['body'] ?? '') === 'localhost:19005');
 
 // ---------- raw 驱动 ----------
 $proxy = new DebugProxy($config);
@@ -651,6 +772,32 @@ check('hessian fault returns error', ($hessianFault['ok'] ?? true) === false
     && ($hessianFault['meta']['fault']['code'] ?? '') === 'ServiceException');
 check('hessian rejects bad args json', ($hessian->send(['method' => 'x', 'args' => 'nope'], ['target' => 'http://127.0.0.1:19013/hessian_server.php'])['ok'] ?? true) === false);
 check('hessian rejects non-http target', ($hessian->send(['method' => 'x'], ['target' => 'tcp://127.0.0.1:19013'])['ok'] ?? true) === false);
+$hessianBounded = false;
+try {
+    // 类型串 + 32 位长度 0x7fffffff,但没有任何元素字节
+    $hessian->decode("\x56\x03int\x49\x7f\xff\xff\xff");
+} catch (InvalidArgumentException $e) {
+    $hessianBounded = strpos($e->getMessage(), 'exceeds bounds') !== false;
+}
+check('hessian list length bounded by remaining bytes', $hessianBounded);
+$hessianDeep = 0;
+for ($i = 0; $i < 40; $i++) {
+    $hessianDeep = [$hessianDeep];
+}
+$hessianDepthThrew = false;
+try {
+    $hessian->decode($hessian->encodeValue($hessianDeep));
+} catch (InvalidArgumentException $e) {
+    $hessianDepthThrew = strpos($e->getMessage(), 'nesting exceeds') !== false;
+}
+check('hessian nesting depth capped', $hessianDepthThrew);
+$hessianKeyThrew = false;
+try {
+    $hessian->decode("\x48\x7a\x91\x92\x54\x5a");
+} catch (InvalidArgumentException $e) {
+    $hessianKeyThrew = strpos($e->getMessage(), '键类型非法') !== false;
+}
+check('hessian map rejects non-scalar key', $hessianKeyThrew);
 
 // ---------- thrift / dubbo / http2 / http3 驱动 ----------
 check('debug registry has batch 3a drivers', DebugRegistry::driver('thrift') instanceof ThriftDriver
@@ -691,6 +838,49 @@ try {
     $thriftThrew = true;
 }
 check('thrift unknown type throws', $thriftThrew);
+$thriftGoldens = [
+    'bool' => [['name' => 'a', 'field' => 1, 'type' => 'bool'], ['a' => true], '80010001000000016d000000000200010100'],
+    'byte' => [['name' => 'a', 'field' => 1, 'type' => 'i8'], ['a' => -1], '80010001000000016d00000000030001ff00'],
+    'i16' => [['name' => 'a', 'field' => 1, 'type' => 'i16'], ['a' => -2], '80010001000000016d00000000060001fffe00'],
+    'i64' => [['name' => 'a', 'field' => 1, 'type' => 'i64'], ['a' => 1], '80010001000000016d000000000a0001000000000000000100'],
+    'double' => [['name' => 'a', 'field' => 1, 'type' => 'double'], ['a' => 1.5], '80010001000000016d000000000400013ff800000000000000'],
+    'binary' => [['name' => 'a', 'field' => 1, 'type' => 'binary'], ['a' => base64_encode("\x00\x01")], '80010001000000016d000000000b000100000002000100'],
+    'map' => [['name' => 'a', 'field' => 1, 'type' => 'map<string,i32>'], ['a' => ['a' => 1]], '80010001000000016d000000000d00010b080000000100000001610000000100'],
+    'struct' => [['name' => 'a', 'field' => 1, 'type' => 'struct', 'children' => [['name' => 'f', 'field' => 1, 'type' => 'string']]], ['a' => ['f' => 'hi']], '80010001000000016d000000000c00010b00010000000268690000'],
+];
+foreach ($thriftGoldens as $label => $golden) {
+    check('thrift frame golden ' . $label, bin2hex($thrift->buildFrame('m', [$golden[0]], $golden[1])) === $golden[2]);
+}
+$thriftBounded = false;
+try {
+    // 字段1是 list<i32>,声明长度 0x7fffffff 但无元素
+    $thrift->parseResponse(hex2bin('80010002000000016d000000000f0001087fffffff00'));
+} catch (InvalidArgumentException $e) {
+    $thriftBounded = strpos($e->getMessage(), 'exceeds bounds') !== false;
+}
+check('thrift list length bounded by remaining bytes', $thriftBounded);
+$thriftDeepType = str_repeat('list<', 40) . 'i32' . str_repeat('>', 40);
+$thriftDepthThrew = false;
+try {
+    $thrift->buildFrame('m', [['name' => 'a', 'field' => 1, 'type' => $thriftDeepType]], ['a' => []]);
+} catch (InvalidArgumentException $e) {
+    $thriftDepthThrew = strpos($e->getMessage(), 'nesting exceeds') !== false;
+}
+check('thrift schema nesting depth capped', $thriftDepthThrew);
+$thriftShapeThrew = false;
+try {
+    $thrift->buildFrame('m', [['name' => 'a', 'field' => 1, 'type' => 'list<i32>']], ['a' => ['x' => 1]]);
+} catch (InvalidArgumentException $e) {
+    $thriftShapeThrew = true;
+}
+check('thrift list rejects associative array', $thriftShapeThrew);
+$thriftMapShapeThrew = false;
+try {
+    $thrift->buildFrame('m', [['name' => 'a', 'field' => 1, 'type' => 'map<string,i32>']], ['a' => [1, 2]]);
+} catch (InvalidArgumentException $e) {
+    $thriftMapShapeThrew = true;
+}
+check('thrift string-key map rejects list', $thriftMapShapeThrew);
 check('thrift missing required param rejected', ($thrift->send(['method' => 'x', 'schema' => ['params' => [['name' => 'a', 'field' => 1, 'type' => 'i32', 'required' => true]]]], ['target' => 'tcp://127.0.0.1:19014'])['ok'] ?? true) === false);
 check('thrift missing method rejected', ($thrift->send([], ['target' => 'tcp://127.0.0.1:19014'])['ok'] ?? true) === false);
 check('thrift rejects udp target', ($thrift->send(['method' => 'x', 'payload' => '00'], ['target' => 'udp://127.0.0.1:19014'])['ok'] ?? true) === false);
@@ -739,6 +929,30 @@ check('dubbo unknown flag throws', (function () use ($dubbo) {
     }
     return false;
 })());
+check('dubbo flag 4 decodes trailing attachments', $dubbo->parseResponse(
+    "\x04" . $hessian->encodeValue('ok') . $hessian->encodeMap(['trace' => '1'])
+) === 'ok');
+$dubboFlag4Missing = false;
+try {
+    $dubbo->parseResponse("\x04" . $hessian->encodeValue('ok'));
+} catch (InvalidArgumentException $e) {
+    $dubboFlag4Missing = true;
+}
+check('dubbo flag 4 requires attachments', $dubboFlag4Missing);
+$dubboFlag4Bad = false;
+try {
+    $dubbo->parseResponse("\x04" . $hessian->encodeValue('ok') . $hessian->encodeString('x'));
+} catch (InvalidArgumentException $e) {
+    $dubboFlag4Bad = strpos($e->getMessage(), 'attachments must be a map') !== false;
+}
+check('dubbo flag 4 rejects non-map attachments', $dubboFlag4Bad);
+$dubboBounded = false;
+try {
+    $dubbo->parseResponse("\x01\x56\x03int\x49\x7f\xff\xff\xff");
+} catch (InvalidArgumentException $e) {
+    $dubboBounded = strpos($e->getMessage(), 'exceeds bounds') !== false;
+}
+check('dubbo response inherits hessian list bounds', $dubboBounded);
 check('dubbo rejects args without param_types', ($dubbo->send(['service' => 's', 'method' => 'm', 'args' => [1]], ['target' => 'tcp://127.0.0.1:19015'])['ok'] ?? true) === false);
 check('dubbo rejects descriptor mismatch', ($dubbo->send(['service' => 's', 'method' => 'm', 'param_types' => 'I', 'args' => [1, 2]], ['target' => 'tcp://127.0.0.1:19015'])['ok'] ?? true) === false);
 check('dubbo rejects missing service', ($dubbo->send(['method' => 'm'], ['target' => 'tcp://127.0.0.1:19015'])['ok'] ?? true) === false);
@@ -755,10 +969,20 @@ $dubboLarge = $dubbo->send(['service' => 's', 'method' => 'm', 'param_types' => 
 check('dubbo response max bytes', ($dubboLarge['ok'] ?? true) === false && ($dubboLarge['error'] ?? '') === 'dubbo response exceeds max_bytes');
 
 $http2 = new Http2Driver();
-check('http2 availability matches curl', Http2Driver::available() === HttpClient::http2Available());
-check('http3 availability matches curl', Http3Driver::available() === HttpClient::http3Available());
-check('http3 option avoids silent downgrade', !defined('CURL_HTTP_VERSION_3ONLY')
-    || HttpClient::versionOptionFor(3, true, false) === CURL_HTTP_VERSION_3ONLY);
+$http3Option = null;
+$http3OptionThrew = false;
+try {
+    $http3Option = HttpClient::versionOptionFor(3, true, false);
+} catch (RuntimeException $e) {
+    $http3OptionThrew = true;
+}
+check('http3 option is 3ONLY when supported', defined('CURL_HTTP_VERSION_3ONLY')
+    ? (!$http3OptionThrew && $http3Option === CURL_HTTP_VERSION_3ONLY)
+    : $http3OptionThrew);
+check('http3 availability implies 3ONLY support', !Http3Driver::available()
+    || (defined('CURL_HTTP_VERSION_3ONLY') && $http3Option === CURL_HTTP_VERSION_3ONLY));
+check('http3 availability implies CURL_VERSION_HTTP3 feature', !Http3Driver::available()
+    || ((curl_version()['features'] ?? 0) & CURL_VERSION_HTTP3) !== 0);
 if (Http2Driver::available()) {
     $http2Res = $http2->send([], ['target' => 'http://127.0.0.1:19016/echo', 'timeout' => 2]);
     check('http2 h2c send ok', ($http2Res['ok'] ?? false) === true && ($http2Res['body'] ?? '') === 'h2-ok' && ($http2Res['status'] ?? 0) === 200);
@@ -771,6 +995,31 @@ check('http3 requires https', (new Http3Driver())->send([], ['target' => 'http:/
 if (!Http3Driver::available()) {
     $http3Res = (new Http3Driver())->send([], ['target' => 'https://127.0.0.1:19016/echo', 'timeout' => 1]);
     check('http3 unavailable fails clearly', ($http3Res['ok'] ?? true) === false && strpos((string)($http3Res['error'] ?? ''), 'HTTP/3 unavailable') !== false);
+}
+// TLS 服务只支持 HTTP/1.1:固定解析 + 自签 CA 下必须能连,HTTP/2 请求必须失败而不是降级
+$tlsTarget = DebugTarget::parse('https://localhost:19020/hello');
+$tlsGuard = TargetGuard::check($tlsTarget, $privateGuard);
+$tlsOptions = TargetGuard::httpOptions($tlsTarget, ['guard' => $tlsGuard]);
+$tlsHttp1 = HttpClient::request(array_merge([
+    'url' => 'https://localhost:19020/hello',
+    'timeout' => 3,
+    'maxBytes' => 1024,
+    'httpVersion' => 1,
+    'caFile' => $tlsCert,
+], $tlsOptions));
+check('tls fixture reachable with pinned self-signed CA', ($tlsHttp1['status'] ?? 0) === 200 && ($tlsHttp1['body'] ?? '') === 'hello');
+if (HttpClient::http2Available()) {
+    $tlsDowngrade = HttpClient::request(array_merge([
+        'url' => 'https://localhost:19020/hello',
+        'timeout' => 3,
+        'maxBytes' => 1024,
+        'httpVersion' => 2,
+        'caFile' => $tlsCert,
+    ], $tlsOptions));
+    check('tls HTTP/2 downgrade fails closed', isset($tlsDowngrade['error'])
+        && $tlsDowngrade['error'] === 'HTTP/2 required but server negotiated HTTP/1.1');
+} else {
+    echo "SKIP  tls HTTP/2 downgrade (curl without HTTP/2)\n";
 }
 
 $thriftProxyInput = [

@@ -6,6 +6,7 @@ namespace erikwang2013\apidoc\protocol\debug\Driver;
 use InvalidArgumentException;
 use erikwang2013\apidoc\protocol\debug\DebugDriverInterface;
 use erikwang2013\apidoc\protocol\debug\DebugTarget;
+use erikwang2013\apidoc\protocol\debug\Support\TargetGuard;
 
 /**
  * Modbus TCP 驱动:MBAP + PDU,支持 function 1/2/3/4/5/6/16
@@ -234,7 +235,7 @@ class ModbusTcpDriver implements DebugDriverInterface
         $errno = 0;
         $errstr = '';
         $socket = @stream_socket_client(
-            'tcp://' . $target['host'] . ':' . $target['port'],
+            'tcp://' . TargetGuard::connectHost($target, $context) . ':' . $target['port'],
             $errno,
             $errstr,
             $timeout,

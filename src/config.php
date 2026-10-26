@@ -144,6 +144,12 @@ return [
             'max_bytes'=>1048576,
             // 每个 token/shareKey 同时存活的流式会话上限
             'max_sessions'=>4,
+            // SSRF 守卫:默认拒绝回环/私网/链路本地/CGNAT,云元数据地址始终拒绝
+            'allow_private_networks'=>false,
+            // 主机白名单,空数组表示不限制;支持 api.example.com / *.example.com
+            'allow_hosts'=>[],
+            // unix socket 目标默认关闭
+            'allow_unix_sockets'=>false,
             // 单次默认超时 5s、流式 session TTL 60s 是代码常量,不做配置项
         ],
     ],

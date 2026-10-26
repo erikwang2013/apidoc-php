@@ -5,8 +5,10 @@ namespace erikwang2013\apidoc\protocol\debug\Driver;
 
 use InvalidArgumentException;
 use erikwang2013\apidoc\protocol\debug\DebugDriverInterface;
+use erikwang2013\apidoc\protocol\debug\DebugTarget;
 use erikwang2013\apidoc\protocol\debug\Support\HttpClient;
 use erikwang2013\apidoc\protocol\debug\Support\Protobuf;
+use erikwang2013\apidoc\protocol\debug\Support\TargetGuard;
 
 /**
  * gRPC unary 驱动:protobuf 编解码 + gRPC 帧 + HTTP/2 POST
@@ -65,6 +67,11 @@ class GrpcDriver implements DebugDriverInterface
         $base = $this->baseUrl((string)($context['target'] ?? ''), $tls);
         if ($base === null) {
             return ['ok' => false, 'error' => 'grpc 驱动仅支持 host:port 或 http(s)://host:port 目标'];
+        }
+        try {
+            $target = DebugTarget::parse($base);
+        } catch (InvalidArgumentException $e) {
+            return ['ok' => false, 'error' => $e->getMessage()];
         }
         $service = trim((string)($input['service'] ?? ''));
         $method = trim((string)($input['method'] ?? ''));
@@ -142,7 +149,7 @@ class GrpcDriver implements DebugDriverInterface
         if (strlen($frame) > $maxBytes) {
             return ['ok' => false, 'error' => 'request exceeds max_bytes'];
         }
-        $result = HttpClient::request([
+        $result = HttpClient::request(array_merge([
             'url' => $base . '/' . $service . '/' . $method,
             'method' => 'POST',
             'headers' => $headers,
@@ -150,8 +157,8 @@ class GrpcDriver implements DebugDriverInterface
             'timeout' => (float)($context['timeout'] ?? 5),
             'maxBytes' => $maxBytes,
             'httpVersion' => 2,
-            'http2PriorKnowledge' => true,
-        ]);
+            'http2PriorKnowledge' => $tls === false,
+        ], TargetGuard::httpOptions($target, $context)));
         if (isset($result['error'])) {
             return ['ok' => false, 'error' => $result['error']];
         }

@@ -7,6 +7,7 @@ use InvalidArgumentException;
 use erikwang2013\apidoc\protocol\debug\DebugDriverInterface;
 use erikwang2013\apidoc\protocol\debug\DebugTarget;
 use erikwang2013\apidoc\protocol\debug\Support\Hex;
+use erikwang2013\apidoc\protocol\debug\Support\TargetGuard;
 
 /**
  * Dubbo 2.0.x 一元驱动:16 字节头 + hessian2 body,直连 tcp provider
@@ -85,7 +86,7 @@ class DubboDriver implements DebugDriverInterface
             return ['ok' => false, 'error' => 'request exceeds max_bytes'];
         }
         $frame = $this->frame($body);
-        $exchange = $this->tcpExchange($target['host'] . ':' . $target['port'], $frame, (float)($context['timeout'] ?? 5), $maxBytes);
+        $exchange = $this->tcpExchange(TargetGuard::connectHost($target, $context) . ':' . $target['port'], $frame, (float)($context['timeout'] ?? 5), $maxBytes);
         if (($exchange['ok'] ?? false) !== true) {
             return $exchange;
         }
@@ -154,7 +155,17 @@ class DubboDriver implements DebugDriverInterface
         $flag = ord($body[0]);
         $hessian = new HessianDriver();
         if ($flag === 1 || $flag === 4) {
-            return $hessian->decode(substr($body, 1));
+            $payload = substr($body, 1);
+            $offset = 0;
+            $value = $hessian->decodeAt($payload, $offset);
+            if ($flag === 4) {
+                // flag 4 在返回值后附带 attachments map;显式解码以校验报文完整
+                $attachments = $hessian->decodeAt($payload, $offset);
+                if (!is_array($attachments)) {
+                    throw new InvalidArgumentException('dubbo: flag 4 attachments must be a map');
+                }
+            }
+            return $value;
         }
         if ($flag === 2 || $flag === 5) {
             return null;

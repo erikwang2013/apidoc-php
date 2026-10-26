@@ -260,3 +260,19 @@ class CacheFixture
     #[Title('Cache')]
     public function user() {}
 }
+
+#[Protocol('http2')]
+#[Debug(target: 'tcp://127.0.0.1:19016')]
+class Http2SchemeMismatchFixture
+{
+    #[Title('HTTP/2 over tcp')]
+    public function echo() {}
+}
+
+#[Protocol('http3')]
+#[Debug(target: 'http://127.0.0.1:19016/echo')]
+class Http3SchemeMismatchFixture
+{
+    #[Title('HTTP/3 over http')]
+    public function echo() {}
+}

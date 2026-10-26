@@ -119,6 +119,19 @@ class HttpClient
         } else {
             $curlOptions[CURLOPT_PROTOCOLS] = CURLPROTO_HTTP | CURLPROTO_HTTPS;
         }
+        // 中继目标已由 TargetGuard 解析/校验,固定到该 IP 并绕过环境代理
+        if (!empty($options['resolve']) && is_array($options['resolve']) && defined('CURLOPT_RESOLVE')) {
+            $curlOptions[CURLOPT_RESOLVE] = array_values($options['resolve']);
+        }
+        if (!empty($options['noProxy'])) {
+            $curlOptions[CURLOPT_PROXY] = '';
+            if (defined('CURLOPT_NOPROXY')) {
+                $curlOptions[CURLOPT_NOPROXY] = '*';
+            }
+        }
+        if (!empty($options['caFile'])) {
+            $curlOptions[CURLOPT_CAINFO] = (string)$options['caFile'];
+        }
         if ($body !== '' || in_array($method, ['POST', 'PUT', 'PATCH'], true)) {
             $curlOptions[CURLOPT_POSTFIELDS] = $body;
         }
@@ -128,6 +141,15 @@ class HttpClient
 
         if ($ok === false && !$truncated) {
             return ['error' => $error !== '' ? $error : 'request failed'];
+        }
+        // HTTP/2 的 TLS 协商允许 curl 回退;必须核对实际协议,不能把 HTTP/1.1 当 HTTP/2 返回
+        $expectedVersion = static::negotiatedVersionValue($httpVersion);
+        if ($expectedVersion !== null) {
+            $actualVersion = (int)curl_getinfo($ch, CURLINFO_HTTP_VERSION);
+            if ($actualVersion !== $expectedVersion) {
+                return ['error' => 'HTTP/' . $httpVersion . ' required but server negotiated HTTP/'
+                    . static::httpVersionLabel($actualVersion)];
+            }
         }
         return [
             'status' => $status,
@@ -160,10 +182,10 @@ class HttpClient
     {
         if ($httpVersion === 3) {
             // 3ONLY 避免 curl 静默回退到 HTTP/1.1 却仍声称 HTTP/3
-            if (defined('CURL_HTTP_VERSION_3ONLY')) {
-                return CURL_HTTP_VERSION_3ONLY;
+            if (!defined('CURL_HTTP_VERSION_3ONLY')) {
+                throw new \RuntimeException('HTTP/3 requires CURL_HTTP_VERSION_3ONLY');
             }
-            return defined('CURL_HTTP_VERSION_3') ? CURL_HTTP_VERSION_3 : CURL_HTTP_VERSION_2_0;
+            return CURL_HTTP_VERSION_3ONLY;
         }
         if ($httpVersion === 2) {
             return static::versionOption($tls, $priorKnowledge);
@@ -182,11 +204,46 @@ class HttpClient
 
     public static function http3Available(): bool
     {
-        if (!function_exists('curl_version') || !defined('CURL_VERSION_HTTP3') || !defined('CURL_HTTP_VERSION_3')) {
+        // 没有 3ONLY 就无法保证不回退到 HTTP/1.1/2,按不可用处理
+        if (!function_exists('curl_version') || !defined('CURL_VERSION_HTTP3')
+            || !defined('CURL_HTTP_VERSION_3ONLY') || !defined('CURL_HTTP_VERSION_3')) {
             return false;
         }
         $version = curl_version();
         return is_array($version) && (($version['features'] ?? 0) & CURL_VERSION_HTTP3) !== 0;
+    }
+
+    /**
+     * CURLINFO_HTTP_VERSION 期望值;0 表示不校验
+     * @param int $httpVersion 1|2|3
+     * @return int|null
+     */
+    protected static function negotiatedVersionValue(int $httpVersion): ?int
+    {
+        if ($httpVersion === 2) {
+            return CURL_HTTP_VERSION_2_0;
+        }
+        if ($httpVersion === 3 && defined('CURL_HTTP_VERSION_3')) {
+            return CURL_HTTP_VERSION_3;
+        }
+        return null;
+    }
+
+    protected static function httpVersionLabel(int $version): string
+    {
+        if ($version === CURL_HTTP_VERSION_1_0) {
+            return '1.0';
+        }
+        if ($version === CURL_HTTP_VERSION_1_1) {
+            return '1.1';
+        }
+        if ($version === CURL_HTTP_VERSION_2_0) {
+            return '2';
+        }
+        if (defined('CURL_HTTP_VERSION_3') && $version === CURL_HTTP_VERSION_3) {
+            return '3';
+        }
+        return 'unknown(' . $version . ')';
     }
 
     protected static function viaStream(array $options): array
@@ -201,6 +258,7 @@ class HttpClient
         $body = (string)($options['body'] ?? '');
         $url = (string)$options['url'];
         $origin = static::origin($url);
+        $pin = is_array($options['pin'] ?? null) ? $options['pin'] : [];
         // 总超时按绝对截止时间计,重定向各跳共享剩余时间
         $deadline = microtime(true) + $timeout;
 
@@ -209,13 +267,31 @@ class HttpClient
             if ($remaining <= 0) {
                 return ['error' => 'request timed out'];
             }
-            $scheme = strtolower((string)parse_url($url, PHP_URL_SCHEME));
+            $parts = parse_url($url);
+            $scheme = strtolower((string)($parts['scheme'] ?? ''));
             if (!in_array($scheme, ['http', 'https'], true)) {
                 return ['error' => '仅支持 http/https 目标'];
             }
+            $host = strtolower(trim((string)($parts['host'] ?? ''), '[]'));
+            $defaultPort = $scheme === 'https' ? 443 : 80;
+            $port = isset($parts['port']) ? (int)$parts['port'] : $defaultPort;
+            // SSRF: 连接固定到已校验 IP,Host/SNI/证书仍按逻辑主机名;重定向已做同源校验
+            $requestUrl = $url;
+            $hopHeaders = $headers;
+            $pinned = false;
+            if ($pin !== [] && strtolower((string)($pin['host'] ?? '')) === $host
+                && (int)($pin['port'] ?? 0) === $port
+                && filter_var($pin['ip'] ?? '', FILTER_VALIDATE_IP) !== false) {
+                $pinned = true;
+                $ip = (string)$pin['ip'];
+                $ipHost = strpos($ip, ':') !== false ? '[' . $ip . ']' : $ip;
+                $requestUrl = $scheme . '://' . $ipHost . ($port === $defaultPort ? '' : ':' . $port)
+                    . (string)($parts['path'] ?? '/') . (isset($parts['query']) ? '?' . $parts['query'] : '');
+                $hopHeaders[] = 'Host: ' . $host . ($port === $defaultPort ? '' : ':' . $port);
+            }
             $http = [
                 'method' => $method,
-                'header' => implode("\r\n", $headers),
+                'header' => implode("\r\n", $hopHeaders),
                 'timeout' => $remaining,
                 'ignore_errors' => true,
                 'follow_location' => 0,
@@ -224,8 +300,19 @@ class HttpClient
             if ($body !== '' || in_array($method, ['POST', 'PUT', 'PATCH'], true)) {
                 $http['content'] = $body;
             }
-            $context = stream_context_create(['http' => $http]);
-            $responseBody = @file_get_contents($url, false, $context, 0, $maxBytes + 1);
+            $contextOptions = ['http' => $http];
+            if ($scheme === 'https' && ($pinned || !empty($options['caFile']))) {
+                $ssl = ['SNI_enabled' => true, 'verify_peer' => true, 'verify_peer_name' => true];
+                if ($pinned) {
+                    $ssl['peer_name'] = $host;
+                }
+                if (!empty($options['caFile'])) {
+                    $ssl['cafile'] = (string)$options['caFile'];
+                }
+                $contextOptions['ssl'] = $ssl;
+            }
+            $context = stream_context_create($contextOptions);
+            $responseBody = @file_get_contents($requestUrl, false, $context, 0, $maxBytes + 1);
             // PHP 8.4+ 用函数取响应头,避免 8.5 对 $http_response_header 的弃用告警;
             // 旧版本经 get_defined_vars() 取,避免字面量引用在 8.5 编译期报弃用
             if (function_exists('http_get_last_response_headers')) {

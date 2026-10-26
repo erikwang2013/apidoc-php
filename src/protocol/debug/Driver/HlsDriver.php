@@ -7,6 +7,7 @@ use InvalidArgumentException;
 use erikwang2013\apidoc\protocol\debug\DebugDriverInterface;
 use erikwang2013\apidoc\protocol\debug\DebugTarget;
 use erikwang2013\apidoc\protocol\debug\Support\HttpClient;
+use erikwang2013\apidoc\protocol\debug\Support\TargetGuard;
 
 /**
  * HLS 驱动:GET m3u8 并解析 master/media playlist,可选只取分片大小与哈希
@@ -116,12 +117,12 @@ class HlsDriver implements DebugDriverInterface
         }
         $maxBytes = max(1, (int)($context['maxBytes'] ?? 1048576));
         $url = trim((string)$context['target']);
-        $playlist = HttpClient::request([
+        $playlist = HttpClient::request(array_merge([
             'url' => $url,
             'method' => 'GET',
             'timeout' => $timeout,
             'maxBytes' => $maxBytes,
-        ]);
+        ], TargetGuard::httpOptions($target, $context)));
         if (isset($playlist['error'])) {
             return ['ok' => false, 'error' => $playlist['error']];
         }
@@ -149,12 +150,12 @@ class HlsDriver implements DebugDriverInterface
             if (!HttpClient::sameOrigin($url, $segmentUrl)) {
                 return ['ok' => false, 'error' => 'cross-host segment blocked'];
             }
-            $segment = HttpClient::request([
+            $segment = HttpClient::request(array_merge([
                 'url' => $segmentUrl,
                 'method' => 'GET',
                 'timeout' => $timeout,
                 'maxBytes' => $maxBytes,
-            ]);
+            ], TargetGuard::httpOptions($target, $context)));
             if (isset($segment['error'])) {
                 return ['ok' => false, 'error' => 'hls segment fetch failed: ' . $segment['error']];
             }

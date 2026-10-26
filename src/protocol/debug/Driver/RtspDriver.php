@@ -6,6 +6,7 @@ namespace erikwang2013\apidoc\protocol\debug\Driver;
 use InvalidArgumentException;
 use erikwang2013\apidoc\protocol\debug\DebugDriverInterface;
 use erikwang2013\apidoc\protocol\debug\DebugTarget;
+use erikwang2013\apidoc\protocol\debug\Support\TargetGuard;
 
 /**
  * RTSP (RFC 2326) 驱动:TCP 单次请求/响应,不做会话续接(P1)
@@ -101,7 +102,7 @@ class RtspDriver implements DebugDriverInterface
         $errno = 0;
         $errstr = '';
         $socket = @stream_socket_client(
-            'tcp://' . $target['host'] . ':' . $target['port'],
+            'tcp://' . TargetGuard::connectHost($target, $context) . ':' . $target['port'],
             $errno,
             $errstr,
             $timeout,

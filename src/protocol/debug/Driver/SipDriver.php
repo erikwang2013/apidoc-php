@@ -6,6 +6,7 @@ namespace erikwang2013\apidoc\protocol\debug\Driver;
 use InvalidArgumentException;
 use erikwang2013\apidoc\protocol\debug\DebugDriverInterface;
 use erikwang2013\apidoc\protocol\debug\DebugTarget;
+use erikwang2013\apidoc\protocol\debug\Support\TargetGuard;
 
 /**
  * SIP (RFC 3261) 驱动:UDP/TCP 单次请求/响应,不做事务重传
@@ -151,7 +152,7 @@ class SipDriver implements DebugDriverInterface
         $errno = 0;
         $errstr = '';
         $socket = @stream_socket_client(
-            $target['scheme'] . '://' . $target['host'] . ':' . $target['port'],
+            $target['scheme'] . '://' . TargetGuard::connectHost($target, $context) . ':' . $target['port'],
             $errno,
             $errstr,
             $timeout
