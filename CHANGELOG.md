@@ -2,7 +2,16 @@
 
 本项目的所有重要变更记录在此。版本号以根目录 `VERSION` 为准。
 
-## 1.2.0 - 2026-10-26
+## 1.2.1 - 2026-10-27
+
+### Fixed
+
+- SECURITY: `hls` is now consistently a browser-mode protocol in UIC/legacy
+  detail; HLS remains a registered driver for explicit relay use, but the
+  default HLS panel no longer reports `relay-unary`. Documentation reflects the
+  same behavior. `Debug`-annotated HTTP relay endpoints are unaffected.
+- 文档：README、`docs/ATTRIBUTES.md`、多语言站点与协议/架构图片更新到
+  27 个调试驱动、9 种定义格式与 UIC-1 完整状态。
 
 ### Added
 

@@ -92,6 +92,10 @@ class ParseProtocol
         }
         if ($actionFollowingMode !== '') {
             $mode = $actionFollowingMode;
+        } elseif (str_starts_with($catalogMode, 'browser-')
+            && $driver === (string)($protocol['defaultDriver'] ?? '')) {
+            // 默认浏览器协议(HLS 等)走浏览器面板;显式 relay 驱动仍按中继处理。
+            $mode = $catalogMode;
         } elseif (in_array($driver, ['http', 'websocket', 'sse'], true)) {
             $mode = $catalogMode !== '' ? $catalogMode : 'browser-' . $driver;
         } else {
