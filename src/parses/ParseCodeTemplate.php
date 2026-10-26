@@ -21,19 +21,16 @@ class ParseCodeTemplate
 
     public function renderCode($params)
     {
-        $appKey = $params['appKey'];
+        $appKey = (string)($params['appKey'] ?? '');
 
-        $codeTemplate = $params['template'];
-
-        //验证参数
-
-        //验证模板文件是否存在
+        // 只允许配置里的 code_template 项:客户端不能借 template 指定任意路径读取文件
+        $codeTemplate = $this->resolveCodeTemplate($params['template'] ?? []);
 
         //解析接口数据
         $tplData = [];
-        if ($codeTemplate['select_mode'] == 'controller'){
+        if (($codeTemplate['select_mode'] ?? '') == 'controller'){
             $parseApiMenusService = new ParseApiMenus($this->config);
-            $controllers = $params['selected'];
+            $controllers = $params['selected'] ?? [];
             if (!empty($controllers) && count($controllers) > 0) {
                 $controllerList = [];
                 foreach ($controllers as $class) {
@@ -50,7 +47,7 @@ class ParseCodeTemplate
             }
         }else{
             // api
-            $apis = $params['selected'];
+            $apis = $params['selected'] ?? [];
             if (!empty($apis) && count($apis) > 0) {
                 $parseApiDetailService = new ParseApiDetail($this->config);
                 $apiList = [];
@@ -78,7 +75,7 @@ class ParseCodeTemplate
             ]);
         }
         $tplParams = [
-            'form'=>  $params['form'],
+            'form'=>  $params['form'] ?? [],
             'data'=>$tplData
         ];
         $html = (new ParseTemplate())->compile($templatePath,$tplParams);
@@ -86,6 +83,39 @@ class ParseCodeTemplate
 
 
         return $html;
+    }
+
+    /**
+     * 把客户端提交的 template 解析为配置中的 code_template 项。
+     * 支持按 template 路径匹配,或 template 为空时按 title 匹配(与 Go 一致);
+     * 未知/外部路径一律拒绝。
+     * @param mixed $requested
+     * @throws ErrorException
+     */
+    protected function resolveCodeTemplate($requested): array
+    {
+        if (is_string($requested)) {
+            $requested = ['template' => $requested];
+        }
+        if (!is_array($requested)) {
+            $requested = [];
+        }
+        $path = (string)($requested['template'] ?? '');
+        $title = (string)($requested['title'] ?? '');
+        foreach ((array)($this->config['code_template'] ?? []) as $item) {
+            if (!is_array($item)) {
+                continue;
+            }
+            if ($path !== '' && (string)($item['template'] ?? '') === $path) {
+                return $item;
+            }
+            if ($path === '' && $title !== '' && (string)($item['title'] ?? '') === $title) {
+                return $item;
+            }
+        }
+        throw new ErrorException("template not found", [
+            'template' => $path !== '' ? $path : $title
+        ]);
     }
 
     /**

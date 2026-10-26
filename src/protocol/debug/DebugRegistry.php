@@ -41,6 +41,14 @@ class DebugRegistry
     ];
 
     /**
+     * @return array<int,string> 已注册驱动名,供 UIC-1 能力声明使用
+     */
+    public static function names(): array
+    {
+        return array_keys(static::$drivers);
+    }
+
+    /**
      * @param string $name 驱动名
      * @return DebugDriverInterface|null
      */

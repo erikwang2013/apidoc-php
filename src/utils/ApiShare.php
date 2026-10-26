@@ -29,8 +29,8 @@ class ApiShare
             }
             $cacheKey = "share/apiShare_" . $params['key'];
         } else {
-            //新增
-            $cacheKey = "share/apiShare_" . uniqid();
+            //新增:分享 key 是能力 URL,用随机值而不是可预测的 uniqid
+            $cacheKey = "share/apiShare_" . bin2hex(random_bytes(16));
         }
 
         $data = [
@@ -53,8 +53,8 @@ class ApiShare
                 $data['password'] = $oldData['password'];
             }
         }
-        $data['create_at'] = date('Y-m-d h:i:s');
-        $data['create_time'] = time();
+        $data['create_at'] = date('Y-m-d H:i:s');
+        $data['create_time'] = date('Y-m-d H:i:s');
         $res = (new Cache())->set($cacheKey, $data);
         return $res;
     }
@@ -82,9 +82,15 @@ class ApiShare
                 'key' => $fileNameArr[1],
                 'name' => $cacheData['name'],
                 'type' => $cacheData['type'],
-                'create_time' => $cacheData['create_time'],
-                'create_at' => $cacheData['create_at'],
+                'create_time' => static::normalizeCreateTime($cacheData['create_time'] ?? ''),
+                'create_at' => $cacheData['create_at'] ?? '',
             ];
+            if (!empty($cacheData['appKeys'])) {
+                $itemData['appKeys'] = $cacheData['appKeys'];
+            }
+            if (!empty($cacheData['apiKeys'])) {
+                $itemData['apiKeys'] = $cacheData['apiKeys'];
+            }
             $data[] = $itemData;
         }
         $data = Helper::arraySortByKey($data, 'create_time', SORT_DESC);
@@ -108,7 +114,16 @@ class ApiShare
         if (empty($cacheData)) {
             throw new ErrorException("share not exists");
         }
+        $cacheData['create_time'] = static::normalizeCreateTime($cacheData['create_time'] ?? '');
         return $cacheData;
+    }
+
+    /**
+     * 旧记录存的是 time() 整数,契约要求字符串
+     */
+    private static function normalizeCreateTime($value): string
+    {
+        return is_numeric($value) ? date('Y-m-d H:i:s', (int)$value) : (string)$value;
     }
 
     public function checkShareAuth($config, $params)
@@ -183,7 +198,8 @@ class ApiShare
     {
         $shareData = $this->getShareDetailByKey($key);
         $filterAppKeys = !empty($shareData['appKeys']) ? $shareData['appKeys'] : [];
-        $configApps = Helper::handleAppsConfig($config['apps'], false, $config);
+        // true: 分享动作拿到的数据不能含应用密码明文
+        $configApps = Helper::handleAppsConfig($config['apps'], true, $config);
         $appList = static::getAppShareApis($config, $configApps, "", $filterAppKeys, true);
         if ($shareData['type'] == 'api') {
             $appList = Helper::filterTreeNodesByKeys($appList, $shareData['apiKeys'], 'menuKey');
