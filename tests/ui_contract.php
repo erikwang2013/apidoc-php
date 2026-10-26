@@ -102,13 +102,17 @@ ConfigProvider::set([
 $caps = UiCapabilities::fromConfig(ConfigProvider::get());
 check('UIC capabilities contract', ($caps['contract'] ?? '') === '1.0');
 check('UIC capabilities backend', ($caps['backend'] ?? '') === 'php');
-check('UIC capabilities relay drivers', count($caps['features']['debug']['relay'] ?? []) === 19);
+check(
+    'UIC capabilities relay drivers',
+    ($caps['features']['debug']['relay'] ?? []) === DebugRegistry::availableNames()
+);
 check('UIC capabilities definitions', ($caps['features']['protocolDefinitions'] ?? false) === true);
 $driverNames = DebugRegistry::names();
 check(
     'DebugRegistry exposes driver names',
-    count($driverNames) === 19 && in_array('mqtt', $driverNames, true)
-    && !array_diff(['thrift', 'dubbo', 'http2', 'http3', 'kafka', 'amqp', 'xmpp'], $driverNames)
+    count($driverNames) === 27 && in_array('mqtt', $driverNames, true)
+    && !array_diff(['thrift', 'dubbo', 'http2', 'http3', 'kafka', 'amqp', 'xmpp',
+        'dnp3', 'iec104', 'bacnet', 'opcua', 'rtp', 'rtcp', 'rtmp', 'lwm2m'], $driverNames)
 );
 check(
     'UIC capabilities generator is off without declarative config',

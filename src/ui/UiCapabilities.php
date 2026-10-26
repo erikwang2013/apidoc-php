@@ -28,7 +28,7 @@ class UiCapabilities
                 'protocolDefinitions' => true,
                 'debug' => [
                     'browser' => ['http', 'websocket', 'sse'],
-                    'relay' => DebugRegistry::names(),
+                    'relay' => DebugRegistry::availableNames(),
                     'modes' => [
                         'browser-http',
                         'browser-websocket',

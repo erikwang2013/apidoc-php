@@ -229,6 +229,14 @@ $defRef = new ReflectionClass(\Tests\Fixtures\Protocol\DefaultDriverFixture::cla
 $def = $parser->metadata($defRef, $defRef->getMethod('publish'));
 check('empty Debug.driver falls back to catalog driver', ($def['debug']['driver'] ?? '') === 'mqtt');
 check('mqtt without action keeps catalog mode', ($def['debug']['mode'] ?? '') === 'relay-stream');
+$iecFallbackRef = new ReflectionClass(\Tests\Fixtures\Protocol\Iec104FallbackFixture::class);
+$iecFallback = $parser->metadata($iecFallbackRef, $iecFallbackRef->getMethod('interrogation'));
+check('iec104 canonical id falls back to specialized driver', ($iecFallback['debug']['driver'] ?? '') === 'iec104'
+    && ($iecFallback['debug']['mode'] ?? '') === 'relay-unary');
+$lwm2mFallbackRef = new ReflectionClass(\Tests\Fixtures\Protocol\Lwm2mFallbackFixture::class);
+$lwm2mFallback = $parser->metadata($lwm2mFallbackRef, $lwm2mFallbackRef->getMethod('read'));
+check('lwm2m canonical id no longer falls back to raw', ($lwm2mFallback['debug']['driver'] ?? '') === 'lwm2m'
+    && ($lwm2mFallback['debug']['mode'] ?? '') === 'relay-unary');
 check('registered driver is debuggable with relay enabled', ($pos['debug']['debuggable'] ?? false) === true);
 $relayOffConfig = $config;
 $relayOffConfig['protocols']['debug']['relay_enable'] = false;
@@ -239,9 +247,9 @@ check('unknown protocol falls back', ProtocolCatalog::get('nope')['label'] === '
 // ---------- P2 回退:目录驱动与元数据 ----------
 $p2RawRef = new ReflectionClass(\Tests\Fixtures\Protocol\P2RawFixture::class);
 $p2Raw = $parser->metadata($p2RawRef, $p2RawRef->getMethod('publish'));
-check('p2 rtmp raw fallback driver', ($p2Raw['debug']['driver'] ?? '') === 'raw');
-check('p2 rtmp raw fallback mode', ($p2Raw['debug']['mode'] ?? '') === 'relay-unary');
-check('p2 rtmp raw fallback fields include payload', in_array('payload', array_column($p2Raw['debug']['fields'] ?? [], 'name'), true));
+check('raw-socket keeps raw driver', ($p2Raw['debug']['driver'] ?? '') === 'raw');
+check('raw-socket fallback mode', ($p2Raw['debug']['mode'] ?? '') === 'relay-unary');
+check('raw-socket fallback fields include payload', in_array('payload', array_column($p2Raw['debug']['fields'] ?? [], 'name'), true));
 $p2NoRef = new ReflectionClass(\Tests\Fixtures\Protocol\P2NoDriverFixture::class);
 $p2No = $parser->metadata($p2NoRef, $p2NoRef->getMethod('offer'));
 check('webrtc p2 metadata not debuggable', ($p2No['debug']['debuggable'] ?? true) === false);
@@ -371,6 +379,22 @@ check('dubbo uses specialized relay', ProtocolCatalog::get('dubbo')['defaultDriv
 check('grpc catalog stays specialized', ProtocolCatalog::get('grpc')['defaultDriver'] === 'grpc' && ProtocolCatalog::get('grpc')['defaultMode'] === 'relay-unary');
 check('hessian catalog stays specialized', ProtocolCatalog::get('hessian')['defaultDriver'] === 'hessian' && ProtocolCatalog::get('hessian')['defaultMode'] === 'relay-unary');
 check('iso8583 catalog stays specialized', ProtocolCatalog::get('iso8583')['defaultDriver'] === 'iso8583' && ProtocolCatalog::get('iso8583')['defaultMode'] === 'relay-unary');
+check('coap catalog stays specialized', ProtocolCatalog::get('coap')['defaultDriver'] === 'coap' && ProtocolCatalog::get('coap')['defaultMode'] === 'relay-unary');
+check('modbus catalog uses modbus-tcp driver', ProtocolCatalog::get('modbus')['defaultDriver'] === 'modbus-tcp' && ProtocolCatalog::get('modbus-tcp')['defaultDriver'] === 'modbus-tcp');
+check('rtsp catalog stays specialized', ProtocolCatalog::get('rtsp')['defaultDriver'] === 'rtsp' && ProtocolCatalog::get('rtsp')['defaultMode'] === 'relay-unary');
+check('sip catalog stays specialized', ProtocolCatalog::get('sip')['defaultDriver'] === 'sip' && ProtocolCatalog::get('sip')['defaultMode'] === 'relay-unary');
+check('hls catalog stays browser http', ProtocolCatalog::get('hls')['defaultDriver'] === 'hls' && ProtocolCatalog::get('hls')['defaultMode'] === 'browser-http');
+check('dnp3/iec104/bacnet use specialized relays', ProtocolCatalog::get('dnp3')['defaultDriver'] === 'dnp3'
+    && ProtocolCatalog::get('iec104')['defaultDriver'] === 'iec104'
+    && ProtocolCatalog::get('iec-104')['defaultDriver'] === 'iec104'
+    && ProtocolCatalog::get('bacnet')['defaultDriver'] === 'bacnet'
+    && ProtocolCatalog::get('bacnet-ip')['defaultDriver'] === 'bacnet');
+check('opcua/rtmp/rtp/rtcp/lwm2m use specialized relays', ProtocolCatalog::get('opcua')['defaultDriver'] === 'opcua'
+    && ProtocolCatalog::get('opc-ua')['defaultDriver'] === 'opcua'
+    && ProtocolCatalog::get('rtmp')['defaultDriver'] === 'rtmp'
+    && ProtocolCatalog::get('rtp')['defaultDriver'] === 'rtp'
+    && ProtocolCatalog::get('rtcp')['defaultDriver'] === 'rtcp'
+    && ProtocolCatalog::get('lwm2m')['defaultDriver'] === 'lwm2m');
 check('webrtc keeps no driver', ProtocolCatalog::get('webrtc')['defaultDriver'] === '' && ProtocolCatalog::get('webrtc')['defaultMode'] === '');
 check('webrtc p2 reason', ProtocolCatalog::get('webrtc')['debugReason'] === 'WebRTC 需要手动 SDP/信令（P2）');
 $noDriverIds = ['webrtc', 'webrtc-datachannel'];

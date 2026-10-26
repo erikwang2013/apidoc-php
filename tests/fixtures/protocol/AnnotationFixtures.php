@@ -219,13 +219,94 @@ class Iso8583ProxyFixture
     public function send() {}
 }
 
-// P2 尚无专用驱动的协议回退到原始套接字面板(AMQP/Kafka/XMPP 已接入专用驱动)
+#[Protocol('dnp3')]
+class Dnp3DebugFixture
+{
+    #[Channel('/debug/dnp3')]
+    #[Debug(driver: 'dnp3', target: 'dnp3://127.0.0.1:19030')]
+    public function read() {}
+}
+
+#[Protocol('iec104')]
+class Iec104DebugFixture
+{
+    #[Channel('/debug/iec104')]
+    #[Debug(driver: 'iec104', target: 'iec104://127.0.0.1:19031')]
+    public function interrogation() {}
+}
+
+#[Protocol('bacnet')]
+class BacnetDebugFixture
+{
+    #[Channel('/debug/bacnet')]
+    #[Debug(driver: 'bacnet', target: 'bacnet://127.0.0.1:19032')]
+    public function whoIs() {}
+}
+
+#[Protocol('opcua')]
+class OpcuaDebugFixture
+{
+    #[Channel('/debug/opcua')]
+    #[Debug(driver: 'opcua', target: 'opc.tcp://127.0.0.1:19033')]
+    public function read() {}
+}
+
+#[Protocol('rtp')]
+class RtpDebugFixture
+{
+    #[Channel('/debug/rtp')]
+    #[Debug(driver: 'rtp', target: 'rtp://127.0.0.1:19034')]
+    public function send() {}
+}
+
+#[Protocol('rtcp')]
+class RtcpDebugFixture
+{
+    #[Channel('/debug/rtcp')]
+    #[Debug(driver: 'rtcp', target: 'rtcp://127.0.0.1:19035')]
+    public function send() {}
+}
+
 #[Protocol('rtmp')]
-#[Channel('tcp://broker:1935')]
-#[Debug(target: 'tcp://broker:1935')]
+class RtmpDebugFixture
+{
+    #[Channel('/debug/rtmp')]
+    #[Debug(driver: 'rtmp', target: 'rtmp://127.0.0.1:19036')]
+    public function connect() {}
+}
+
+#[Protocol('lwm2m')]
+class Lwm2mDebugFixture
+{
+    #[Channel('/debug/lwm2m')]
+    #[Debug(driver: 'lwm2m', target: 'lwm2m://127.0.0.1:19037')]
+    public function read() {}
+}
+
+// 目录中本就以原始套接字为默认驱动的协议
+// 特殊协议不注解 driver 时也必须回退到专用驱动,而不是 raw
+#[Protocol('iec104')]
+#[Debug(target: 'iec104://127.0.0.1:19031')]
+class Iec104FallbackFixture
+{
+    #[Title('Interrogate')]
+    public function interrogation() {}
+}
+
+#[Protocol('lwm2m')]
+#[Debug(target: 'lwm2m://127.0.0.1:19037')]
+class Lwm2mFallbackFixture
+{
+    #[Title('Read resource')]
+    public function read() {}
+}
+
+#[Protocol('raw-socket')]
+#[Channel('tcp://broker:9000')]
+#[Debug(target: 'tcp://broker:9000')]
 class P2RawFixture
 {
-    #[Title('Publish RTMP frame')]
+    #[Title('Send raw frame')]
     public function publish() {}
 }
 

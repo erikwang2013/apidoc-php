@@ -13,7 +13,15 @@ use erikwang2013\apidoc\protocol\debug\DebugProxy;
 use erikwang2013\apidoc\protocol\debug\DebugRegistry;
 use erikwang2013\apidoc\protocol\debug\DebugTarget;
 use erikwang2013\apidoc\protocol\debug\Driver\AmqpDriver;
+use erikwang2013\apidoc\protocol\debug\Driver\BacnetDriver;
 use erikwang2013\apidoc\protocol\debug\Driver\CoapDriver;
+use erikwang2013\apidoc\protocol\debug\Driver\Dnp3Driver;
+use erikwang2013\apidoc\protocol\debug\Driver\Iec104Driver;
+use erikwang2013\apidoc\protocol\debug\Driver\Lwm2mDriver;
+use erikwang2013\apidoc\protocol\debug\Driver\OpcuaDriver;
+use erikwang2013\apidoc\protocol\debug\Driver\RtcpDriver;
+use erikwang2013\apidoc\protocol\debug\Driver\RtmpDriver;
+use erikwang2013\apidoc\protocol\debug\Driver\RtpDriver;
 use erikwang2013\apidoc\protocol\debug\Driver\DubboDriver;
 use erikwang2013\apidoc\protocol\debug\Driver\GrpcDriver;
 use erikwang2013\apidoc\protocol\debug\Driver\HessianDriver;
@@ -49,6 +57,14 @@ use Tests\Fixtures\Protocol\StompSubscribeFixture;
 use Tests\Fixtures\Protocol\ThriftFixture;
 use Tests\Fixtures\Protocol\XmppDebugFixture;
 use Tests\Fixtures\Protocol\XmppNoStarttlsFixture;
+use Tests\Fixtures\Protocol\Dnp3DebugFixture;
+use Tests\Fixtures\Protocol\Iec104DebugFixture;
+use Tests\Fixtures\Protocol\BacnetDebugFixture;
+use Tests\Fixtures\Protocol\OpcuaDebugFixture;
+use Tests\Fixtures\Protocol\RtpDebugFixture;
+use Tests\Fixtures\Protocol\RtcpDebugFixture;
+use Tests\Fixtures\Protocol\RtmpDebugFixture;
+use Tests\Fixtures\Protocol\Lwm2mDebugFixture;
 
 error_reporting(E_ALL);
 $root = dirname(__DIR__);
@@ -176,6 +192,21 @@ startFixture([PHP_BINARY, $root . '/tests/fixtures/debug/dubbo_server.php', '127
 startFixture([PHP_BINARY, $root . '/tests/fixtures/debug/tls_http1_server.php', '127.0.0.1', '19020', $tlsCert, $tlsKey], $logDir . '/apidoc-debug-tls.log');
 startFixture([PHP_BINARY, $root . '/tests/fixtures/debug/xmpp_mock.php', '127.0.0.1', '19023', $tlsCert, $tlsKey], $logDir . '/apidoc-debug-xmpp.log');
 startFixture([PHP_BINARY, $root . '/tests/fixtures/debug/xmpp_mock.php', '127.0.0.1', '19024', $tlsCert, $tlsKey, 'no-starttls'], $logDir . '/apidoc-debug-xmpp-nostarttls.log');
+startFixture([PHP_BINARY, $root . '/tests/fixtures/debug/industrial_tcp_mock.php', 'dnp3', '19030'], $logDir . '/apidoc-debug-dnp3.log');
+startFixture([PHP_BINARY, $root . '/tests/fixtures/debug/industrial_tcp_mock.php', 'iec104', '19031'], $logDir . '/apidoc-debug-iec104.log');
+startFixture([PHP_BINARY, $root . '/tests/fixtures/debug/industrial_tcp_mock.php', 'opcua', '19033'], $logDir . '/apidoc-debug-opcua.log');
+startFixture([PHP_BINARY, $root . '/tests/fixtures/debug/industrial_tcp_mock.php', 'rtmp', '19036'], $logDir . '/apidoc-debug-rtmp.log');
+startFixture([PHP_BINARY, $root . '/tests/fixtures/debug/industrial_tcp_mock.php', 'opcua-auth-fail', '19038'], $logDir . '/apidoc-debug-opcua-auth.log');
+startFixture([PHP_BINARY, $root . '/tests/fixtures/debug/industrial_tcp_mock.php', 'opcua-bad-policy', '19039'], $logDir . '/apidoc-debug-opcua-policy.log');
+startFixture([PHP_BINARY, $root . '/tests/fixtures/debug/industrial_udp_mock.php', 'bacnet', '19032'], $logDir . '/apidoc-debug-bacnet.log');
+startFixture([PHP_BINARY, $root . '/tests/fixtures/debug/industrial_udp_mock.php', 'rtp', '19034'], $logDir . '/apidoc-debug-rtp.log');
+startFixture([PHP_BINARY, $root . '/tests/fixtures/debug/industrial_udp_mock.php', 'rtcp', '19035'], $logDir . '/apidoc-debug-rtcp.log');
+startFixture([PHP_BINARY, $root . '/tests/fixtures/debug/industrial_udp_mock.php', 'lwm2m', '19037'], $logDir . '/apidoc-debug-lwm2m.log');
+startFixture([PHP_BINARY, $root . '/tests/fixtures/debug/industrial_udp_mock.php', 'bacnet-silent', '19040'], $logDir . '/apidoc-debug-bacnet-silent.log');
+startFixture([PHP_BINARY, $root . '/tests/fixtures/debug/industrial_udp_mock.php', 'lwm2m-silent', '19041'], $logDir . '/apidoc-debug-lwm2m-silent.log');
+startFixture([PHP_BINARY, $root . '/tests/fixtures/debug/industrial_udp_mock.php', 'lwm2m-error', '19042'], $logDir . '/apidoc-debug-lwm2m-error.log');
+startFixture([PHP_BINARY, $root . '/tests/fixtures/debug/industrial_tcp_mock.php', 'silent', '19043'], $logDir . '/apidoc-debug-industrial-silent.log');
+startFixture([PHP_BINARY, $root . '/tests/fixtures/debug/industrial_udp_mock.php', 'echo-large', '19044'], $logDir . '/apidoc-debug-echo-large.log');
 usleep(100000);
 if (!waitPort('127.0.0.1', 19011) || !waitPort('127.0.0.1', 19005) || !waitPort('127.0.0.1', 19003) || !waitPort('127.0.0.1', 19004)
     || !waitPort('127.0.0.1', 19007) || !waitPort('127.0.0.1', 19008) || !waitPort('127.0.0.1', 19009)
@@ -184,7 +215,9 @@ if (!waitPort('127.0.0.1', 19011) || !waitPort('127.0.0.1', 19005) || !waitPort(
     || !waitPort('127.0.0.1', 19017) || !waitPort('127.0.0.1', 19018) || !waitPort('127.0.0.1', 19019)
     || !waitPort('127.0.0.1', 19020) || !waitPort('127.0.0.1', 19021) || !waitPort('127.0.0.1', 19022)
     || !waitPort('127.0.0.1', 19023) || !waitPort('127.0.0.1', 19024) || !waitPort('127.0.0.1', 19025)
-    || !waitPort('127.0.0.1', 19026)) {
+    || !waitPort('127.0.0.1', 19026) || !waitPort('127.0.0.1', 19030) || !waitPort('127.0.0.1', 19031)
+    || !waitPort('127.0.0.1', 19033) || !waitPort('127.0.0.1', 19036) || !waitPort('127.0.0.1', 19038)
+    || !waitPort('127.0.0.1', 19039)) {
     echo "FAIL  fixture 服务未就绪\n";
     exit(1);
 }
@@ -524,7 +557,17 @@ $proxy->stop((string)($splitStart['sessionId'] ?? ''));
 check('batch 3b drivers registered', DebugRegistry::driver('kafka') instanceof KafkaDriver
     && DebugRegistry::driver('amqp') instanceof AmqpDriver
     && DebugRegistry::driver('xmpp') instanceof XmppDriver
-    && count(DebugRegistry::names()) === 19);
+    && count(DebugRegistry::names()) === 27);
+check('batch 3c drivers registered', DebugRegistry::driver('dnp3') instanceof Dnp3Driver
+    && DebugRegistry::driver('iec104') instanceof Iec104Driver
+    && DebugRegistry::driver('bacnet') instanceof BacnetDriver
+    && DebugRegistry::driver('opcua') instanceof OpcuaDriver
+    && DebugRegistry::driver('rtp') instanceof RtpDriver
+    && DebugRegistry::driver('rtcp') instanceof RtcpDriver
+    && DebugRegistry::driver('rtmp') instanceof RtmpDriver
+    && DebugRegistry::driver('lwm2m') instanceof Lwm2mDriver);
+check('capability list hides unavailable drivers', in_array('http3', DebugRegistry::names(), true)
+    && (Http3Driver::available() || !in_array('http3', DebugRegistry::availableNames(), true)));
 check('xmpp driver available', XmppDriver::available());
 
 $loopGuard = ['host' => '127.0.0.1', 'port' => 19021, 'ips' => ['127.0.0.1'], 'unix' => false];
@@ -1469,6 +1512,407 @@ ConfigProvider::set($config);
 check('new driver relay denied outside app scope', ($thriftProxyDenied['ok'] ?? true) === false
     && strpos((string)($thriftProxyDenied['error'] ?? ''), 'scope') !== false);
 
+// ---------- dnp3 / iec104 / bacnet / opcua / rtp / rtcp / rtmp / lwm2m 驱动 ----------
+$industrialCtx = static function (string $target, int $port, array $extra = []): array {
+    return array_merge([
+        'target' => $target,
+        'guard' => ['host' => '127.0.0.1', 'port' => $port, 'ips' => ['127.0.0.1'], 'unix' => false],
+        'timeout' => 2,
+        'maxBytes' => 1048576,
+        'debugConfig' => ['allow_private_networks' => true],
+    ], $extra);
+};
+
+$dnp3 = new Dnp3Driver();
+check('dnp3 crc16 check vector', $dnp3->crc16('123456789') === 0xEA82);
+$dnp3Frame = $dnp3->encodeLinkFrame(0xC4, 1, 0, "\xC0\xC0\x01\x3C\x01\x06");
+check(
+    'dnp3 link frame header and block crc',
+    substr($dnp3Frame, 0, 8) === "\x05\x64\x0B\xC4\x01\x00\x00\x00"
+    && unpack('v', substr($dnp3Frame, 8, 2))[1] === $dnp3->crc16(substr($dnp3Frame, 2, 6))
+    && unpack('v', substr($dnp3Frame, 16, 2))[1] === $dnp3->crc16(substr($dnp3Frame, 10, 6))
+);
+$dnp3Objects = "\x1E\x01\x00\x00\x01\x01" . pack('V', 42) . "\x01" . pack('V', 0xFFFFFFF9);
+$dnp3Points = $dnp3->parseObjects($dnp3Objects);
+check(
+    'dnp3 object decode',
+    count($dnp3Points) === 2 && $dnp3Points[0]['value'] === 42 && $dnp3Points[0]['flags'] === 1
+    && $dnp3Points[0]['index'] === 0 && $dnp3Points[1]['value'] === -7 && $dnp3Points[1]['index'] === 1
+);
+$dnp3Ok = $dnp3->send(['duration_ms' => 50], $industrialCtx('dnp3://127.0.0.1:19030', 19030));
+$dnp3Body = json_decode((string)($dnp3Ok['body'] ?? ''), true);
+check(
+    'dnp3 integrity poll success',
+    ($dnp3Ok['ok'] ?? false) === true && ($dnp3Body['points'][0]['value'] ?? null) === 42
+    && ($dnp3Body['points'][1]['value'] ?? null) === -7
+);
+$dnp3Pinned = $dnp3->send(['duration_ms' => 50], $industrialCtx('dnp3://does-not-resolve.invalid:19030', 19030));
+check('dnp3 connects pinned guard ip', ($dnp3Pinned['ok'] ?? false) === true);
+$dnp3Cap = $dnp3->send(['duration_ms' => 50], $industrialCtx('dnp3://127.0.0.1:19030', 19030, ['maxBytes' => 1]));
+check('dnp3 response cap', ($dnp3Cap['error'] ?? '') === 'dnp3 response exceeds max_bytes (1)');
+$dnp3Timeout = $dnp3->send(['duration_ms' => 1], $industrialCtx('dnp3://127.0.0.1:19043', 19043, ['timeout' => 0.2]));
+check('dnp3 silent peer times out', strpos((string)($dnp3Timeout['error'] ?? ''), 'dnp3 timed out') !== false);
+check(
+    'dnp3 rejects bad target and range',
+    strpos((string)($dnp3->send([], ['target' => 'http://127.0.0.1:19030'])['error'] ?? ''), 'dnp3') !== false
+    && ($dnp3->send(['operation' => 'read', 'start' => 5, 'stop' => 1], ['target' => 'dnp3://127.0.0.1:19030'])['error'] ?? '')
+        === 'dnp3 start must be <= stop'
+    && strpos((string)($dnp3->send(['operation' => 'bogus'], ['target' => 'dnp3://127.0.0.1:19030'])['error'] ?? ''), 'unsupported dnp3 operation') !== false
+    && ($dnp3->send(['link_address' => 1, 'source_address' => 1], ['target' => 'dnp3://127.0.0.1:19030'])['error'] ?? '')
+        === 'dnp3 link_address and source_address must differ'
+);
+try {
+    $dnp3->parseObjects("\x1E\x01");
+    $dnp3Malformed = false;
+} catch (InvalidArgumentException $e) {
+    $dnp3Malformed = $e->getMessage() === 'truncated dnp3 object header';
+}
+check('dnp3 rejects truncated object header', $dnp3Malformed);
+
+$iec104 = new Iec104Driver();
+$iec104Rows = $iec104->parseAsdus("\x01\x01\x14\x00" . pack('v', 1) . "\x01\x00\x00\x01");
+check(
+    'iec104 asdu decode',
+    count($iec104Rows) === 1 && $iec104Rows[0]['type_id'] === 1 && $iec104Rows[0]['cause'] === 20
+    && $iec104Rows[0]['ioa'] === 1 && $iec104Rows[0]['value'] === true
+);
+$iec104Ok = $iec104->send(['duration_ms' => 50], $industrialCtx('iec104://127.0.0.1:19031', 19031));
+$iec104Body = json_decode((string)($iec104Ok['body'] ?? ''), true);
+check(
+    'iec104 interrogation success',
+    ($iec104Ok['ok'] ?? false) === true && ($iec104Body['asdu'][0]['type_id'] ?? null) === 1
+    && ($iec104Body['asdu'][0]['value'] ?? null) === true
+);
+$iec104Cap = $iec104->send(['duration_ms' => 50], $industrialCtx('iec104://127.0.0.1:19031', 19031, ['maxBytes' => 1]));
+check('iec104 response cap', ($iec104Cap['error'] ?? '') === 'iec104 response exceeds max_bytes (1)');
+$iec104Timeout = $iec104->send([], $industrialCtx('iec104://127.0.0.1:19043', 19043, ['timeout' => 0.2]));
+check('iec104 silent peer fails startdt', ($iec104Timeout['error'] ?? '') === 'iec104 STARTDT was not confirmed');
+check(
+    'iec104 rejects bad target and ioa',
+    strpos((string)($iec104->send([], ['target' => 'http://127.0.0.1:19031'])['error'] ?? ''), 'iec104') !== false
+    && ($iec104->send(['operation' => 'read'], ['target' => 'iec104://127.0.0.1:19031'])['error'] ?? '')
+        === 'iec104 `ioa` is required for read'
+    && ($iec104->send(['operation' => 'read', 'ioa' => 0x1000000], ['target' => 'iec104://127.0.0.1:19031'])['error'] ?? '')
+        === 'iec104 ioa must fit in 24 bits'
+    && strpos((string)($iec104->send(['operation' => 'bogus'], ['target' => 'iec104://127.0.0.1:19031'])['error'] ?? ''), 'unsupported iec104 operation') !== false
+);
+try {
+    $iec104->parseAsdus("\x63\x01\x14\x00" . pack('v', 1) . "\x01\x00\x00\x01");
+    $iec104Malformed = false;
+} catch (InvalidArgumentException $e) {
+    $iec104Malformed = strpos($e->getMessage(), 'unsupported iec104 ASDU type') === 0;
+}
+check('iec104 rejects unsupported asdu type', $iec104Malformed);
+
+$bacnet = new BacnetDriver();
+check('bacnet bvlc golden vector', bin2hex($bacnet->encodeBvlc(false, "\x10\x08")) === '810a000801001008');
+check('bacnet bvlc decode', $bacnet->decodeBvlc(hex2bin('810a000801001008')) === "\x10\x08");
+$bacnetIAm = "\x10\x00\xC4" . pack('N', (8 << 22) | 1234);
+check('bacnet i-am decode', $bacnet->parseIAm($bacnetIAm) === 1234);
+check('bacnet i-am ignores non-device object', $bacnet->parseIAm("\x10\x00\xC4" . pack('N', (1 << 22) | 1234)) === null);
+$bacnetAck = "\x30\x00\x00\xC4" . pack('N', (8 << 22) | 1234) . "\x19\x55\x3E\x44" . pack('G', 21.5);
+check('bacnet complex ack decode', $bacnet->parseReadPropertyAck($bacnetAck) === 21.5);
+try {
+    $bacnet->parseReadPropertyAck("\x50\x00");
+    $bacnetMalformed = false;
+} catch (InvalidArgumentException $e) {
+    $bacnetMalformed = strpos($e->getMessage(), 'bacnet error PDU') === 0;
+}
+check('bacnet rejects error pdu', $bacnetMalformed);
+try {
+    $bacnet->parseAppValue('');
+    $bacnetEmpty = false;
+} catch (InvalidArgumentException $e) {
+    $bacnetEmpty = $e->getMessage() === 'empty bacnet value';
+}
+check('bacnet rejects empty value', $bacnetEmpty);
+$bacnetWho = $bacnet->send(['duration_ms' => 50], $industrialCtx('bacnet://127.0.0.1:19032', 19032));
+$bacnetWhoBody = json_decode((string)($bacnetWho['body'] ?? ''), true);
+check(
+    'bacnet who-is success',
+    ($bacnetWho['ok'] ?? false) === true && ($bacnetWhoBody['devices'][0]['instance'] ?? null) === 1234
+);
+$bacnetRead = $bacnet->send(
+    ['operation' => 'read_property', 'object_instance' => 1234, 'property' => 85, 'duration_ms' => 50],
+    $industrialCtx('bacnet://127.0.0.1:19032', 19032)
+);
+check('bacnet read property success', ($bacnetRead['ok'] ?? false) === true
+    && json_decode((string)($bacnetRead['body'] ?? ''), true) === ['value' => 21.5]);
+$bacnetCap = $bacnet->send(['duration_ms' => 50], $industrialCtx('bacnet://127.0.0.1:19032', 19032, ['maxBytes' => 1]));
+check('bacnet response cap', ($bacnetCap['error'] ?? '') === 'bacnet response exceeds max_bytes (1)');
+$bacnetTimeout = $bacnet->send(['duration_ms' => 50], $industrialCtx('bacnet://127.0.0.1:19040', 19040));
+check('bacnet silent peer times out', strpos((string)($bacnetTimeout['error'] ?? ''), 'bacnet who_is timed out') !== false);
+check(
+    'bacnet broadcast guard',
+    strpos((string)($bacnet->send(['broadcast' => true], $industrialCtx('bacnet://127.0.0.1:19032', 19032, ['debugConfig' => []]))['error'] ?? ''), 'allow_private_networks') !== false
+    && strpos((string)($bacnet->send(['broadcast' => true], $industrialCtx('bacnet://224.0.0.1:19032', 19032, ['guard' => ['ips' => ['224.0.0.1'], 'host' => '224.0.0.1', 'port' => 19032, 'unix' => false]]))['error'] ?? ''), 'multicast') !== false
+    && strpos((string)($bacnet->send(['broadcast' => true], $industrialCtx('bacnet://255.255.255.255:19032', 19032, ['guard' => ['ips' => ['255.255.255.255'], 'host' => '255.255.255.255', 'port' => 19032, 'unix' => false]]))['error'] ?? ''), 'never a valid') !== false
+    && strpos((string)($bacnet->send([], ['target' => 'http://127.0.0.1:19032'])['error'] ?? ''), 'bacnet') !== false
+);
+check(
+    'bacnet requires valid object instance',
+    ($bacnet->send(['operation' => 'read_property'], ['target' => 'bacnet://127.0.0.1:19032'])['error'] ?? '')
+        === 'bacnet object_instance is required'
+    && ($bacnet->send(['operation' => 'read_property', 'object_instance' => 0x400000], ['target' => 'bacnet://127.0.0.1:19032'])['error'] ?? '')
+        === 'bacnet object_instance must fit in 22 bits'
+    && strpos((string)($bacnet->send(['operation' => 'bogus'], ['target' => 'bacnet://127.0.0.1:19032'])['error'] ?? ''), 'unsupported bacnet operation') !== false
+);
+
+$opcua = new OpcuaDriver();
+$opcuaRead = $opcua->send(['operation' => 'read', 'node_id' => 'i=85'], $industrialCtx('opc.tcp://127.0.0.1:19033', 19033));
+check('opcua read success', ($opcuaRead['ok'] ?? false) === true
+    && json_decode((string)($opcuaRead['body'] ?? ''), true) === ['value' => 42, 'status' => 'Good']);
+$opcuaBrowse = $opcua->send(['operation' => 'browse', 'node_id' => 'i=85'], $industrialCtx('opc.tcp://127.0.0.1:19033', 19033));
+$opcuaBrowseBody = json_decode((string)($opcuaBrowse['body'] ?? ''), true);
+check(
+    'opcua browse success',
+    ($opcuaBrowse['ok'] ?? false) === true
+    && ($opcuaBrowseBody['references'][0]['node_id'] ?? '') === 'i=85'
+    && ($opcuaBrowseBody['references'][0]['display_name'] ?? '') === 'Demo'
+);
+$opcuaWrite = $opcua->send(
+    ['operation' => 'write', 'node_id' => 'i=85', 'value' => '42'],
+    $industrialCtx('opc.tcp://127.0.0.1:19033', 19033)
+);
+check('opcua write success', ($opcuaWrite['ok'] ?? false) === true
+    && json_decode((string)($opcuaWrite['body'] ?? ''), true) === ['status' => 'Good']);
+$opcuaAuth = $opcua->send(
+    ['username' => 'u', 'password' => 'secret'],
+    $industrialCtx('opc.tcp://127.0.0.1:19038', 19038)
+);
+check(
+    'opcua redacts echoed password',
+    ($opcuaAuth['ok'] ?? true) === false
+    && strpos((string)($opcuaAuth['error'] ?? ''), 'secret') === false
+    && strpos((string)($opcuaAuth['error'] ?? ''), '***') !== false
+);
+$opcuaPolicy = $opcua->send([], $industrialCtx('opc.tcp://127.0.0.1:19039', 19039));
+check('opcua rejects non-none policy', strpos((string)($opcuaPolicy['error'] ?? ''), 'only None is supported') !== false);
+$opcuaCap = $opcua->send([], $industrialCtx('opc.tcp://127.0.0.1:19033', 19033, ['maxBytes' => 1]));
+check('opcua message cap', strpos((string)($opcuaCap['error'] ?? ''), 'exceeds max_bytes (1)') !== false);
+$opcuaTimeout = $opcua->send([], $industrialCtx('opc.tcp://127.0.0.1:19043', 19043, ['timeout' => 0.2]));
+check('opcua silent peer times out', ($opcuaTimeout['error'] ?? '') === 'opcua read timed out');
+check(
+    'opcua rejects bad target and node id',
+    strpos((string)($opcua->send([], ['target' => 'http://127.0.0.1:19033'])['error'] ?? ''), 'unsupported opcua target scheme') !== false
+    && ($opcua->send(['operation' => 'write'], ['target' => 'opc.tcp://127.0.0.1:19033'])['error'] ?? '')
+        === 'opcua `value` is required for write'
+    && ($opcua->send(['node_id' => 'x=1'], $industrialCtx('opc.tcp://127.0.0.1:19033', 19033))['error'] ?? '')
+        === 'node_id must look like `i=85`, `ns=2;i=5` or `s=name`'
+    && strpos((string)($opcua->send(['operation' => 'bogus'], ['target' => 'opc.tcp://127.0.0.1:19033'])['error'] ?? ''), 'unsupported opcua operation') !== false
+);
+
+$rtp = new RtpDriver();
+check(
+    'rtp packet golden vector',
+    bin2hex($rtp->encodePacket(96, 1, 1000, 0x11223344, 'hi')) === '8060000100000' . '3e8112233446869'
+);
+$rtpExtended = "\xB3\x60" . pack('n', 7) . pack('N', 160) . pack('N', 0x01020304)
+    . pack('N', 0x0A0B0C0D) . pack('N', 0x0E0F1011) . pack('N', 0x12131415)
+    . pack('n', 0xBEDE) . pack('n', 1) . 'abcd' . 'abc' . "\x00\x00\x00\x04";
+$rtpDecoded = $rtp->decodePacket($rtpExtended);
+check(
+    'rtp decode csrc extension padding',
+    $rtpDecoded !== null && $rtpDecoded['csrc'] === [0x0A0B0C0D, 0x0E0F1011, 0x12131415]
+    && $rtpDecoded['payload'] === 'abc' && $rtpDecoded['padding'] === true && $rtpDecoded['extension'] === true
+    && $rtpDecoded['sequence'] === 7
+);
+check('rtp malformed packet returns null', $rtp->decodePacket("\x80") === null);
+$rtpEcho = $rtp->send(
+    ['payload' => 'hello', 'recv' => true, 'count' => 2, 'ssrc' => 7, 'sequence' => 1, 'duration_ms' => 50],
+    $industrialCtx('rtp://127.0.0.1:19034', 19034)
+);
+$rtpEchoBody = json_decode((string)($rtpEcho['body'] ?? ''), true);
+check(
+    'rtp echo success',
+    ($rtpEcho['ok'] ?? false) === true && count($rtpEchoBody['packets'] ?? []) === 2
+    && ($rtpEchoBody['packets'][0]['sequence'] ?? null) === 1
+    && ($rtpEchoBody['packets'][1]['sequence'] ?? null) === 2
+    && ($rtpEchoBody['packets'][0]['payload']['data'] ?? null) === 'hello'
+    && ($rtpEcho['meta']['sent'] ?? 0) === 2 && ($rtpEcho['meta']['received'] ?? 0) === 2
+);
+$rtpSendCap = $rtp->send(['payload' => 'hello'], $industrialCtx('rtp://127.0.0.1:19034', 19034, ['maxBytes' => 1]));
+check('rtp send cap', ($rtpSendCap['error'] ?? '') === 'udp send exceeds max_bytes (1)');
+$rtpRecvCap = $rtp->send(['recv' => true], $industrialCtx('rtp://127.0.0.1:19044', 19044, ['maxBytes' => 16]));
+check('rtp receive cap', ($rtpRecvCap['error'] ?? '') === 'response exceeds max_bytes (16)');
+$rtpQuiet = $rtp->send(['recv' => true, 'duration_ms' => 50], $industrialCtx('rtp://127.0.0.1:19040', 19040));
+check('rtp bounded receive returns empty', ($rtpQuiet['ok'] ?? false) === true
+    && ($rtpQuiet['meta']['received'] ?? -1) === 0);
+check(
+    'rtp rejects bad target and payload',
+    strpos((string)($rtp->send([], ['target' => 'http://127.0.0.1:19034'])['error'] ?? ''), 'rtp') !== false
+    && ($rtp->send(['payload_type' => 128], ['target' => 'rtp://127.0.0.1:19034'])['error'] ?? '') === 'payload_type must be 0-127'
+    && ($rtp->send(['payload' => str_repeat('x', 65507)], ['target' => 'rtp://127.0.0.1:19034'])['error'] ?? '')
+        === 'rtp payload exceeds 65507 bytes'
+);
+
+$rtcp = new RtcpDriver();
+$rtcpSdes = $rtcp->encodePacket(202, 7, 'abc');
+$rtcpDecoded = $rtcp->decodePacket($rtcpSdes);
+check(
+    'rtcp sdes golden vector',
+    bin2hex($rtcpSdes) === '81ca0003000000070103616263000000'
+    && $rtcpDecoded !== null && $rtcpDecoded['packet_type'] === 202 && $rtcpDecoded['ssrc'] === 7
+    && $rtcpDecoded['text'] === 'abc' && $rtcpDecoded['length'] === 16
+);
+$rtcpBye = $rtcp->decodePacket($rtcp->encodePacket(203, 9, 'bye'));
+check('rtcp bye reason decode', $rtcpBye !== null && $rtcpBye['text'] === 'bye' && $rtcpBye['packet_type'] === 203);
+$rtcpEcho = $rtcp->send(
+    ['packet_type' => 'rr', 'ssrc' => 7, 'recv' => true, 'duration_ms' => 50],
+    $industrialCtx('rtcp://127.0.0.1:19035', 19035)
+);
+$rtcpEchoBody = json_decode((string)($rtcpEcho['body'] ?? ''), true);
+check(
+    'rtcp echo success',
+    ($rtcpEcho['ok'] ?? false) === true && ($rtcpEchoBody['packets'][0]['packet_type'] ?? null) === 201
+    && ($rtcpEchoBody['packets'][0]['ssrc'] ?? null) === 7
+);
+$rtcpRecvCap = $rtcp->send(['recv' => true], $industrialCtx('rtcp://127.0.0.1:19044', 19044, ['maxBytes' => 16]));
+check('rtcp receive cap', ($rtcpRecvCap['error'] ?? '') === 'response exceeds max_bytes (16)');
+check(
+    'rtcp rejects bad target and packet type',
+    strpos((string)($rtcp->send([], ['target' => 'http://127.0.0.1:19035'])['error'] ?? ''), 'rtcp') !== false
+    && strpos((string)($rtcp->send(['packet_type' => 'bogus'], ['target' => 'rtcp://127.0.0.1:19035'])['error'] ?? ''), 'unknown rtcp packet_type') !== false
+);
+
+$rtmp = new RtmpDriver();
+$rtmpConnect = $rtmp->send([], $industrialCtx('rtmp://127.0.0.1:19036', 19036));
+check('rtmp connect success', ($rtmpConnect['ok'] ?? false) === true
+    && json_decode((string)($rtmpConnect['body'] ?? ''), true) === [
+        'connected' => true, 'operation' => 'connect', 'stream' => null, 'status' => null,
+    ]);
+$rtmpPublish = $rtmp->send(
+    ['operation' => 'publish', 'stream' => 'demo', 'duration_ms' => 500],
+    $industrialCtx('rtmp://127.0.0.1:19036', 19036)
+);
+$rtmpPublishBody = json_decode((string)($rtmpPublish['body'] ?? ''), true);
+check('rtmp publish success', ($rtmpPublish['ok'] ?? false) === true
+    && ($rtmpPublishBody['stream'] ?? '') === 'demo'
+    && ($rtmpPublishBody['status'] ?? '') === 'NetStream.Publish.Start');
+$rtmpPlay = $rtmp->send(
+    ['operation' => 'play', 'stream' => 'demo', 'duration_ms' => 500],
+    $industrialCtx('rtmp://127.0.0.1:19036', 19036)
+);
+check('rtmp play success', ($rtmpPlay['ok'] ?? false) === true
+    && (json_decode((string)($rtmpPlay['body'] ?? ''), true)['status'] ?? '') === 'NetStream.Play.Start');
+$rtmpCap = $rtmp->send([], $industrialCtx('rtmp://127.0.0.1:19036', 19036, ['maxBytes' => 1]));
+check('rtmp message cap', strpos((string)($rtmpCap['error'] ?? ''), 'rtmp message exceeds max_bytes (1)') !== false);
+$rtmpTimeout = $rtmp->send([], $industrialCtx('rtmp://127.0.0.1:19043', 19043, ['timeout' => 0.2]));
+check('rtmp silent peer times out', ($rtmpTimeout['error'] ?? '') === 'rtmp session timed out');
+check(
+    'rtmp rejects bad target and stream',
+    strpos((string)($rtmp->send([], ['target' => 'http://127.0.0.1:19036'])['error'] ?? ''), 'rtmp') !== false
+    && strpos((string)($rtmp->send(['operation' => 'bogus'], ['target' => 'rtmp://127.0.0.1:19036'])['error'] ?? ''), 'unsupported rtmp operation') !== false
+    && ($rtmp->send(['operation' => 'publish'], $industrialCtx('rtmp://127.0.0.1:19036', 19036))['error'] ?? '')
+        === 'rtmp publish/play requires opts.stream'
+);
+
+$lwm2m = new Lwm2mDriver();
+check('lwm2m tlv golden vector', bin2hex($lwm2m->tlvEncodeResource(9, '300')) === 'c209012c');
+check(
+    'lwm2m tlv decode',
+    $lwm2m->tlvDecodeFirst("\xC2\x09\x01\x2C") === [9, "\x01\x2C"]
+);
+try {
+    $lwm2m->tlvDecodeFirst("\x40\x01");
+    $lwm2mTlvMalformed = false;
+} catch (InvalidArgumentException $e) {
+    $lwm2mTlvMalformed = strpos($e->getMessage(), 'unsupported tlv entry type') === 0;
+}
+check('lwm2m rejects unsupported tlv type', $lwm2mTlvMalformed);
+$lwm2mRegister = $lwm2m->send(
+    ['operation' => 'register', 'endpoint' => 'node-1', 'duration_ms' => 200],
+    $industrialCtx('lwm2m://127.0.0.1:19037', 19037)
+);
+check('lwm2m register success', ($lwm2mRegister['ok'] ?? false) === true
+    && json_decode((string)($lwm2mRegister['body'] ?? ''), true) === ['code' => '2.01', 'location' => '/rd/abc']);
+$lwm2mRead = $lwm2m->send(
+    ['operation' => 'read', 'object_id' => 3, 'instance_id' => 0, 'resource_id' => 9, 'duration_ms' => 200],
+    $industrialCtx('lwm2m://127.0.0.1:19037', 19037)
+);
+check('lwm2m read success', ($lwm2mRead['ok'] ?? false) === true
+    && json_decode((string)($lwm2mRead['body'] ?? ''), true) === ['code' => '2.05', 'value' => 300]);
+$lwm2mWrite = $lwm2m->send(
+    ['operation' => 'write', 'object_id' => 3, 'instance_id' => 0, 'resource_id' => 9, 'value' => '300', 'duration_ms' => 200],
+    $industrialCtx('lwm2m://127.0.0.1:19037', 19037)
+);
+$lwm2mUpdate = $lwm2m->send(
+    ['operation' => 'update', 'location' => '/rd/abc', 'duration_ms' => 200],
+    $industrialCtx('lwm2m://127.0.0.1:19037', 19037)
+);
+$lwm2mDeregister = $lwm2m->send(
+    ['operation' => 'deregister', 'location' => '/rd/abc', 'duration_ms' => 200],
+    $industrialCtx('lwm2m://127.0.0.1:19037', 19037)
+);
+check(
+    'lwm2m write/update/deregister success',
+    ($lwm2mWrite['body'] ?? '') === '{"code":"2.04"}'
+    && ($lwm2mUpdate['body'] ?? '') === '{"code":"2.04"}'
+    && ($lwm2mDeregister['body'] ?? '') === '{"code":"2.02"}'
+);
+$lwm2mPinned = $lwm2m->send(
+    ['operation' => 'register', 'endpoint' => 'node-1', 'duration_ms' => 200],
+    $industrialCtx('lwm2m://does-not-resolve.invalid:19037', 19037)
+);
+check('lwm2m connects pinned guard ip', ($lwm2mPinned['ok'] ?? false) === true);
+$lwm2mError = $lwm2m->send(
+    ['operation' => 'register', 'endpoint' => 'node-1', 'duration_ms' => 200],
+    $industrialCtx('lwm2m://127.0.0.1:19042', 19042)
+);
+check('lwm2m unexpected code fails', ($lwm2mError['error'] ?? '')
+    === 'lwm2m register failed: expected 2.01, got 4.00: nope');
+$lwm2mTimeout = $lwm2m->send(
+    ['operation' => 'register', 'endpoint' => 'node-1', 'duration_ms' => 100],
+    $industrialCtx('lwm2m://127.0.0.1:19041', 19041, ['timeout' => 0.5])
+);
+check('lwm2m silent peer times out', ($lwm2mTimeout['error'] ?? '')
+    === 'coap request timed out after 100ms (no response)');
+$lwm2mCap = $lwm2m->send(
+    ['operation' => 'register', 'endpoint' => 'node-1', 'payload' => 'hello'],
+    $industrialCtx('lwm2m://127.0.0.1:19037', 19037, ['maxBytes' => 3])
+);
+check('lwm2m register payload cap', ($lwm2mCap['error'] ?? '') === 'register payload exceeds max_bytes (3)');
+check(
+    'lwm2m validation errors',
+    ($lwm2m->send([], ['target' => 'lwm2m://127.0.0.1:19037'])['error'] ?? '') === 'lwm2m endpoint is required'
+    && ($lwm2m->send(['operation' => 'register', 'endpoint' => 'e', 'lifetime' => 'abc'], ['target' => 'lwm2m://127.0.0.1:19037'])['error'] ?? '')
+        === 'invalid lifetime `abc`'
+    && ($lwm2m->send(['operation' => 'read', 'object_id' => 3, 'instance_id' => 0], ['target' => 'lwm2m://127.0.0.1:19037'])['error'] ?? '')
+        === 'lwm2m resource_id is required'
+    && ($lwm2m->send(['operation' => 'write', 'object_id' => 3, 'instance_id' => 0, 'resource_id' => 'abc', 'value' => '1'], ['target' => 'lwm2m://127.0.0.1:19037'])['error'] ?? '')
+        === 'invalid resource_id'
+    && strpos((string)($lwm2m->send(['operation' => 'bogus'], ['target' => 'lwm2m://127.0.0.1:19037'])['error'] ?? ''), 'unsupported lwm2m operation') !== false
+    && strpos((string)($lwm2m->send([], ['target' => 'http://127.0.0.1:19037'])['error'] ?? ''), 'lwm2m') !== false
+);
+
+$batch3cProxy = (new DebugProxy($config))->send('api', Dnp3DebugFixture::class . '@read', [
+    'fields' => ['duration_ms' => 50],
+    'timeout' => 2,
+]);
+check('batch 3c relay through app scope', ($batch3cProxy['ok'] ?? false) === true
+    && (json_decode((string)($batch3cProxy['body'] ?? ''), true)['points'][0]['value'] ?? null) === 42);
+$batch3cScopeConfig = $config;
+$batch3cScopeConfig['apps'][] = ['key' => 'other', 'title' => 'Other', 'path' => 'tests/fixtures/other'];
+ConfigProvider::set($batch3cScopeConfig);
+$batch3cDenied = (new DebugProxy($batch3cScopeConfig))->send('other', Dnp3DebugFixture::class . '@read', [
+    'fields' => ['duration_ms' => 50],
+]);
+ConfigProvider::set($config);
+check('batch 3c relay denied outside app scope', ($batch3cDenied['ok'] ?? true) === false
+    && strpos((string)($batch3cDenied['error'] ?? ''), 'scope') !== false);
+$batch3cStrictConfig = $config;
+$batch3cStrictConfig['protocols']['debug']['allow_private_networks'] = false;
+$batch3cStrict = (new DebugProxy($batch3cStrictConfig))->send('api', Dnp3DebugFixture::class . '@read', [
+    'fields' => ['duration_ms' => 50],
+]);
+check('batch 3c relay enforces ssrf guard', ($batch3cStrict['ok'] ?? true) === false
+    && strpos((string)($batch3cStrict['error'] ?? ''), 'private') !== false);
+$batch3cOffConfig = $config;
+$batch3cOffConfig['protocols']['debug']['relay_enable'] = false;
+$batch3cOff = (new DebugProxy($batch3cOffConfig))->send('api', Dnp3DebugFixture::class . '@read', []);
+check('batch 3c relay disabled fails closed', ($batch3cOff['ok'] ?? true) === false
+    && ($batch3cOff['error'] ?? '') === 'relay disabled');
+
 // ---------- 控制器端点 ----------
 $controllerConfig = $config;
 // auth 全局关闭且 app 无密码时 token 不会被校验,这些用例刻意使用匿名/占位 token
@@ -1617,6 +2061,35 @@ try {
     $kafkaShareDenied = $e->getMessage() === 'share api not allowed';
 }
 check('share scoped kafka relay denied', $kafkaShareDenied);
+
+// 批次 3c:api 分享范围只覆盖 apiKeys 内的 DNP3 接口
+$shareStore->addApiShare([
+    'key' => 'dnp3-api-share',
+    'name' => 'DNP3 API share',
+    'type' => 'api',
+    'apiKeys' => [urlencode(Dnp3DebugFixture::class . '@read')],
+]);
+$dnp3ShareConfig = $shareConfig;
+$dnp3ShareConfig['request_params'] = [
+    'appKey' => 'api',
+    'path' => Dnp3DebugFixture::class . '@read',
+    'shareKey' => 'dnp3-api-share',
+    'input' => ['fields' => ['duration_ms' => 50], 'timeout' => 2],
+];
+ConfigProvider::set($dnp3ShareConfig);
+$dnp3Share = (new Controller())->debugSend();
+check('share scoped batch 3c relay allowed', ($dnp3Share['data']['ok'] ?? false) === true
+    && (json_decode((string)($dnp3Share['data']['body'] ?? ''), true)['points'][0]['value'] ?? null) === 42);
+$dnp3ShareDeniedConfig = $dnp3ShareConfig;
+$dnp3ShareDeniedConfig['request_params']['shareKey'] = 'denied-api-share';
+ConfigProvider::set($dnp3ShareDeniedConfig);
+$dnp3ShareDenied = false;
+try {
+    (new Controller())->debugSend();
+} catch (ErrorException $e) {
+    $dnp3ShareDenied = $e->getMessage() === 'share api not allowed';
+}
+check('share scoped batch 3c relay denied', $dnp3ShareDenied);
 
 // 流式会话:start/poll/stop 全部走分享校验,且不被 init 拦截
 $shareStore->addApiShare([
