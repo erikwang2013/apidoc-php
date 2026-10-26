@@ -76,9 +76,7 @@ class HttpClient
             CURLOPT_CONNECTTIMEOUT_MS => (int)round(min($timeout, 10) * 1000),
             CURLOPT_HTTPHEADER => $headers,
             CURLOPT_ENCODING => '',
-            CURLOPT_HTTP_VERSION => $httpVersion === 2
-                ? static::versionOption($tls, $priorKnowledge)
-                : CURL_HTTP_VERSION_1_1,
+            CURLOPT_HTTP_VERSION => static::versionOptionFor($httpVersion, $tls, $priorKnowledge),
             CURLOPT_HEADERFUNCTION => function ($ch, string $line) use (&$status, &$responseHeaders, &$trailers, &$bodyStarted): int {
                 $trimmed = trim($line);
                 if ($trimmed === '') {
@@ -154,10 +152,47 @@ class HttpClient
         return CURL_HTTP_VERSION_2_0;
     }
 
+    /**
+     * @param int $httpVersion 1|2|3
+     * @return int curl 的 CURLOPT_HTTP_VERSION 值
+     */
+    public static function versionOptionFor(int $httpVersion, bool $tls, bool $priorKnowledge): int
+    {
+        if ($httpVersion === 3) {
+            // 3ONLY 避免 curl 静默回退到 HTTP/1.1 却仍声称 HTTP/3
+            if (defined('CURL_HTTP_VERSION_3ONLY')) {
+                return CURL_HTTP_VERSION_3ONLY;
+            }
+            return defined('CURL_HTTP_VERSION_3') ? CURL_HTTP_VERSION_3 : CURL_HTTP_VERSION_2_0;
+        }
+        if ($httpVersion === 2) {
+            return static::versionOption($tls, $priorKnowledge);
+        }
+        return CURL_HTTP_VERSION_1_1;
+    }
+
+    public static function http2Available(): bool
+    {
+        if (!function_exists('curl_version')) {
+            return false;
+        }
+        $version = curl_version();
+        return is_array($version) && (($version['features'] ?? 0) & CURL_VERSION_HTTP2) !== 0;
+    }
+
+    public static function http3Available(): bool
+    {
+        if (!function_exists('curl_version') || !defined('CURL_VERSION_HTTP3') || !defined('CURL_HTTP_VERSION_3')) {
+            return false;
+        }
+        $version = curl_version();
+        return is_array($version) && (($version['features'] ?? 0) & CURL_VERSION_HTTP3) !== 0;
+    }
+
     protected static function viaStream(array $options): array
     {
-        if ((int)($options['httpVersion'] ?? 1) === 2) {
-            return ['error' => 'HTTP/2 需要 curl 扩展'];
+        if ((int)($options['httpVersion'] ?? 1) >= 2) {
+            return ['error' => 'HTTP/2 and HTTP/3 require the curl extension'];
         }
         $method = strtoupper((string)($options['method'] ?? 'GET'));
         $timeout = max(0.1, (float)($options['timeout'] ?? 5));

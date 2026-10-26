@@ -54,6 +54,10 @@ class HttpRelayDriver implements DebugDriverInterface
         if (!in_array($target['scheme'], ['http', 'https'], true)) {
             return ['ok' => false, 'error' => 'http-relay 驱动仅支持 http/https 目标'];
         }
+        $unavailable = $this->unavailableError($target['scheme']);
+        if ($unavailable !== '') {
+            return ['ok' => false, 'error' => $unavailable];
+        }
         $method = $input['method'] ?? 'GET';
         if (!is_string($method)) {
             return ['ok' => false, 'error' => 'method 必须是字符串'];
@@ -77,14 +81,14 @@ class HttpRelayDriver implements DebugDriverInterface
         if ($query !== []) {
             $url .= (strpos($url, '?') === false ? '?' : '&') . http_build_query($query, '', '&', PHP_QUERY_RFC3986);
         }
-        $result = HttpClient::request([
+        $result = HttpClient::request(array_merge([
             'url' => $url,
             'method' => $method,
             'headers' => $input['headers'] ?? [],
             'body' => $body,
             'timeout' => (float)($context['timeout'] ?? 5),
             'maxBytes' => $maxBytes,
-        ]);
+        ], $this->httpOptions($target['scheme'])));
         if (isset($result['error'])) {
             return ['ok' => false, 'error' => $result['error']];
         }
@@ -96,5 +100,21 @@ class HttpRelayDriver implements DebugDriverInterface
             'trailers' => $result['trailers'],
             'meta' => ['durationMs' => (int)round((microtime(true) - $start) * 1000), 'bytes' => strlen($result['body'])],
         ];
+    }
+
+    /**
+     * @return array 追加到 HttpClient 的选项(HTTP 版本等)
+     */
+    protected function httpOptions(string $scheme): array
+    {
+        return [];
+    }
+
+    /**
+     * @return string 非空表示当前环境不支持该驱动
+     */
+    protected function unavailableError(string $scheme): string
+    {
+        return '';
     }
 }

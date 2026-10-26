@@ -4,9 +4,12 @@ declare(strict_types = 1);
 namespace erikwang2013\apidoc\protocol\debug;
 
 use erikwang2013\apidoc\protocol\debug\Driver\CoapDriver;
+use erikwang2013\apidoc\protocol\debug\Driver\DubboDriver;
 use erikwang2013\apidoc\protocol\debug\Driver\GrpcDriver;
 use erikwang2013\apidoc\protocol\debug\Driver\HessianDriver;
 use erikwang2013\apidoc\protocol\debug\Driver\HlsDriver;
+use erikwang2013\apidoc\protocol\debug\Driver\Http2Driver;
+use erikwang2013\apidoc\protocol\debug\Driver\Http3Driver;
 use erikwang2013\apidoc\protocol\debug\Driver\HttpRelayDriver;
 use erikwang2013\apidoc\protocol\debug\Driver\Iso8583Driver;
 use erikwang2013\apidoc\protocol\debug\Driver\ModbusTcpDriver;
@@ -15,6 +18,7 @@ use erikwang2013\apidoc\protocol\debug\Driver\RawDriver;
 use erikwang2013\apidoc\protocol\debug\Driver\RtspDriver;
 use erikwang2013\apidoc\protocol\debug\Driver\SipDriver;
 use erikwang2013\apidoc\protocol\debug\Driver\StompDriver;
+use erikwang2013\apidoc\protocol\debug\Driver\ThriftDriver;
 
 /**
  * 调试驱动注册表
@@ -38,6 +42,10 @@ class DebugRegistry
         'grpc' => GrpcDriver::class,
         'hessian' => HessianDriver::class,
         'hls' => HlsDriver::class,
+        'thrift' => ThriftDriver::class,
+        'dubbo' => DubboDriver::class,
+        'http2' => Http2Driver::class,
+        'http3' => Http3Driver::class,
     ];
 
     /**

@@ -10,6 +10,8 @@ use erikwang2013\apidoc\protocol\ProtocolPaths;
 use erikwang2013\apidoc\protocol\ProtocolRegistry;
 use erikwang2013\apidoc\protocol\debug\DebugRegistry;
 use erikwang2013\apidoc\protocol\debug\Driver\GrpcDriver;
+use erikwang2013\apidoc\protocol\debug\Driver\Http2Driver;
+use erikwang2013\apidoc\protocol\debug\Driver\Http3Driver;
 use erikwang2013\apidoc\utils\Cache;
 use ReflectionClass;
 use ReflectionMethod;
@@ -145,6 +147,12 @@ class ParseProtocol
         } elseif ($driver === 'grpc' && !GrpcDriver::available()) {
             $debuggable = false;
             $debugReason = 'curl HTTP/2 is required for gRPC';
+        } elseif ($driver === 'http2' && !Http2Driver::available()) {
+            $debuggable = false;
+            $debugReason = 'curl HTTP/2 is required for HTTP/2';
+        } elseif ($driver === 'http3' && !Http3Driver::available()) {
+            $debuggable = false;
+            $debugReason = 'curl HTTP/3 is required for HTTP/3';
         } else {
             $debuggable = true;
             $debugReason = '';

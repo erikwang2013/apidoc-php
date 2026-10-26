@@ -39,9 +39,8 @@ class ProtocolCatalog
         'udp' => ['label' => 'UDP', 'transport' => 'udp', 'http' => false, 'defaultDriver' => 'raw', 'defaultMode' => 'relay-unary'],
         'unix-socket' => ['label' => 'Unix Domain Socket', 'transport' => 'unix', 'http' => false, 'defaultDriver' => 'raw', 'defaultMode' => 'relay-unary'],
         'raw-socket' => ['label' => 'Raw Socket', 'transport' => 'tcp', 'http' => false, 'defaultDriver' => 'raw', 'defaultMode' => 'relay-unary'],
-        // P2: 专用驱动待后续计划,先回退到通用面板
-        'thrift' => ['label' => 'Thrift', 'transport' => 'tcp', 'http' => false, 'defaultDriver' => 'raw', 'defaultMode' => 'relay-unary'],
-        'dubbo' => ['label' => 'Dubbo', 'transport' => 'tcp', 'http' => false, 'defaultDriver' => 'raw', 'defaultMode' => 'relay-unary'],
+        'thrift' => ['label' => 'Thrift', 'transport' => 'tcp', 'http' => false, 'defaultDriver' => 'thrift', 'defaultMode' => 'relay-unary'],
+        'dubbo' => ['label' => 'Dubbo', 'transport' => 'tcp', 'http' => false, 'defaultDriver' => 'dubbo', 'defaultMode' => 'relay-unary'],
         'amqp' => ['label' => 'AMQP', 'transport' => 'tcp', 'http' => false, 'defaultDriver' => 'raw', 'defaultMode' => 'relay-unary'],
         'kafka' => ['label' => 'Kafka', 'transport' => 'tcp', 'http' => false, 'defaultDriver' => 'raw', 'defaultMode' => 'relay-unary'],
         // socket.io 回退到浏览器 WebSocket 面板,Engine.IO 驱动仍为 P2
@@ -61,8 +60,8 @@ class ProtocolCatalog
         'websocket-binary' => ['label' => 'WebSocket Binary', 'transport' => 'tcp', 'http' => false, 'defaultDriver' => 'websocket', 'defaultMode' => 'browser-websocket'],
         // publish/send 由 action 规则改判 relay-unary
         'stomp-binary' => ['label' => 'STOMP Binary', 'transport' => 'tcp', 'http' => false, 'defaultDriver' => 'stomp', 'defaultMode' => 'relay-stream'],
-        'http2' => ['label' => 'HTTP/2', 'transport' => 'http2', 'http' => true, 'defaultDriver' => 'http', 'defaultMode' => 'browser-http'],
-        'http3' => ['label' => 'HTTP/3', 'transport' => 'http3', 'http' => true, 'defaultDriver' => 'http', 'defaultMode' => 'browser-http'],
+        'http2' => ['label' => 'HTTP/2', 'transport' => 'http2', 'http' => true, 'defaultDriver' => 'http2', 'defaultMode' => 'relay-unary'],
+        'http3' => ['label' => 'HTTP/3', 'transport' => 'http3', 'http' => true, 'defaultDriver' => 'http3', 'defaultMode' => 'relay-unary'],
     ];
 
     /**

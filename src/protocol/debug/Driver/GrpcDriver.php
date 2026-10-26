@@ -29,11 +29,7 @@ class GrpcDriver implements DebugDriverInterface
      */
     public static function available(): bool
     {
-        if (!function_exists('curl_init') || !function_exists('curl_version')) {
-            return false;
-        }
-        $version = curl_version();
-        return is_array($version) && (($version['features'] ?? 0) & CURL_VERSION_HTTP2) !== 0;
+        return HttpClient::http2Available();
     }
 
     public function fields(array $context): array

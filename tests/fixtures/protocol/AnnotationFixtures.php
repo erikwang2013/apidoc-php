@@ -23,6 +23,42 @@ class GrpcFixture
     public function sayHello() {}
 }
 
+#[Protocol('thrift')]
+#[Debug(driver: 'thrift', target: 'tcp://127.0.0.1:19014', meta: ['method' => 'ping'])]
+class ThriftFixture
+{
+    #[Channel('ping', action: 'call')]
+    #[Title('Thrift ping')]
+    public function ping() {}
+}
+
+#[Protocol('dubbo')]
+#[Debug(driver: 'dubbo', target: 'tcp://127.0.0.1:19015', meta: ['method' => 'echo', 'service' => 'com.demo.Echo'])]
+class DubboFixture
+{
+    #[Channel('com.demo.Echo#echo', action: 'call')]
+    #[Title('Dubbo echo')]
+    public function echo() {}
+}
+
+#[Protocol('http2')]
+#[Debug(target: 'http://127.0.0.1:19016/echo')]
+class Http2Fixture
+{
+    #[Channel('/echo', action: 'call')]
+    #[Title('HTTP/2 echo')]
+    public function echo() {}
+}
+
+#[Protocol('http3')]
+#[Debug(target: 'https://127.0.0.1:19016/echo')]
+class Http3Fixture
+{
+    #[Channel('/echo', action: 'call')]
+    #[Title('HTTP/3 echo')]
+    public function echo() {}
+}
+
 #[Protocol('tcp')]
 class PositionalDebugFixture
 {

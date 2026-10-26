@@ -12,15 +12,19 @@ use erikwang2013\apidoc\parses\ParseProtocol;
 use erikwang2013\apidoc\protocol\debug\DebugProxy;
 use erikwang2013\apidoc\protocol\debug\DebugRegistry;
 use erikwang2013\apidoc\protocol\debug\Driver\CoapDriver;
+use erikwang2013\apidoc\protocol\debug\Driver\DubboDriver;
 use erikwang2013\apidoc\protocol\debug\Driver\GrpcDriver;
 use erikwang2013\apidoc\protocol\debug\Driver\HessianDriver;
 use erikwang2013\apidoc\protocol\debug\Driver\HlsDriver;
+use erikwang2013\apidoc\protocol\debug\Driver\Http2Driver;
+use erikwang2013\apidoc\protocol\debug\Driver\Http3Driver;
 use erikwang2013\apidoc\protocol\debug\Driver\Iso8583Driver;
 use erikwang2013\apidoc\protocol\debug\Driver\ModbusTcpDriver;
 use erikwang2013\apidoc\protocol\debug\Driver\MqttDriver;
 use erikwang2013\apidoc\protocol\debug\Driver\RtspDriver;
 use erikwang2013\apidoc\protocol\debug\Driver\SipDriver;
 use erikwang2013\apidoc\protocol\debug\Driver\StompDriver;
+use erikwang2013\apidoc\protocol\debug\Driver\ThriftDriver;
 use erikwang2013\apidoc\protocol\debug\Support\HttpClient;
 use erikwang2013\apidoc\protocol\debug\Support\Protobuf;
 use erikwang2013\apidoc\providers\BaseService;
@@ -33,6 +37,7 @@ use Tests\Fixtures\Protocol\ModbusDebugFixture;
 use Tests\Fixtures\Protocol\MqttPublishFixture;
 use Tests\Fixtures\Protocol\MqttSubscribeFixture;
 use Tests\Fixtures\Protocol\StompSubscribeFixture;
+use Tests\Fixtures\Protocol\ThriftFixture;
 
 error_reporting(E_ALL);
 $root = dirname(__DIR__);
@@ -121,10 +126,18 @@ startFixture([PHP_BINARY, $root . '/tests/fixtures/debug/rtsp_server.php', '127.
 startFixture([PHP_BINARY, $root . '/tests/fixtures/debug/sip_server.php', '127.0.0.1', '19010'], $logDir . '/apidoc-debug-sip.log');
 startFixture([PHP_BINARY, '-S', '127.0.0.1:19012', '-t', $root . '/tests/fixtures/debug/http'], $logDir . '/apidoc-debug-hls.log');
 startFixture([PHP_BINARY, '-S', '127.0.0.1:19013', $root . '/tests/fixtures/debug/hessian_server.php'], $logDir . '/apidoc-debug-hessian.log');
+startFixture([PHP_BINARY, $root . '/tests/fixtures/debug/thrift_server.php', '127.0.0.1', '19014'], $logDir . '/apidoc-debug-thrift.log');
+startFixture([PHP_BINARY, $root . '/tests/fixtures/debug/dubbo_server.php', '127.0.0.1', '19015'], $logDir . '/apidoc-debug-dubbo.log');
+startFixture([PHP_BINARY, $root . '/tests/fixtures/debug/h2_server.php', '127.0.0.1', '19016'], $logDir . '/apidoc-debug-h2.log');
+startFixture([PHP_BINARY, $root . '/tests/fixtures/debug/thrift_server.php', '127.0.0.1', '19017', 'silent'], $logDir . '/apidoc-debug-silent.log');
+startFixture([PHP_BINARY, $root . '/tests/fixtures/debug/thrift_server.php', '127.0.0.1', '19018', 'large'], $logDir . '/apidoc-debug-thrift-large.log');
+startFixture([PHP_BINARY, $root . '/tests/fixtures/debug/dubbo_server.php', '127.0.0.1', '19019', 'large'], $logDir . '/apidoc-debug-dubbo-large.log');
 usleep(100000);
 if (!waitPort('127.0.0.1', 19011) || !waitPort('127.0.0.1', 19005) || !waitPort('127.0.0.1', 19003) || !waitPort('127.0.0.1', 19004)
     || !waitPort('127.0.0.1', 19007) || !waitPort('127.0.0.1', 19008) || !waitPort('127.0.0.1', 19009)
-    || !waitPort('127.0.0.1', 19012) || !waitPort('127.0.0.1', 19013)) {
+    || !waitPort('127.0.0.1', 19012) || !waitPort('127.0.0.1', 19013)
+    || !waitPort('127.0.0.1', 19014) || !waitPort('127.0.0.1', 19015) || !waitPort('127.0.0.1', 19016)
+    || !waitPort('127.0.0.1', 19017) || !waitPort('127.0.0.1', 19018) || !waitPort('127.0.0.1', 19019)) {
     echo "FAIL  fixture 服务未就绪\n";
     exit(1);
 }
@@ -639,6 +652,144 @@ check('hessian fault returns error', ($hessianFault['ok'] ?? true) === false
 check('hessian rejects bad args json', ($hessian->send(['method' => 'x', 'args' => 'nope'], ['target' => 'http://127.0.0.1:19013/hessian_server.php'])['ok'] ?? true) === false);
 check('hessian rejects non-http target', ($hessian->send(['method' => 'x'], ['target' => 'tcp://127.0.0.1:19013'])['ok'] ?? true) === false);
 
+// ---------- thrift / dubbo / http2 / http3 驱动 ----------
+check('debug registry has batch 3a drivers', DebugRegistry::driver('thrift') instanceof ThriftDriver
+    && DebugRegistry::driver('dubbo') instanceof DubboDriver
+    && DebugRegistry::driver('http2') instanceof Http2Driver
+    && DebugRegistry::driver('http3') instanceof Http3Driver);
+check('thrift fields registered', !array_diff(['method', 'transport', 'schema', 'args', 'payload'], array_column(DebugRegistry::driverFields('thrift'), 'name')));
+check('dubbo fields registered', !array_diff(['service', 'method', 'version', 'param_types', 'args', 'payload'], array_column(DebugRegistry::driverFields('dubbo'), 'name')));
+check('http2 fields registered', !array_diff(['target', 'method', 'payload', 'headers'], array_column(DebugRegistry::driverFields('http2'), 'name')));
+check('http3 fields registered', in_array('target', array_column(DebugRegistry::driverFields('http3'), 'name'), true));
+check('thrift mode is relay unary', (new ThriftDriver())->mode() === 'relay-unary');
+check('dubbo mode is relay unary', (new DubboDriver())->mode() === 'relay-unary');
+check('http2 mode is relay unary', (new Http2Driver())->mode() === 'relay-unary');
+check('http3 mode is relay unary', (new Http3Driver())->mode() === 'relay-unary');
+
+$thrift = new ThriftDriver();
+$thriftParams = [['name' => 'n', 'field' => 1, 'type' => 'i32']];
+check('thrift call frame golden', bin2hex($thrift->buildFrame('ping', $thriftParams, ['n' => 7]))
+    === '800100010000000470696e67000000000800010000000700');
+check('thrift list frame golden', bin2hex($thrift->buildFrame('put', [['name' => 'items', 'field' => 1, 'type' => 'list<i32>']], ['items' => [1, 2]]))
+    === '8001000100000003707574000000000f00010800000002000000010000000200');
+$thriftReply = hex2bin('800100020000000470696e67000000000800000000002a00');
+check('thrift reply parse', $thrift->parseResponse($thriftReply, [['name' => 'result', 'field' => 0, 'type' => 'i32']]) === ['result' => 42]);
+$thriftNested = hex2bin('800100020000000470696e67000000000c00010b00010000000268690000');
+check('thrift nested struct decode', $thrift->parseResponse($thriftNested, [['name' => 'user', 'field' => 1, 'type' => 'struct', 'children' => [['name' => 'name', 'field' => 1, 'type' => 'string']]]])
+    === ['user' => ['name' => 'hi']]);
+$thriftException = false;
+try {
+    $thrift->parseResponse(hex2bin('8001000300000003657272000000000b000100000004626f6f6d00'));
+} catch (InvalidArgumentException $e) {
+    $thriftException = strpos($e->getMessage(), 'boom') !== false;
+}
+check('thrift exception frame decoded', $thriftException);
+$thriftThrew = false;
+try {
+    $thrift->buildFrame('x', [['name' => 'a', 'field' => 1, 'type' => 'nope']], ['a' => 1]);
+} catch (InvalidArgumentException $e) {
+    $thriftThrew = true;
+}
+check('thrift unknown type throws', $thriftThrew);
+check('thrift missing required param rejected', ($thrift->send(['method' => 'x', 'schema' => ['params' => [['name' => 'a', 'field' => 1, 'type' => 'i32', 'required' => true]]]], ['target' => 'tcp://127.0.0.1:19014'])['ok'] ?? true) === false);
+check('thrift missing method rejected', ($thrift->send([], ['target' => 'tcp://127.0.0.1:19014'])['ok'] ?? true) === false);
+check('thrift rejects udp target', ($thrift->send(['method' => 'x', 'payload' => '00'], ['target' => 'udp://127.0.0.1:19014'])['ok'] ?? true) === false);
+check('thrift rejects unknown transport', ($thrift->send(['method' => 'x', 'payload' => '00', 'transport' => 'ws'], ['target' => 'tcp://127.0.0.1:19014'])['ok'] ?? true) === false);
+$thriftSchema = ['returned' => [['name' => 'result', 'field' => 0, 'type' => 'i32']]];
+$thriftRes = $thrift->send(['method' => 'ping', 'schema' => $thriftSchema, 'args' => []], ['target' => 'tcp://127.0.0.1:19014', 'timeout' => 2]);
+check('thrift tcp send ok', ($thriftRes['ok'] ?? false) === true && json_decode((string)($thriftRes['body'] ?? ''), true) === ['result' => 42]);
+$thriftRaw = $thrift->send(['payload' => bin2hex($thrift->buildFrame('ping', [], [])), 'schema' => $thriftSchema], ['target' => 'tcp://127.0.0.1:19014', 'timeout' => 2]);
+check('thrift raw payload fallback', ($thriftRaw['ok'] ?? false) === true);
+$thriftHttp = $thrift->send(['method' => 'ping', 'transport' => 'http', 'schema' => $thriftSchema], ['target' => 'http://127.0.0.1:19005/thrift_server.php', 'timeout' => 2]);
+check('thrift http transport ok', ($thriftHttp['ok'] ?? false) === true && ($thriftHttp['meta']['status'] ?? 0) === 200);
+check('thrift request max bytes', ($thrift->send(['method' => 'ping', 'schema' => $thriftSchema], ['target' => 'tcp://127.0.0.1:19014', 'maxBytes' => 10])['ok'] ?? true) === false);
+$thriftTimeout = $thrift->send(['method' => 'ping', 'schema' => $thriftSchema], ['target' => 'tcp://127.0.0.1:19017', 'timeout' => 0.5]);
+check('thrift read timeout', ($thriftTimeout['ok'] ?? true) === false && ($thriftTimeout['error'] ?? '') === 'thrift read timed out');
+$thriftLarge = $thrift->send(['method' => 'ping', 'schema' => $thriftSchema], ['target' => 'tcp://127.0.0.1:19018', 'timeout' => 2, 'maxBytes' => 64]);
+check('thrift response max bytes', ($thriftLarge['ok'] ?? true) === false && ($thriftLarge['error'] ?? '') === 'thrift response exceeds max_bytes');
+
+$dubbo = new DubboDriver();
+check('dubbo frame golden', bin2hex($dubbo->frame(hex2bin('01026f6b'), 5))
+    === 'dabbc20000000000000000050000000401026f6b');
+check('dubbo request body golden', bin2hex($dubbo->encodeRequest('a', '', 'm', 'I', [7])) === '05322e302e32016100016d014997485a');
+check('dubbo descriptor count', $dubbo->countDescriptors('Ljava/lang/String;I[B') === 3
+    && $dubbo->countDescriptors('[[J') === 1
+    && $dubbo->countDescriptors('') === 0);
+$dubboThrew = false;
+try {
+    $dubbo->countDescriptors('Ljava/lang/String');
+} catch (InvalidArgumentException $e) {
+    $dubboThrew = true;
+}
+check('dubbo invalid descriptor throws', $dubboThrew);
+check('dubbo response value flag', $dubbo->parseResponse("\x01\x02ok") === 'ok');
+check('dubbo response null flag', $dubbo->parseResponse("\x02") === null);
+$dubboException = false;
+try {
+    $dubbo->parseResponse("\x00" . $hessian->encodeMap(['detailMessage' => 'boom']));
+} catch (InvalidArgumentException $e) {
+    $dubboException = strpos($e->getMessage(), 'boom') !== false;
+}
+check('dubbo exception flag decoded', $dubboException);
+check('dubbo unknown flag throws', (function () use ($dubbo) {
+    try {
+        $dubbo->parseResponse("\x09");
+    } catch (InvalidArgumentException $e) {
+        return true;
+    }
+    return false;
+})());
+check('dubbo rejects args without param_types', ($dubbo->send(['service' => 's', 'method' => 'm', 'args' => [1]], ['target' => 'tcp://127.0.0.1:19015'])['ok'] ?? true) === false);
+check('dubbo rejects descriptor mismatch', ($dubbo->send(['service' => 's', 'method' => 'm', 'param_types' => 'I', 'args' => [1, 2]], ['target' => 'tcp://127.0.0.1:19015'])['ok'] ?? true) === false);
+check('dubbo rejects missing service', ($dubbo->send(['method' => 'm'], ['target' => 'tcp://127.0.0.1:19015'])['ok'] ?? true) === false);
+check('dubbo rejects udp target', ($dubbo->send(['service' => 's', 'method' => 'm', 'payload' => '00'], ['target' => 'udp://127.0.0.1:19015'])['ok'] ?? true) === false);
+$dubboRes = $dubbo->send(['service' => 'com.demo.Echo', 'method' => 'echo', 'param_types' => 'I', 'args' => [7]], ['target' => 'tcp://127.0.0.1:19015', 'timeout' => 2]);
+check('dubbo tcp send ok', ($dubboRes['ok'] ?? false) === true && json_decode((string)($dubboRes['body'] ?? ''), true) === 'ok');
+check('dubbo response meta status', ($dubboRes['meta']['x-dubbo-status'] ?? 0) === 20);
+$dubboBadMagic = $dubbo->send(['service' => 's', 'method' => 'm', 'param_types' => 'I', 'args' => [7]], ['target' => 'tcp://127.0.0.1:19014', 'timeout' => 2]);
+check('dubbo rejects invalid response magic', ($dubboBadMagic['ok'] ?? true) === false && ($dubboBadMagic['error'] ?? '') === 'dubbo: invalid response magic');
+check('dubbo request max bytes', ($dubbo->send(['service' => 's', 'method' => 'm', 'param_types' => 'I', 'args' => [7]], ['target' => 'tcp://127.0.0.1:19015', 'maxBytes' => 10])['ok'] ?? true) === false);
+$dubboTimeout = $dubbo->send(['service' => 's', 'method' => 'm', 'param_types' => 'I', 'args' => [7]], ['target' => 'tcp://127.0.0.1:19017', 'timeout' => 0.5]);
+check('dubbo read timeout', ($dubboTimeout['ok'] ?? true) === false && ($dubboTimeout['error'] ?? '') === 'dubbo read timed out');
+$dubboLarge = $dubbo->send(['service' => 's', 'method' => 'm', 'param_types' => 'I', 'args' => [7]], ['target' => 'tcp://127.0.0.1:19019', 'timeout' => 2, 'maxBytes' => 128]);
+check('dubbo response max bytes', ($dubboLarge['ok'] ?? true) === false && ($dubboLarge['error'] ?? '') === 'dubbo response exceeds max_bytes');
+
+$http2 = new Http2Driver();
+check('http2 availability matches curl', Http2Driver::available() === HttpClient::http2Available());
+check('http3 availability matches curl', Http3Driver::available() === HttpClient::http3Available());
+check('http3 option avoids silent downgrade', !defined('CURL_HTTP_VERSION_3ONLY')
+    || HttpClient::versionOptionFor(3, true, false) === CURL_HTTP_VERSION_3ONLY);
+if (Http2Driver::available()) {
+    $http2Res = $http2->send([], ['target' => 'http://127.0.0.1:19016/echo', 'timeout' => 2]);
+    check('http2 h2c send ok', ($http2Res['ok'] ?? false) === true && ($http2Res['body'] ?? '') === 'h2-ok' && ($http2Res['status'] ?? 0) === 200);
+} else {
+    $http2Res = $http2->send([], ['target' => 'http://127.0.0.1:19016/echo', 'timeout' => 2]);
+    check('http2 unavailable fails clearly', ($http2Res['ok'] ?? true) === false && strpos((string)($http2Res['error'] ?? ''), 'HTTP/2 unavailable') !== false);
+}
+check('http2 rejects non-http target', ($http2->send([], ['target' => 'tcp://127.0.0.1:19016'])['ok'] ?? true) === false);
+check('http3 requires https', (new Http3Driver())->send([], ['target' => 'http://127.0.0.1:19016/echo'])['error'] === 'HTTP/3 requires an https:// target');
+if (!Http3Driver::available()) {
+    $http3Res = (new Http3Driver())->send([], ['target' => 'https://127.0.0.1:19016/echo', 'timeout' => 1]);
+    check('http3 unavailable fails clearly', ($http3Res['ok'] ?? true) === false && strpos((string)($http3Res['error'] ?? ''), 'HTTP/3 unavailable') !== false);
+}
+
+$thriftProxyInput = [
+    'method' => 'ping',
+    'schema' => ['returned' => [['name' => 'result', 'field' => 0, 'type' => 'i32']]],
+    'args' => [],
+    'timeout' => 2,
+];
+$thriftProxy = (new DebugProxy($config))->send('api', ThriftFixture::class . '@ping', $thriftProxyInput);
+check('new driver relay through app scope', ($thriftProxy['ok'] ?? false) === true
+    && json_decode((string)($thriftProxy['body'] ?? ''), true) === ['result' => 42]);
+$scopeConfig = $config;
+$scopeConfig['apps'][] = ['key' => 'other', 'title' => 'Other', 'path' => 'tests/fixtures/other'];
+ConfigProvider::set($scopeConfig);
+$thriftProxyDenied = (new DebugProxy($scopeConfig))->send('other', ThriftFixture::class . '@ping', $thriftProxyInput);
+ConfigProvider::set($config);
+check('new driver relay denied outside app scope', ($thriftProxyDenied['ok'] ?? true) === false
+    && strpos((string)($thriftProxyDenied['error'] ?? ''), 'scope') !== false);
+
 // ---------- 控制器端点 ----------
 $controllerConfig = $config;
 // auth 全局关闭且 app 无密码时 token 不会被校验,这些用例刻意使用匿名/占位 token
@@ -730,6 +881,35 @@ try {
     $shareDetailDenied = $e->getMessage() === 'share api not allowed';
 }
 check('share api key disallowed for getApiDetail', $shareDetailDenied);
+
+// 新增驱动的分享范围:api 类型分享只能访问 apiKeys 内的接口
+$shareStore->addApiShare([
+    'key' => 'thrift-api-share',
+    'name' => 'Thrift API share',
+    'type' => 'api',
+    'apiKeys' => [urlencode(ThriftFixture::class . '@ping')],
+]);
+$thriftShareConfig = $shareConfig;
+$thriftShareConfig['request_params'] = [
+    'appKey' => 'api',
+    'path' => ThriftFixture::class . '@ping',
+    'shareKey' => 'thrift-api-share',
+    'input' => $thriftProxyInput,
+];
+ConfigProvider::set($thriftShareConfig);
+$thriftShare = (new Controller())->debugSend();
+check('share scoped new driver relay allowed', ($thriftShare['data']['ok'] ?? false) === true
+    && json_decode((string)($thriftShare['data']['body'] ?? ''), true) === ['result' => 42]);
+$thriftShareDeniedConfig = $thriftShareConfig;
+$thriftShareDeniedConfig['request_params']['shareKey'] = 'denied-api-share';
+ConfigProvider::set($thriftShareDeniedConfig);
+$thriftShareDenied = false;
+try {
+    (new Controller())->debugSend();
+} catch (ErrorException $e) {
+    $thriftShareDenied = $e->getMessage() === 'share api not allowed';
+}
+check('share scoped new driver relay denied', $thriftShareDenied);
 
 // 流式会话:start/poll/stop 全部走分享校验,且不被 init 拦截
 $shareStore->addApiShare([
