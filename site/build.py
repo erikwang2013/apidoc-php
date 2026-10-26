@@ -101,8 +101,8 @@ DOCS = {
         "h1": {"zh": "PHP API 文档使用指南", "en": "PHP API Documentation Guide"},
         "tagline": {"zh": "PHP 8 attributes 驱动的 API 文档", "en": "Attribute-driven API docs for PHP 8"},
         "summary": {
-            "zh": "在 Laravel、ThinkPHP、Hyperf、Webman、Yii2、Yii3 中写 PHP 8 attributes，自动生成可浏览、可调试、可导出的接口文档；支持任意协议调试与协议定义解析。",
-            "en": "Write PHP 8 attributes in Laravel, ThinkPHP, Hyperf, Webman, Yii2 or Yii3 and get a browsable, debuggable, exportable API portal, with arbitrary protocol debugging and definition parsing.",
+            "zh": "在 Laravel、ThinkPHP、Hyperf、Webman、Yii2、Yii3 中写 PHP 8 attributes，自动生成可浏览、可调试、可导出的接口文档；27 个协议驱动、9 种定义解析与 UIC-1 统一 UI。",
+            "en": "Write PHP 8 attributes in Laravel, ThinkPHP, Hyperf, Webman, Yii2 or Yii3 and get a browsable, debuggable, exportable API portal, with 27 protocol drivers, 9 definition formats and the shared UIC-1 UI.",
         },
         "seo_title": {
             "zh": "PHP API 文档生成指南 · Laravel / ThinkPHP / Hyperf · Apidoc",
@@ -247,8 +247,8 @@ DOCS = {
             "en": ["Build and deploy", "config.js runtime config", "UIC-1 multi-backend discovery", "Debug, sharing, cache and troubleshooting"],
         },
         "facts": {
-            "zh": ["Vue 3.5 + TypeScript", "UIC-1 后端自动识别", "协议调试面板与定义展示", "纯静态构建产物"],
-            "en": ["Vue 3.5 + TypeScript", "UIC-1 backend discovery", "Protocol panels and definitions", "Static build output"],
+            "zh": ["Vue 3.5 + TypeScript", "UIC-1 Contract 1.0", "共享 UI 打包 / 自动识别", "协议、分享、缓存与导出"],
+            "en": ["Vue 3.5 + TypeScript", "UIC-1 Contract 1.0", "Packaged UI / auto-discovery", "Protocols, sharing, cache, exports"],
         },
         "frameworks": "Vue 3.5 · Vite 6 · Pinia · Monaco",
     },

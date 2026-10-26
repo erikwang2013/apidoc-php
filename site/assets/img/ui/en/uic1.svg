@@ -28,35 +28,38 @@
   <path d="M 560 280 L 560 302" stroke="#B9B1E8" stroke-width="2" stroke-linecap="round"/>
 
   <!-- backends -->
-  <rect x="48" y="316" width="320" height="164" rx="16" fill="#FFFFFF" stroke="#E3DFF7" stroke-width="2"/>
+  <rect x="48" y="316" width="320" height="178" rx="16" fill="#FFFFFF" stroke="#E3DFF7" stroke-width="2"/>
   <text x="72" y="350" font-family="Noto Sans Mono CJK SC, monospace" font-size="20" font-weight="700" fill="#3B3663">PHP</text>
   <text x="72" y="378" font-family="Noto Sans CJK SC, sans-serif" font-size="13" fill="#5C5680">read / auth / docs</text>
   <text x="72" y="401" font-family="Noto Sans CJK SC, sans-serif" font-size="13" fill="#5C5680">browser + relay debug</text>
   <text x="72" y="424" font-family="Noto Sans CJK SC, sans-serif" font-size="13" fill="#5C5680">share / cache / generator</text>
-  <text x="72" y="447" font-family="Noto Sans CJK SC, sans-serif" font-size="13" fill="#5C5680">9 definition formats · 27 debug drivers</text>
-  <rect x="264" y="332" width="76" height="24" rx="12" fill="#DCF6E6"/>
-  <text x="302" y="349" text-anchor="middle" font-family="Noto Sans CJK SC, sans-serif" font-size="11" fill="#277A4E">full</text>
+  <text x="72" y="447" font-family="Noto Sans CJK SC, sans-serif" font-size="13" fill="#5C5680">9 definition formats</text>
+  <text x="72" y="470" font-family="Noto Sans CJK SC, sans-serif" font-size="13" fill="#5C5680">27 debug drivers</text>
+  <rect x="264" y="332" width="84" height="24" rx="12" fill="#DCF6E6"/>
+  <text x="306" y="349" text-anchor="middle" font-family="Noto Sans CJK SC, sans-serif" font-size="11" fill="#277A4E">v1.2.0</text>
 
-  <rect x="400" y="316" width="320" height="164" rx="16" fill="#FFFFFF" stroke="#E3DFF7" stroke-width="2"/>
+  <rect x="400" y="316" width="320" height="178" rx="16" fill="#FFFFFF" stroke="#E3DFF7" stroke-width="2"/>
   <text x="424" y="350" font-family="Noto Sans Mono CJK SC, monospace" font-size="20" font-weight="700" fill="#3B3663">Go</text>
   <text x="424" y="378" font-family="Noto Sans CJK SC, sans-serif" font-size="13" fill="#5C5680">read / auth / docs</text>
-  <text x="424" y="401" font-family="Noto Sans CJK SC, sans-serif" font-size="13" fill="#5C5680">browser + relay debug</text>
+  <text x="424" y="401" font-family="Noto Sans CJK SC, sans-serif" font-size="13" fill="#5C5680">browser + relay (build tags)</text>
   <text x="424" y="424" font-family="Noto Sans CJK SC, sans-serif" font-size="13" fill="#5C5680">share / cache / generator</text>
-  <text x="424" y="447" font-family="Noto Sans CJK SC, sans-serif" font-size="13" fill="#277A4E">server relay / executors</text>
-  <rect x="616" y="332" width="76" height="24" rx="12" fill="#DCF6E6"/>
-  <text x="654" y="349" text-anchor="middle" font-family="Noto Sans CJK SC, sans-serif" font-size="11" fill="#277A4E">full</text>
+  <text x="424" y="447" font-family="Noto Sans CJK SC, sans-serif" font-size="13" fill="#5C5680">9 definition formats</text>
+  <text x="424" y="470" font-family="Noto Sans CJK SC, sans-serif" font-size="13" fill="#5C5680">UIPath built-in Vue UI</text>
+  <rect x="616" y="332" width="84" height="24" rx="12" fill="#FFF0D8"/>
+  <text x="658" y="349" text-anchor="middle" font-family="Noto Sans CJK SC, sans-serif" font-size="11" fill="#9A5B00">v1.1.0</text>
 
-  <rect x="752" y="316" width="320" height="164" rx="16" fill="#FFFFFF" stroke="#E3DFF7" stroke-width="2"/>
+  <rect x="752" y="316" width="320" height="178" rx="16" fill="#FFFFFF" stroke="#E3DFF7" stroke-width="2"/>
   <text x="776" y="350" font-family="Noto Sans Mono CJK SC, monospace" font-size="20" font-weight="700" fill="#3B3663">Rust</text>
   <text x="776" y="378" font-family="Noto Sans CJK SC, sans-serif" font-size="13" fill="#5C5680">read / auth / docs</text>
-  <text x="776" y="401" font-family="Noto Sans CJK SC, sans-serif" font-size="13" fill="#5C5680">browser + relay debug</text>
-  <text x="776" y="424" font-family="Noto Sans CJK SC, sans-serif" font-size="13" fill="#5C5680">share / build cache / generator</text>
-  <text x="776" y="447" font-family="Noto Sans CJK SC, sans-serif" font-size="13" fill="#5C5680">9 definitions / Vue UI</text>
-  <rect x="968" y="332" width="76" height="24" rx="12" fill="#DCF6E6"/>
-  <text x="1006" y="349" text-anchor="middle" font-family="Noto Sans CJK SC, sans-serif" font-size="11" fill="#277A4E">full</text>
+  <text x="776" y="401" font-family="Noto Sans CJK SC, sans-serif" font-size="13" fill="#5C5680">browser + unary relay</text>
+  <text x="776" y="424" font-family="Noto Sans CJK SC, sans-serif" font-size="13" fill="#5C5680">share / build cache / templates</text>
+  <text x="776" y="447" font-family="Noto Sans CJK SC, sans-serif" font-size="13" fill="#5C5680">9 definition formats / AsyncAPI</text>
+  <text x="776" y="470" font-family="Noto Sans CJK SC, sans-serif" font-size="13" fill="#5C5680">ui_path Vue + native UI</text>
+  <rect x="968" y="332" width="84" height="24" rx="12" fill="#FFF0D8"/>
+  <text x="1010" y="349" text-anchor="middle" font-family="Noto Sans CJK SC, sans-serif" font-size="11" fill="#9A5B00">v2.2.0</text>
 
-  <!-- status / footer -->
-  <rect x="48" y="500" width="1024" height="38" rx="10" fill="#FFFFFF" stroke="#E3DFF7"/>
-  <text x="68" y="524" font-family="Noto Sans CJK SC, sans-serif" font-size="13" fill="#5C5680">UIC-1 complete: read / auth / docs / debug / share / cache / generator / export</text>
-  <text x="1024" y="524" text-anchor="end" font-family="Noto Sans CJK SC, sans-serif" font-size="13" fill="#277A4E">Go executors · 9 definitions · shared Vue UI</text>
+  <!-- footer -->
+  <rect x="48" y="510" width="1024" height="32" rx="10" fill="#FFFFFF" stroke="#E3DFF7"/>
+  <text x="68" y="531" font-family="Noto Sans CJK SC, sans-serif" font-size="12.5" fill="#5C5680">Contract 1.0: read / auth / docs / debug / share / cache / generator / export / definitions</text>
+  <text x="1024" y="531" text-anchor="end" font-family="Noto Sans CJK SC, sans-serif" font-size="12.5" fill="#C0392B">Capabilities are exact · Rust build cache / templates only</text>
 </svg>
