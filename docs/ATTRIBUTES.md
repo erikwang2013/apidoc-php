@@ -696,7 +696,7 @@ class ApiDocTest
 
 ## 十一、任意协议调试（Protocol / Channel / Debug / Definition）
 
-HTTP 之外的接口（MQTT、STOMP、gRPC、TCP/UDP 等）也可以用注解声明协议身份，详情页会按同一套字段表生成调试面板。方法仍需至少一个方法级注解（如 `Title`/`Param`/`Method`）才会被收录；类级 `Protocol`/`Channel`/`Debug`/`Definition` 只被已收录的方法继承，方法级非空字段覆盖类级同名字段。
+HTTP 之外的接口（MQTT、STOMP、Kafka、AMQP、gRPC、Thrift、Dubbo、HTTP/2、HTTP/3、工业总线、媒体流等）也可以用注解声明协议身份，详情页会按同一套字段表生成调试面板。方法仍需至少一个方法级注解（如 `Title`/`Param`/`Method`）才会被收录；类级 `Protocol`/`Channel`/`Debug`/`Definition` 只被已收录的方法继承，方法级非空字段覆盖类级同名字段。
 
 ![任意协议调试：浏览器直连、协议注解与服务端中继](../assets/protocol-debug.svg)
 
@@ -729,12 +729,12 @@ class GreeterController
 | - | - | - |
 | `Protocol` | 协议 id（位置参数/`name`） | 如 `mqtt`、`grpc`、`tcp`；缺省从 `ProtocolCatalog` 推导 label/transport/驱动 |
 | | `version` | 协议版本 |
-| | `transport` | 传输层：`http` `tcp` `udp` `http2` `unix`，缺省取协议目录 |
+| | `transport` | 传输层：`http` `tcp` `udp` `http2` `http3` `unix`，缺省取协议目录 |
 | | `mode` | 协议模式（如 `unary`、`pub_sub`），缺省取协议目录 |
 | `Channel` | 地址（位置参数/`address`） | 主题/路径/服务方法，如 `/sensors/+/temp`、`helloworld.Greeter/SayHello` |
 | | `action` | `call` `publish` `subscribe` `send` `receive` `request` `response` `notify` `webhook`；MQTT/STOMP 的 `publish`/`send` 走单次中继，`subscribe`/`receive` 走流式会话 |
 | | `meta` | 协议专属信息（`qos`、`exchange`、`routingKey`、`service`、`method` 等） |
-| `Debug` | 驱动（位置参数/`driver`） | `auto` `http` `websocket` `sse` `raw` `http-relay` `mqtt` `stomp` `coap` `modbus-tcp` `iso8583` `rtsp` `sip` `grpc` `hessian` `hls`；`auto` 按协议目录推导 |
+| `Debug` | 驱动（位置参数/`driver`） | `auto` `http` `websocket` `sse` `raw` `http-relay` `mqtt` `stomp` `coap` `modbus-tcp` `iso8583` `rtsp` `sip` `grpc` `hessian` `hls` `thrift` `dubbo` `http2` `http3` `amqp` `kafka` `xmpp` `dnp3` `iec104` `bacnet` `opcua` `rtp` `rtcp` `rtmp` `lwm2m`；`auto` 按协议目录推导 |
 | | `target` | 调试目标（URL 或 `tcp://host:port`/`udp://host:port`/`unix:///path`）；为空时取 `Channel.address`，再取 `Url` |
 | | `encoding` | 请求体编码：`text` `json` `hex` `base64`，默认 `text` |
 | | `timeout` | 超时秒数，默认 5，受配置 `max_timeout` 上限约束 |
@@ -746,43 +746,39 @@ class GreeterController
 
 | `debug.mode` | 执行位置 | 适用协议 |
 | - | - | - |
-| `browser-http` | 浏览器直接发 HTTP | HTTP/REST/SOAP/GraphQL/JSON-RPC/XML-RPC/OData/MCP/A2A/Webhooks 等，沿用原有在线调试面板 |
-| `browser-websocket` | 浏览器原生 WebSocket | WebSocket |
+| `browser-http` | 浏览器直接发 HTTP | HTTP/REST/SOAP/GraphQL/JSON-RPC/XML-RPC/OData/MCP/A2A/Webhooks，沿用原有在线调试面板；HLS 由浏览器预览，不进入中继 |
+| `browser-websocket` | 浏览器原生 WebSocket | WebSocket；`websocket-binary`/`socket.io` 使用原始帧回退 |
 | `browser-sse` | 浏览器 EventSource | SSE |
-| `relay-unary` | 服务端 `POST /debugSend` 发一次请求并返回 | TCP/UDP/Unix Socket、MQTT/STOMP 发布、CoAP、Modbus TCP、ISO 8583、RTSP、SIP、gRPC、Hessian、HLS 等 |
-| `relay-stream` | `POST /debugStart` 建会话，`POST /debugPoll` 长轮询取消息，`POST /debugStop` 结束 | MQTT/STOMP 订阅 |
+| `relay-unary` | 服务端 `POST /debugSend` 发一次请求并返回 | TCP/UDP/Unix Socket、MQTT/STOMP 发布、CoAP、Modbus TCP、ISO 8583、RTSP、SIP、gRPC、Hessian、Thrift、Dubbo、HTTP/2、HTTP/3、AMQP、Kafka、XMPP、DNP3、IEC 104、BACnet、OPC UA、RTP、RTCP、RTMP、LwM2M、二进制 HTTP Body |
+| `relay-stream` | `POST /debugStart` 建会话，`POST /debugPoll` 长轮询取消息，`POST /debugStop` 结束 | MQTT/STOMP 订阅、`stomp-binary` 接收 |
 
 浏览器模式不经过服务端，受浏览器同源/CORS 限制；中继模式由服务端发起连接，因此**默认关闭**。
 
-### 协议覆盖与回退
+### 协议覆盖
 
-P1 已有专用驱动的协议使用专用面板；其余协议在 P2 专用驱动落地前回退到通用面板（`webrtc`/`webrtc-datachannel` 除外，见下表）。**通用面板不实现协议语义**：`raw` 只按 `text`/`hex`/`base64` 发送原始字节，HTTP 中继只发普通 HTTP 请求，浏览器 WebSocket 只收发 WebSocket 帧，报文内容需自行编码。
+当前注册 **27 个调试驱动**。协议详情页按 `ProtocolCatalog` 选择浏览器面板或服务端中继面板：
 
-| 协议 id | P1 专用驱动 | P2 通用回退 |
+| 协议 id | 驱动 | 调试方式 |
 | - | - | - |
-| `http` `rest` `soap` `graphql` `json-rpc` `xml-rpc` `webhooks` `odata` `mcp` `a2a` | `http`（浏览器 HTTP 面板） | — |
-| `websocket` | `websocket`（浏览器 WebSocket） | — |
-| `sse` | `sse`（浏览器 EventSource） | — |
-| `mqtt` | `mqtt`（发布单次中继、订阅流式） | — |
-| `stomp` | `stomp`（发布单次中继、订阅流式） | — |
-| `coap` | `coap` | — |
-| `modbus-tcp` | `modbus-tcp` | — |
-| `iso8583` | `iso8583` | — |
-| `rtsp` | `rtsp` | — |
-| `sip` | `sip` | — |
-| `hls` | `hls` | — |
-| `grpc` | `grpc` | — |
-| `hessian` | `hessian` | — |
-| `tcp` `udp` `unix-socket` `raw-socket` | `raw` | — |
-| `thrift` `dubbo` `amqp` `kafka` `xmpp` `rtmp` `opc-ua` `dnp3` `iec-104` `lwm2m` `rtp` `rtcp` `bacnet-ip` | 无 | `raw`（TCP/UDP/UDS 文本/hex/base64） |
-| `binary-body` | 无 | `http-relay`（单次 HTTP 中继） |
-| `websocket-binary` | 无 | 浏览器 WebSocket |
-| `socket.io` | 无 | 浏览器 WebSocket 原始回退（Engine.IO 专用驱动仍为 P2） |
-| `stomp-binary` | 无 | `stomp`（`publish`/`send` 走单次中继，`receive` 走流式） |
-| `http2` `http3` | 无 | 浏览器 HTTP（不实现 HTTP/2、HTTP/3 语义） |
-| `webrtc` `webrtc-datachannel` | 无 | 无（需手动 SDP/信令，P2；面板只读并提示原因） |
+| `http` `rest` `soap` `graphql` `json-rpc` `xml-rpc` `webhooks` `odata` `mcp` `a2a` | `http` | 浏览器 HTTP |
+| `websocket` | `websocket` | 浏览器 WebSocket |
+| `sse` | `sse` | 浏览器 EventSource |
+| `hls` | `hls` | 浏览器 HLS 预览（不进入服务端中继） |
+| `mqtt` `stomp` | `mqtt` / `stomp` | 中继：发布/发送单次，订阅/接收流式 |
+| `kafka` `amqp` `xmpp` | 同名驱动 | 中继：单次 |
+| `grpc` `thrift` `dubbo` `hessian` | 同名驱动 | 中继：单次 |
+| `http2` `http3` | `http2` / `http3` | 中继：真实 HTTP/2、HTTP/3 请求 |
+| `coap` `modbus-tcp` `iso8583` `rtsp` `sip` `dnp3` `iec104` `bacnet` `opcua` `rtp` `rtcp` `rtmp` `lwm2m` | 同名驱动 | 中继：单次 |
+| `tcp` `udp` `unix-socket` `raw-socket` | `raw` | 中继：文本/hex/base64 原始报文 |
+| `binary-body` | `http-relay` | 中继：普通 HTTP 请求 |
+| `websocket-binary` `socket.io` | `websocket` | 浏览器 WebSocket 原始帧回退（Engine.IO 专用驱动未实现） |
+| `stomp-binary` | `stomp` | 中继：发送单次，接收流式 |
+| `webrtc` `webrtc-datachannel` | 无 | 只读面板（需手动 SDP/信令） |
 
-回退协议沿用 `Debug.target` → `Channel.address` → `Url` 的目标推导；`raw`/`http-relay`/`stomp` 需要开启 `protocols.debug.relay_enable`，浏览器 HTTP/WebSocket 面板不需要中继。
+- 协议 id 与驱动名不一致的别名（`iec-104`、`opc-ua`、`bacnet-ip`、`modbus`）自动映射到对应驱动。
+- `http2` / `http3` 执行真实 HTTP/2、HTTP/3 请求；宿主 curl 缺少对应支持时，`capabilities` 会自动省略该驱动。
+- `raw` 只用于 TCP/UDP/Unix Socket 等原始套接字，按 `text`/`hex`/`base64` 发送原始字节；`http-relay` 只用于 `binary-body`；浏览器 WebSocket 只收发 WebSocket 帧。通用面板不实现协议语义，报文内容需自行编码。
+- 中继目标沿用 `Debug.target` → `Channel.address` → `Url` 推导；所有中继驱动需要开启 `protocols.debug.relay_enable`，浏览器 HTTP/WebSocket/SSE/HLS 面板不需要中继。
 
 ### 中继安全
 
@@ -790,7 +786,7 @@ P1 已有专用驱动的协议使用专用面板；其余协议在 P2 专用驱�
 - **目标只来自注解**：中继每次按 `appKey + path` 重新解析接口注解，目标取 `Debug.target` → `Channel.address` → `Url`；请求体里的 `target`/`host`/`port` 一律丢弃，客户端无法改变连接目标。
 - **鉴权**：`relay_require_auth` 默认 `true`（配置缺失也按 `true` 处理），请求必须携带 `token` 或 `shareKey`；流式会话与会话拉取绑定同一鉴权标识，其他 token 无法读取。
 - **限制**：每 token/shareKey 每分钟 `rate_limit_per_minute` 次；单次超时上限 `max_timeout` 秒、默认 5 秒；请求/响应各 `max_bytes` 字节；每 token 同时最多 `max_sessions` 个流式会话；会话 60 秒无操作过期。
-- **原始套接字回退**：没有专用驱动的协议默认回退到通用面板（见上表），也可用 `#[Debug(driver: 'raw', target: 'tcp://host:port')]` 显式覆盖，用 `tcp://`/`udp://`/`unix:///` 目标按 `text`/`hex`/`base64` 收发原始报文；`debuggable=false` 的面板只读展示字段，发送按钮禁用。
+- **原始套接字**：`tcp`/`udp`/`unix-socket`/`raw-socket` 默认使用 `raw` 驱动，也可用 `#[Debug(driver: 'raw', target: 'tcp://host:port')]` 显式覆盖，用 `tcp://`/`udp://`/`unix:///` 目标按 `text`/`hex`/`base64` 收发原始报文；`debuggable=false` 的面板只读展示字段，发送按钮禁用。
 - **部署注意**：`debugPoll` 为长轮询，单次最多占用一个 PHP worker 25 秒（`min(25, max_timeout)`）。部署时需把 `max_execution_time`/PHP-FPM `request_terminate_timeout` 调到 30 秒以上，并限制 FPM 进程数与中继并发，否则少量调试客户端即可占满 worker。
 
 配置示例（默认值，全部可省略）：
@@ -815,7 +811,7 @@ P1 已有专用驱动的协议使用专用面板；其余协议在 P2 专用驱�
 ],
 ```
 
-依赖提示：`ext-dom` 用于 WSDL/XSD/EDMX 定义解析，`ext-curl` 用于 gRPC 与部分驱动的 HTTP 中继；缺少 `ext-curl` 或 curl 未启用 HTTP/2 时，gRPC 面板会标记为不可调试并给出原因。
+依赖提示：`ext-dom` 用于 WSDL/XSD/EDMX 定义解析；`ext-curl` 用于 gRPC、HTTP/2、HTTP/3 以及 `http-relay`/HLS 等 HTTP 类驱动。缺少 `ext-curl` 或 curl 未启用对应 HTTP 版本时，相关面板会标记为不可调试并给出原因。
 
 ## 十二、协议定义解析（Definition）
 
@@ -847,7 +843,7 @@ public function sayHello() {}
 | `sampleEncoding` | 二进制样例编码：`hex`/`base64`/`text` |
 | `strict` | `true`（默认）把不支持的语法记为 error；`false` 降级为 warning 并返回已解析部分 |
 
-### 2、支持的格式（P1）
+### 2、支持的格式（9 种）
 
 | 格式 | 典型文件 | 说明 |
 | --- | --- | --- |
@@ -873,7 +869,7 @@ public function sayHello() {}
 
 ### 4、import 与安全
 
-- 只解析本地文件；`proto import`、`thrift include`（P2）、OpenAPI/AsyncAPI/JSON Schema `$ref`、WSDL/XSD import/include、GraphQL `#import` 均受 `allowed_roots` 限制。
+- 只解析本地文件；`proto import`、OpenAPI/AsyncAPI/JSON Schema `$ref`、WSDL/XSD import/include、GraphQL `#import` 均受 `allowed_roots` 限制。
 - 默认只允许 `APIDOC_ROOT_PATH`；不会发起网络请求。
 - 路径先做词法校验，再对 `realpath` 结果做根目录二次校验；指向根目录外的软链会被拒绝，不会读取目标内容。
 - 外部文档中的本地 `$ref`（`#/...`）按该外部文档解析；外部文档内的相对文件引用按该文档所在目录解析。
@@ -893,8 +889,28 @@ public function sayHello() {}
 ],
 ```
 
-`thrift`、`dubbo` 等格式的专用解析器在 P2；当前可用 `raw` 调试面板与 `Definition` 元数据展示。
+定义解析仅支持上表 9 种格式；未列入的格式（如 Thrift IDL）会进入 `validation`（`strict: true` 记为 error，`strict: false` 记为 warning），不影响该协议使用专用调试驱动调试。
 
 ### 6、性能
 
 缓存命中时，文档读接口与协议定义解析/渲染的本机 CPU 处理预算为 P95 < 10ms（墙钟受宿主 IO/调度影响）；运行 `php tests/performance.php` 验证。预算不含 PHP-FPM/框架启动、HTTP 服务器与外部网络耗时；生产环境建议开启 `cache.enable` 并预热。
+
+## 十三、UIC-1 统一接口与共享 Vue UI
+
+`/ui/v1` 是 PHP / Go / Rust 共用的 UIC-1 契约。PHP 在保留 `apiMenus`、`apiDetail`、`apiShare*` 等 legacy 路由的同时，完整实现以下入口：
+
+- 读接口：`capabilities` / `config` / `menus` / `detail` / `docMenus` / `docDetail` / `verifyAuth`。
+- 调试：`debugSend` / `debugStart` / `debugPoll` / `debugStop`；`capabilities.debug.relay` 按 `DebugRegistry` 的实际可用驱动声明（HLS 只走浏览器模式，不计入中继驱动）。
+- 管理：分享记录 CRUD、缓存清理/预热、生成器、代码模板与 `exportAllData`。
+- 分享动作能力为 `actions:false`：统一界面不执行任意 PHP callable；legacy `handleApiShareAction` 保留给旧接口。
+- 声明式生成器 `/ui/v1/generator` 只读取 `ui_generator` 配置并在内存中渲染，不执行 middleware、不写文件、不建表；legacy `/generator` 保留原有副作用行为。
+- 协议能力：27 个调试驱动（见「任意协议调试」）与 9 种定义格式（见「协议定义解析」）。
+
+`capabilities` 报告 `share`（含 `actions:false`）、`cache.mode: "server"`、`generator.sideEffects:false`、`exports` 列表（`md`、`pdf`、`openapi`、`postman`、`asyncapi`、`typescript`）以及全局/应用密码与分享 token 状态，UI 据此隐藏或解释不可用入口。
+
+部署共享 Vue UI：
+
+1. 在 apidoc-ui 仓库执行 `npm run package:ui`，产物在 `dist/uic1-ui/`（含 `manifest.json` 与内容 `sha256`）。
+2. 把整个目录部署到静态服务器、CDN 或反向代理目录；同一份产物可同时服务 PHP、Go、Rust。
+3. 在 `config.js` 中设置 `BACKEND: "auto"` 与 `HTTP.API_PREFIX: "/apidoc"`，启动后通过 `/ui/v1/capabilities` 自动识别 PHP。
+4. PHP 不内置静态文件服务；旧版页面与 legacy 路由保持可用，回滚时无需改动后端。
