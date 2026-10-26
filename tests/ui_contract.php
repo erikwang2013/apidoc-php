@@ -102,10 +102,12 @@ ConfigProvider::set([
 $caps = UiCapabilities::fromConfig(ConfigProvider::get());
 check('UIC capabilities contract', ($caps['contract'] ?? '') === '1.0');
 check('UIC capabilities backend', ($caps['backend'] ?? '') === 'php');
+$capsRelay = $caps['features']['debug']['relay'] ?? [];
 check(
     'UIC capabilities relay drivers',
-    ($caps['features']['debug']['relay'] ?? []) === DebugRegistry::availableNames()
+    $capsRelay === array_values(array_diff(DebugRegistry::availableNames(), ['hls']))
 );
+check('UIC capabilities omit browser-only hls from relay', !in_array('hls', $capsRelay, true));
 check('UIC capabilities definitions', ($caps['features']['protocolDefinitions'] ?? false) === true);
 $driverNames = DebugRegistry::names();
 check(
