@@ -1589,6 +1589,13 @@ try {
     $dnp3Malformed = $e->getMessage() === 'truncated dnp3 object header';
 }
 check('dnp3 rejects truncated object header', $dnp3Malformed);
+try {
+    $dnp3->parseObjects("\x01\x01\x10\x00\x00\xff\xff");
+    $dnp3PointCap = false;
+} catch (InvalidArgumentException $e) {
+    $dnp3PointCap = strpos($e->getMessage(), 'exceeds 10000 points') !== false;
+}
+check('dnp3 caps response points', $dnp3PointCap);
 
 $iec104 = new Iec104Driver();
 $iec104Rows = $iec104->parseAsdus("\x01\x01\x14\x00" . pack('v', 1) . "\x01\x00\x00\x01");
@@ -1627,6 +1634,13 @@ try {
     $iec104Malformed = strpos($e->getMessage(), 'unsupported iec104 ASDU type') === 0;
 }
 check('iec104 rejects unsupported asdu type', $iec104Malformed);
+try {
+    $iec104->parseAsdus(str_repeat("\x66\xff\x14\x00\x01\x00\x01\x00\x00", 80));
+    $iec104RowCap = false;
+} catch (InvalidArgumentException $e) {
+    $iec104RowCap = strpos($e->getMessage(), 'exceeds 10000 rows') !== false;
+}
+check('iec104 caps response rows', $iec104RowCap);
 
 $bacnet = new BacnetDriver();
 check('bacnet bvlc golden vector', bin2hex($bacnet->encodeBvlc(false, "\x10\x08")) === '810a000801001008');

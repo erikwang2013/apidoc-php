@@ -18,6 +18,7 @@ class Iec104Driver implements DebugDriverInterface
 {
     protected const MAX_FRAMES = 1000;
     protected const MAX_APDU = 253;
+    protected const MAX_ROWS = 10000;
 
     public function name(): string
     {
@@ -201,7 +202,11 @@ class Iec104Driver implements DebugDriverInterface
                 continue;
             }
             $receivedSeq = (unpack('v', substr($body, 2, 2))[1]) >> 1;
-            foreach ($this->parseAsdus(substr($body, 4)) as $row) {
+            $parsed = $this->parseAsdus(substr($body, 4));
+            if (count($rows) + count($parsed) > self::MAX_ROWS) {
+                throw new RuntimeException('iec104 response exceeds ' . self::MAX_ROWS . ' rows');
+            }
+            foreach ($parsed as $row) {
                 $rows[] = $row;
             }
         }
@@ -243,6 +248,9 @@ class Iec104Driver implements DebugDriverInterface
                     throw new InvalidArgumentException('truncated iec104 value');
                 }
                 $pos += $used;
+                if (count($rows) >= self::MAX_ROWS) {
+                    throw new InvalidArgumentException('iec104 response exceeds ' . self::MAX_ROWS . ' rows');
+                }
                 $rows[] = [
                     'type_id' => $typeId,
                     'cause' => $cause,
