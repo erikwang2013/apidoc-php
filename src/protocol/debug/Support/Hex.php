@@ -38,6 +38,19 @@ class Hex
     }
 
     /**
+     * 二进制载荷描述(与 Rust Payload::from_bytes 对齐):合法 UTF-8 用 utf8,否则 base64
+     * @param string $bytes
+     * @return array{encoding:string,data:string}
+     */
+    public static function payload(string $bytes): array
+    {
+        if (preg_match('//u', $bytes) === 1) {
+            return ['encoding' => 'utf8', 'data' => $bytes];
+        }
+        return ['encoding' => 'base64', 'data' => base64_encode($bytes)];
+    }
+
+    /**
      * @param string $bytes 原始字节
      * @param string $encoding text|hex|base64
      * @return string 编码后的载荷

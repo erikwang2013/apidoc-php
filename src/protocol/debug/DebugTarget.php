@@ -14,12 +14,19 @@ class DebugTarget
     /**
      * @var array
      */
-    protected static $schemes = ['tcp', 'udp', 'unix', 'http', 'https', 'ws', 'wss'];
+    protected static $schemes = [
+        'tcp', 'udp', 'unix', 'http', 'https', 'ws', 'wss',
+        'kafka', 'kafkas', 'amqp', 'amqps', 'xmpp', 'xmpps',
+    ];
 
     /**
      * @var array
      */
-    protected static $defaultPorts = ['http' => 80, 'https' => 443, 'ws' => 80, 'wss' => 443];
+    protected static $defaultPorts = [
+        'http' => 80, 'https' => 443, 'ws' => 80, 'wss' => 443,
+        'kafka' => 9092, 'kafkas' => 9093, 'amqp' => 5672, 'amqps' => 5671,
+        'xmpp' => 5222, 'xmpps' => 5223,
+    ];
 
     /**
      * @param string $target

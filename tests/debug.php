@@ -12,6 +12,7 @@ use erikwang2013\apidoc\parses\ParseProtocol;
 use erikwang2013\apidoc\protocol\debug\DebugProxy;
 use erikwang2013\apidoc\protocol\debug\DebugRegistry;
 use erikwang2013\apidoc\protocol\debug\DebugTarget;
+use erikwang2013\apidoc\protocol\debug\Driver\AmqpDriver;
 use erikwang2013\apidoc\protocol\debug\Driver\CoapDriver;
 use erikwang2013\apidoc\protocol\debug\Driver\DubboDriver;
 use erikwang2013\apidoc\protocol\debug\Driver\GrpcDriver;
@@ -20,6 +21,7 @@ use erikwang2013\apidoc\protocol\debug\Driver\HlsDriver;
 use erikwang2013\apidoc\protocol\debug\Driver\Http2Driver;
 use erikwang2013\apidoc\protocol\debug\Driver\Http3Driver;
 use erikwang2013\apidoc\protocol\debug\Driver\Iso8583Driver;
+use erikwang2013\apidoc\protocol\debug\Driver\KafkaDriver;
 use erikwang2013\apidoc\protocol\debug\Driver\ModbusTcpDriver;
 use erikwang2013\apidoc\protocol\debug\Driver\MqttDriver;
 use erikwang2013\apidoc\protocol\debug\Driver\RawDriver;
@@ -27,6 +29,7 @@ use erikwang2013\apidoc\protocol\debug\Driver\RtspDriver;
 use erikwang2013\apidoc\protocol\debug\Driver\SipDriver;
 use erikwang2013\apidoc\protocol\debug\Driver\StompDriver;
 use erikwang2013\apidoc\protocol\debug\Driver\ThriftDriver;
+use erikwang2013\apidoc\protocol\debug\Driver\XmppDriver;
 use erikwang2013\apidoc\protocol\debug\Support\HttpClient;
 use erikwang2013\apidoc\protocol\debug\Support\Protobuf;
 use erikwang2013\apidoc\protocol\debug\Support\TargetGuard;
@@ -34,13 +37,17 @@ use erikwang2013\apidoc\providers\BaseService;
 use erikwang2013\apidoc\utils\ApiShare;
 use erikwang2013\apidoc\utils\Cache;
 use erikwang2013\apidoc\utils\ConfigProvider;
+use Tests\Fixtures\Protocol\AmqpDebugFixture;
 use Tests\Fixtures\Protocol\CoapDebugFixture;
 use Tests\Fixtures\Protocol\Iso8583ProxyFixture;
+use Tests\Fixtures\Protocol\KafkaDebugFixture;
 use Tests\Fixtures\Protocol\ModbusDebugFixture;
 use Tests\Fixtures\Protocol\MqttPublishFixture;
 use Tests\Fixtures\Protocol\MqttSubscribeFixture;
 use Tests\Fixtures\Protocol\StompSubscribeFixture;
 use Tests\Fixtures\Protocol\ThriftFixture;
+use Tests\Fixtures\Protocol\XmppDebugFixture;
+use Tests\Fixtures\Protocol\XmppNoStarttlsFixture;
 
 error_reporting(E_ALL);
 $root = dirname(__DIR__);
@@ -147,6 +154,9 @@ startFixture([PHP_BINARY, $root . '/tests/fixtures/debug/udp_echo_server.php', '
 startFixture([PHP_BINARY, '-S', '127.0.0.1:19005', '-t', $root . '/tests/fixtures/debug/http'], $logDir . '/apidoc-debug-http.log');
 startFixture([PHP_BINARY, $root . '/tests/fixtures/debug/mqtt_broker.php', '127.0.0.1', '19003'], $logDir . '/apidoc-debug-mqtt.log');
 startFixture([PHP_BINARY, $root . '/tests/fixtures/debug/stomp_server.php', '127.0.0.1', '19004'], $logDir . '/apidoc-debug-stomp.log');
+startFixture([PHP_BINARY, $root . '/tests/fixtures/debug/kafka_mock.php', '127.0.0.1', '19021'], $logDir . '/apidoc-debug-kafka.log');
+startFixture([PHP_BINARY, $root . '/tests/fixtures/debug/kafka_mock.php', '127.0.0.1', '19025', 'metadata-ssrf'], $logDir . '/apidoc-debug-kafka-ssrf.log');
+startFixture([PHP_BINARY, $root . '/tests/fixtures/debug/amqp_mock.php', '127.0.0.1', '19022'], $logDir . '/apidoc-debug-amqp.log');
 startFixture([PHP_BINARY, $root . '/tests/fixtures/debug/coap_server.php', '127.0.0.1', '19006'], $logDir . '/apidoc-debug-coap.log');
 startFixture([PHP_BINARY, $root . '/tests/fixtures/debug/modbus_server.php', '127.0.0.1', '19007'], $logDir . '/apidoc-debug-modbus.log');
 startFixture([PHP_BINARY, $root . '/tests/fixtures/debug/iso8583_server.php', '127.0.0.1', '19008'], $logDir . '/apidoc-debug-iso8583.log');
@@ -162,13 +172,16 @@ startFixture([PHP_BINARY, $root . '/tests/fixtures/debug/thrift_server.php', '12
 startFixture([PHP_BINARY, $root . '/tests/fixtures/debug/dubbo_server.php', '127.0.0.1', '19019', 'large'], $logDir . '/apidoc-debug-dubbo-large.log');
 [$tlsCert, $tlsKey] = ensureDebugTlsCert();
 startFixture([PHP_BINARY, $root . '/tests/fixtures/debug/tls_http1_server.php', '127.0.0.1', '19020', $tlsCert, $tlsKey], $logDir . '/apidoc-debug-tls.log');
+startFixture([PHP_BINARY, $root . '/tests/fixtures/debug/xmpp_mock.php', '127.0.0.1', '19023', $tlsCert, $tlsKey], $logDir . '/apidoc-debug-xmpp.log');
+startFixture([PHP_BINARY, $root . '/tests/fixtures/debug/xmpp_mock.php', '127.0.0.1', '19024', $tlsCert, $tlsKey, 'no-starttls'], $logDir . '/apidoc-debug-xmpp-nostarttls.log');
 usleep(100000);
 if (!waitPort('127.0.0.1', 19011) || !waitPort('127.0.0.1', 19005) || !waitPort('127.0.0.1', 19003) || !waitPort('127.0.0.1', 19004)
     || !waitPort('127.0.0.1', 19007) || !waitPort('127.0.0.1', 19008) || !waitPort('127.0.0.1', 19009)
     || !waitPort('127.0.0.1', 19012) || !waitPort('127.0.0.1', 19013)
     || !waitPort('127.0.0.1', 19014) || !waitPort('127.0.0.1', 19015) || !waitPort('127.0.0.1', 19016)
     || !waitPort('127.0.0.1', 19017) || !waitPort('127.0.0.1', 19018) || !waitPort('127.0.0.1', 19019)
-    || !waitPort('127.0.0.1', 19020)) {
+    || !waitPort('127.0.0.1', 19020) || !waitPort('127.0.0.1', 19021) || !waitPort('127.0.0.1', 19022)
+    || !waitPort('127.0.0.1', 19023) || !waitPort('127.0.0.1', 19024) || !waitPort('127.0.0.1', 19025)) {
     echo "FAIL  fixture 服务未就绪\n";
     exit(1);
 }
@@ -179,7 +192,12 @@ $config = require $root . '/src/config.php';
 $config['apps'] = [['key' => 'api', 'title' => 'API', 'path' => 'tests/fixtures/protocol']];
 $config['cache'] = ['enable' => false, 'folder' => 'apidoc'];
 // 测试固定使用回环 fixture;默认拒绝私网的策略由下方 SSRF 用例单独验证
-$config['protocols']['debug'] = ['relay_enable' => true, 'allow_private_networks' => true];
+$config['protocols']['debug'] = [
+    'relay_enable' => true,
+    'allow_private_networks' => true,
+    // XMPP STARTTLS 只信任服务端配置的 CA;测试用自签证书作为信任锚
+    'tls_ca_file' => $tlsCert,
+];
 ConfigProvider::set($config);
 
 $rawApi = 'Tests\Fixtures\Protocol\RawFixture@echo';
@@ -498,6 +516,285 @@ $proxy->poll((string)($splitStart['sessionId'] ?? ''));
 $splitPoll = $proxy->poll((string)($splitStart['sessionId'] ?? ''));
 check('mqtt poll decodes PUBLISH split across reads', strpos((string)json_encode($splitPoll['messages'] ?? []), 'hello') !== false);
 $proxy->stop((string)($splitStart['sessionId'] ?? ''));
+
+// ---------- kafka / amqp / xmpp 驱动 ----------
+check('batch 3b drivers registered', DebugRegistry::driver('kafka') instanceof KafkaDriver
+    && DebugRegistry::driver('amqp') instanceof AmqpDriver
+    && DebugRegistry::driver('xmpp') instanceof XmppDriver
+    && count(DebugRegistry::names()) === 19);
+check('xmpp driver available', XmppDriver::available());
+
+$loopGuard = ['host' => '127.0.0.1', 'port' => 19021, 'ips' => ['127.0.0.1'], 'unix' => false];
+$kafkaCtx = ['target' => 'kafka://127.0.0.1:19021', 'guard' => $loopGuard, 'timeout' => 2, 'maxBytes' => 1048576];
+$kafka = new KafkaDriver();
+check('kafka requires topic', ($kafka->send([], $kafkaCtx)['ok'] ?? true) === false);
+check('kafka rejects produce', (function () use ($kafka, $kafkaCtx) {
+    $res = $kafka->send(['action' => 'produce', 'topic' => 'debug'], $kafkaCtx);
+    return ($res['ok'] ?? true) === false && strpos((string)($res['error'] ?? ''), 'read-only') !== false;
+})());
+check('kafka rejects invalid offset', (function () use ($kafka, $kafkaCtx) {
+    $res = $kafka->send(['topic' => 'debug', 'offset' => 'middle'], $kafkaCtx);
+    return ($res['ok'] ?? true) === false && strpos((string)($res['error'] ?? ''), 'invalid kafka offset') !== false;
+})());
+check('kafka rejects invalid partition', (function () use ($kafka, $kafkaCtx) {
+    $res = $kafka->send(['topic' => 'debug', 'partition' => 'x'], $kafkaCtx);
+    return ($res['ok'] ?? true) === false && strpos((string)($res['error'] ?? ''), 'partition') !== false;
+})());
+$kafkaFetch = $kafka->send(['topic' => 'debug', 'offset' => 'earliest', 'messages' => 2], $kafkaCtx);
+$kafkaMessages = json_decode((string)($kafkaFetch['body'] ?? ''), true)['messages'] ?? [];
+check('kafka fetch ok', ($kafkaFetch['ok'] ?? false) === true && ($kafkaFetch['encoding'] ?? '') === 'json');
+check('kafka record batch decoded', count($kafkaMessages) === 2
+    && ($kafkaMessages[0]['offset'] ?? -1) === 0
+    && ($kafkaMessages[0]['payload'] ?? []) === ['encoding' => 'utf8', 'data' => 'hello']
+    && ($kafkaMessages[1]['payload'] ?? []) === ['encoding' => 'base64', 'data' => 'AP8=']);
+$kafkaSasl = $kafka->send(['topic' => 'debug', 'username' => 'debug', 'password' => 'secret', 'messages' => 1], $kafkaCtx);
+check('kafka SASL PLAIN fetch', ($kafkaSasl['ok'] ?? false) === true);
+check('kafka SASL failure redacts password', (function () use ($kafka, $kafkaCtx) {
+    $res = $kafka->send(['topic' => 'debug', 'username' => 'debug', 'password' => 'secret-wrong'], $kafkaCtx);
+    $error = (string)($res['error'] ?? '');
+    return ($res['ok'] ?? true) === false && strpos($error, 'SASL') !== false
+        && strpos($error, 'secret-wrong') === false && strpos($error, '***') !== false;
+})());
+$kafkaEmpty = $kafka->send(['topic' => 'debug', 'offset' => '9', 'messages' => 1, 'duration_ms' => 150], $kafkaCtx);
+check('kafka empty fetch honors duration_ms', ($kafkaEmpty['ok'] ?? false) === true
+    && json_decode((string)($kafkaEmpty['body'] ?? ''), true) === ['messages' => []]);
+check('kafka TLS target rejected', (function () use ($kafka, $kafkaCtx) {
+    $ctx = $kafkaCtx;
+    $ctx['target'] = 'kafkas://127.0.0.1:19021';
+    $res = $kafka->send(['topic' => 'debug'], $ctx);
+    return ($res['ok'] ?? true) === false && strpos((string)($res['error'] ?? ''), 'kafkas://') !== false;
+})());
+$kafkaSsrfCtx = $kafkaCtx;
+$kafkaSsrfCtx['target'] = 'kafka://127.0.0.1:19025';
+$kafkaSsrf = $kafka->send(['topic' => 'debug'], $kafkaSsrfCtx);
+check('kafka metadata broker revalidated by SSRF guard', ($kafkaSsrf['ok'] ?? true) === false
+    && strpos((string)($kafkaSsrf['error'] ?? ''), 'metadata broker') !== false
+    && strpos((string)($kafkaSsrf['error'] ?? ''), 'blocked') !== false);
+
+$amqpGuard = $loopGuard;
+$amqpGuard['port'] = 19022;
+$amqpCtx = ['target' => 'amqp://127.0.0.1:19022', 'guard' => $amqpGuard, 'timeout' => 2, 'maxBytes' => 1048576];
+$amqp = new AmqpDriver();
+check('amqp publish requires routing key', (function () use ($amqp, $amqpCtx) {
+    $res = $amqp->send(['payload' => 'x'], $amqpCtx);
+    return ($res['ok'] ?? true) === false && strpos((string)($res['error'] ?? ''), 'routing_key') !== false;
+})());
+check('amqp consume requires queue', (function () use ($amqp, $amqpCtx) {
+    $res = $amqp->send(['consume' => 'true'], $amqpCtx);
+    return ($res['ok'] ?? true) === false && strpos((string)($res['error'] ?? ''), 'queue') !== false;
+})());
+$amqpPublish = $amqp->send([
+    'routing_key' => 'debug/echo',
+    'payload' => 'amqp-hello',
+    'encoding' => 'text',
+    'username' => 'debug',
+    'password' => 'secret',
+], $amqpCtx);
+check('amqp publish confirmed', ($amqpPublish['ok'] ?? false) === true
+    && json_decode((string)($amqpPublish['body'] ?? ''), true) === ['published' => true]);
+$amqpConsume = $amqp->send([
+    'consume' => 'true',
+    'queue' => 'debug/echo',
+    'username' => 'debug',
+    'password' => 'secret',
+    'messages' => 1,
+    'duration_ms' => 500,
+], $amqpCtx);
+$amqpDelivery = json_decode((string)($amqpConsume['body'] ?? ''), true)['delivery'] ?? [];
+check('amqp consume round-trips published body', ($amqpConsume['ok'] ?? false) === true
+    && ($amqpDelivery['routing_key'] ?? '') === 'debug/echo'
+    && ($amqpDelivery['payload'] ?? []) === ['encoding' => 'utf8', 'data' => 'amqp-hello']);
+$amqpMany = $amqp->send([
+    'consume' => 'true',
+    'queue' => 'debug/queue',
+    'declare' => true,
+    'username' => 'debug',
+    'password' => 'secret',
+    'messages' => 2,
+    'duration_ms' => 500,
+], $amqpCtx);
+$amqpDeliveries = json_decode((string)($amqpMany['body'] ?? ''), true)['deliveries'] ?? [];
+check('amqp consume returns deliveries array', ($amqpMany['ok'] ?? false) === true && count($amqpDeliveries) === 2
+    && ($amqpDeliveries[0]['payload']['data'] ?? '') === 'hello'
+    && ($amqpDeliveries[1]['payload'] ?? []) === ['encoding' => 'base64', 'data' => 'AP8=']);
+$amqpEmpty = $amqp->send([
+    'consume' => 'true',
+    'queue' => 'debug/empty',
+    'username' => 'debug',
+    'password' => 'secret',
+    'messages' => 1,
+    'duration_ms' => 150,
+], $amqpCtx);
+check('amqp empty consume honors duration_ms', ($amqpEmpty['ok'] ?? false) === true
+    && json_decode((string)($amqpEmpty['body'] ?? ''), true) === ['deliveries' => []]);
+check('amqp SASL failure redacts password', (function () use ($amqp, $amqpCtx) {
+    $res = $amqp->send(['routing_key' => 'x', 'username' => 'debug', 'password' => 'amqp-wrong'], $amqpCtx);
+    $error = (string)($res['error'] ?? '');
+    return ($res['ok'] ?? true) === false && strpos($error, 'amqp-wrong') === false && strpos($error, '***') !== false;
+})());
+check('amqp TLS target rejected', (function () use ($amqp, $amqpCtx) {
+    $ctx = $amqpCtx;
+    $ctx['target'] = 'amqps://127.0.0.1:19022';
+    $res = $amqp->send(['routing_key' => 'x'], $ctx);
+    return ($res['ok'] ?? true) === false && strpos((string)($res['error'] ?? ''), 'TLS') !== false;
+})());
+
+$xmppGuard = $loopGuard;
+$xmppGuard['port'] = 19023;
+$xmppCtx = ['target' => 'xmpp://127.0.0.1:19023', 'guard' => $xmppGuard, 'timeout' => 3, 'maxBytes' => 1048576];
+$xmpp = new XmppDriver();
+check('xmpp requires jid', ($xmpp->send([], $xmppCtx)['ok'] ?? true) === false);
+check('xmpp rejects invalid jid', (function () use ($xmpp, $xmppCtx) {
+    $res = $xmpp->send(['jid' => 'not-a-jid', 'password' => 'secret'], $xmppCtx);
+    return ($res['ok'] ?? true) === false && strpos((string)($res['error'] ?? ''), 'invalid xmpp jid') !== false;
+})());
+check('xmpp requires password', (function () use ($xmpp, $xmppCtx) {
+    $res = $xmpp->send(['jid' => 'debug@localhost/php'], $xmppCtx);
+    return ($res['ok'] ?? true) === false && strpos((string)($res['error'] ?? ''), 'password') !== false;
+})());
+check('xmpp rejects invalid type', (function () use ($xmpp, $xmppCtx) {
+    $res = $xmpp->send(['jid' => 'debug@localhost/php', 'password' => 'secret', 'type' => 'headline'], $xmppCtx);
+    return ($res['ok'] ?? true) === false && strpos((string)($res['error'] ?? ''), 'message type') !== false;
+})());
+check('xmpp send requires to', (function () use ($xmpp, $xmppCtx) {
+    $res = $xmpp->send(['jid' => 'debug@localhost/php', 'password' => 'secret', 'payload' => 'hi'], $xmppCtx);
+    return ($res['ok'] ?? true) === false && strpos((string)($res['error'] ?? ''), 'requires opts.to') !== false;
+})());
+$xmppSend = $xmpp->send([
+    'jid' => 'debug@localhost/php',
+    'password' => 'secret',
+    'to' => 'echo@localhost',
+    'payload' => 'hi',
+    'messages' => 2,
+    'duration_ms' => 1000,
+], $xmppCtx);
+$xmppMessages = json_decode((string)($xmppSend['body'] ?? ''), true)['messages'] ?? [];
+check('xmpp STARTTLS SASL send and receive', ($xmppSend['ok'] ?? false) === true && count($xmppMessages) === 2
+    && ($xmppMessages[0] ?? []) === ['from' => 'bot@localhost/1', 'body' => 'hello']
+    && ($xmppMessages[1] ?? []) === ['from' => 'echo@localhost/1', 'body' => 'echo:hi']);
+$xmppReceive = $xmpp->send([
+    'jid' => 'debug@localhost/php',
+    'password' => 'secret',
+    'messages' => 1,
+    'duration_ms' => 1000,
+], $xmppCtx);
+$xmppReceiveMessages = json_decode((string)($xmppReceive['body'] ?? ''), true)['messages'] ?? [];
+check('xmpp receive-only collects message', ($xmppReceive['ok'] ?? false) === true
+    && ($xmppReceiveMessages[0] ?? []) === ['from' => 'bot@localhost/1', 'body' => 'hello']
+    && strpos((string)($xmppReceive['body'] ?? ''), 'secret') === false);
+$xmppSilent = $xmpp->send([
+    'jid' => 'silent@localhost/php',
+    'password' => 'secret',
+    'messages' => 1,
+    'duration_ms' => 150,
+], $xmppCtx);
+check('xmpp empty receive honors duration_ms', ($xmppSilent['ok'] ?? false) === true
+    && json_decode((string)($xmppSilent['body'] ?? ''), true) === ['messages' => []]);
+check('xmpp SASL failure redacts password', (function () use ($xmpp, $xmppCtx) {
+    $res = $xmpp->send(['jid' => 'debug@localhost/php', 'password' => 'xmpp-wrong'], $xmppCtx);
+    $error = (string)($res['error'] ?? '');
+    return ($res['ok'] ?? true) === false && strpos($error, 'SASL') !== false
+        && strpos($error, 'xmpp-wrong') === false && strpos($error, '***') !== false;
+})());
+check('xmpp verifies TLS certificate for JID domain', (function () use ($xmpp, $xmppCtx) {
+    $res = $xmpp->send(['jid' => 'debug@wrong.example/php', 'password' => 'secret'], $xmppCtx);
+    return ($res['ok'] ?? true) === false && strpos((string)($res['error'] ?? ''), 'STARTTLS') !== false;
+})());
+$xmppNoStarttlsCtx = $xmppCtx;
+$xmppNoStarttlsCtx['target'] = 'xmpp://127.0.0.1:19024';
+$xmppNoStarttls = $xmpp->send(['jid' => 'debug@localhost/php', 'password' => 'secret'], $xmppNoStarttlsCtx);
+check('xmpp fails closed without STARTTLS', ($xmppNoStarttls['ok'] ?? true) === false
+    && strpos((string)($xmppNoStarttls['error'] ?? ''), 'STARTTLS') !== false);
+check('xmpp direct TLS target rejected', (function () use ($xmpp, $xmppCtx) {
+    $ctx = $xmppCtx;
+    $ctx['target'] = 'xmpps://127.0.0.1:19023';
+    $res = $xmpp->send(['jid' => 'debug@localhost/php', 'password' => 'secret'], $ctx);
+    return ($res['ok'] ?? true) === false && strpos((string)($res['error'] ?? ''), 'xmpps') !== false;
+})());
+$scanElement = new ReflectionMethod(XmppDriver::class, 'scanElement');
+$scanElement->setAccessible(true);
+$xmppDoctypeRejected = false;
+try {
+    $scanElement->invoke($xmpp, '<!DOCTYPE x [<!ENTITY y "z">]><message/>');
+} catch (Throwable $e) {
+    $xmppDoctypeRejected = strpos($e->getMessage(), 'DOCTYPE') !== false;
+}
+check('xmpp parser rejects DOCTYPE/entity declarations', $xmppDoctypeRejected);
+$xmppDepthRejected = false;
+try {
+    $scanElement->invoke($xmpp, str_repeat('<a>', 40) . str_repeat('</a>', 40));
+} catch (Throwable $e) {
+    $xmppDepthRejected = strpos($e->getMessage(), 'deeply nested') !== false;
+}
+check('xmpp parser caps nesting depth', $xmppDepthRejected);
+
+$kafkaUi = $proxy->send('api', KafkaDebugFixture::class . '@fetch', ['fields' => ['topic' => 'debug', 'messages' => 2]]);
+check('kafka driver through relay', ($kafkaUi['ok'] ?? false) === true
+    && count(json_decode((string)($kafkaUi['body'] ?? ''), true)['messages'] ?? []) === 2);
+$amqpUi = $proxy->send('api', AmqpDebugFixture::class . '@receive', ['fields' => [
+    'consume' => 'true', 'queue' => 'debug/single', 'username' => 'debug', 'password' => 'secret', 'messages' => 1,
+]]);
+check('amqp driver through relay', ($amqpUi['ok'] ?? false) === true
+    && (json_decode((string)($amqpUi['body'] ?? ''), true)['delivery']['payload']['data'] ?? '') === 'hello');
+$xmppUi = $proxy->send('api', XmppDebugFixture::class . '@send', ['fields' => [
+    'jid' => 'debug@localhost/php', 'password' => 'secret', 'messages' => 1,
+]]);
+check('xmpp driver through relay', ($xmppUi['ok'] ?? false) === true
+    && (json_decode((string)($xmppUi['body'] ?? ''), true)['messages'][0]['body'] ?? '') === 'hello');
+$xmppNoStarttlsUi = $proxy->send('api', XmppNoStarttlsFixture::class . '@send', ['fields' => [
+    'jid' => 'debug@localhost/php', 'password' => 'secret',
+]]);
+check('xmpp fails closed through relay without STARTTLS', ($xmppNoStarttlsUi['ok'] ?? true) === false
+    && strpos((string)($xmppNoStarttlsUi['error'] ?? ''), 'STARTTLS') !== false);
+check('batch 3b drivers stay unary, not fake stream', (function () use ($proxy) {
+    $res = $proxy->start('api', KafkaDebugFixture::class . '@fetch', ['fields' => ['topic' => 'debug']]);
+    return ($res['ok'] ?? true) === false && strpos((string)($res['error'] ?? ''), 'not streaming') !== false;
+})());
+
+$strictNewConfig = $config;
+$strictNewConfig['protocols']['debug'] = ['relay_enable' => true, 'allow_private_networks' => false, 'tls_ca_file' => $tlsCert];
+$strictNew = new DebugProxy($strictNewConfig);
+$batch3bDrivers = [
+    'kafka' => [KafkaDebugFixture::class . '@fetch', ['topic' => 'debug']],
+    'amqp' => [AmqpDebugFixture::class . '@receive', ['consume' => 'true', 'queue' => 'debug/queue']],
+    'xmpp' => [XmppDebugFixture::class . '@send', ['jid' => 'debug@localhost/php', 'password' => 'secret']],
+];
+foreach ($batch3bDrivers as $name => [$api, $fields]) {
+    $res = $strictNew->send('api', $api, ['fields' => $fields]);
+    check('ssrf blocks batch 3b ' . $name, ($res['ok'] ?? true) === false
+        && strpos((string)($res['error'] ?? ''), 'private/loopback/link-local') !== false);
+}
+$disabledNewConfig = $config;
+$disabledNewConfig['protocols']['debug'] = ['relay_enable' => false];
+$disabledNew = new DebugProxy($disabledNewConfig);
+foreach ($batch3bDrivers as $name => [$api, $fields]) {
+    $res = $disabledNew->send('api', $api, ['fields' => $fields]);
+    check('disabled relay blocks batch 3b ' . $name, ($res['ok'] ?? true) === false
+        && strpos((string)($res['error'] ?? ''), 'relay disabled') !== false);
+}
+
+$kafkaSmallConfig = $config;
+$kafkaSmallConfig['protocols']['debug']['max_bytes'] = 200;
+$kafkaSmall = new DebugProxy($kafkaSmallConfig);
+$kafkaCapped = $kafkaSmall->send('api', KafkaDebugFixture::class . '@fetch', ['fields' => ['topic' => 'large', 'messages' => 1]]);
+check('kafka response size cap', ($kafkaCapped['ok'] ?? true) === false
+    && strpos((string)($kafkaCapped['error'] ?? ''), 'max_bytes') !== false);
+$amqpSmallConfig = $config;
+$amqpSmallConfig['protocols']['debug']['max_bytes'] = 200;
+$amqpSmall = new DebugProxy($amqpSmallConfig);
+$amqpCapped = $amqpSmall->send('api', AmqpDebugFixture::class . '@receive', ['fields' => [
+    'consume' => 'true', 'queue' => 'debug/large', 'username' => 'debug', 'password' => 'secret', 'messages' => 1,
+]]);
+check('amqp frame size cap', ($amqpCapped['ok'] ?? true) === false
+    && strpos((string)($amqpCapped['error'] ?? ''), 'max_bytes') !== false);
+$xmppSmallConfig = $config;
+$xmppSmallConfig['protocols']['debug']['max_bytes'] = 128;
+$xmppSmall = new DebugProxy($xmppSmallConfig);
+$xmppCapped = $xmppSmall->send('api', XmppDebugFixture::class . '@send', ['fields' => [
+    'jid' => 'debug@localhost/php', 'password' => 'secret', 'messages' => 1,
+]]);
+check('xmpp stanza size cap', ($xmppCapped['ok'] ?? true) === false
+    && strpos((string)($xmppCapped['error'] ?? ''), 'max_bytes') !== false);
 
 // ---------- coap / modbus-tcp / iso8583 驱动 ----------
 check('debug registry has protocol drivers', DebugRegistry::driver('coap') instanceof CoapDriver
@@ -1159,6 +1456,34 @@ try {
     $thriftShareDenied = $e->getMessage() === 'share api not allowed';
 }
 check('share scoped new driver relay denied', $thriftShareDenied);
+
+$shareStore->addApiShare([
+    'key' => 'kafka-api-share',
+    'name' => 'Kafka API share',
+    'type' => 'api',
+    'apiKeys' => [urlencode(KafkaDebugFixture::class . '@fetch')],
+]);
+$kafkaShareConfig = $shareConfig;
+$kafkaShareConfig['request_params'] = [
+    'appKey' => 'api',
+    'path' => KafkaDebugFixture::class . '@fetch',
+    'shareKey' => 'kafka-api-share',
+    'input' => ['fields' => ['topic' => 'debug', 'messages' => 1], 'timeout' => 2],
+];
+ConfigProvider::set($kafkaShareConfig);
+$kafkaShare = (new Controller())->debugSend();
+check('share scoped kafka relay allowed', ($kafkaShare['data']['ok'] ?? false) === true
+    && count(json_decode((string)($kafkaShare['data']['body'] ?? ''), true)['messages'] ?? []) >= 1);
+$kafkaShareDeniedConfig = $kafkaShareConfig;
+$kafkaShareDeniedConfig['request_params']['shareKey'] = 'denied-api-share';
+ConfigProvider::set($kafkaShareDeniedConfig);
+$kafkaShareDenied = false;
+try {
+    (new Controller())->debugSend();
+} catch (ErrorException $e) {
+    $kafkaShareDenied = $e->getMessage() === 'share api not allowed';
+}
+check('share scoped kafka relay denied', $kafkaShareDenied);
 
 // 流式会话:start/poll/stop 全部走分享校验,且不被 init 拦截
 $shareStore->addApiShare([

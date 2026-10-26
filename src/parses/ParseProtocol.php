@@ -14,6 +14,7 @@ use erikwang2013\apidoc\protocol\debug\DebugTarget;
 use erikwang2013\apidoc\protocol\debug\Driver\GrpcDriver;
 use erikwang2013\apidoc\protocol\debug\Driver\Http2Driver;
 use erikwang2013\apidoc\protocol\debug\Driver\Http3Driver;
+use erikwang2013\apidoc\protocol\debug\Driver\XmppDriver;
 use erikwang2013\apidoc\utils\Cache;
 use ReflectionClass;
 use ReflectionMethod;
@@ -158,6 +159,9 @@ class ParseProtocol
         } elseif ($driver === 'http3' && !Http3Driver::available()) {
             $debuggable = false;
             $debugReason = 'curl HTTP/3 is required for HTTP/3';
+        } elseif ($driver === 'xmpp' && !XmppDriver::available()) {
+            $debuggable = false;
+            $debugReason = XmppDriver::unavailableReason();
         } else {
             $debuggable = true;
             $debugReason = '';

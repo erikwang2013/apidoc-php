@@ -239,9 +239,9 @@ check('unknown protocol falls back', ProtocolCatalog::get('nope')['label'] === '
 // ---------- P2 回退:目录驱动与元数据 ----------
 $p2RawRef = new ReflectionClass(\Tests\Fixtures\Protocol\P2RawFixture::class);
 $p2Raw = $parser->metadata($p2RawRef, $p2RawRef->getMethod('publish'));
-check('p2 amqp raw fallback driver', ($p2Raw['debug']['driver'] ?? '') === 'raw');
-check('p2 amqp raw fallback mode', ($p2Raw['debug']['mode'] ?? '') === 'relay-unary');
-check('p2 amqp raw fallback fields include payload', in_array('payload', array_column($p2Raw['debug']['fields'] ?? [], 'name'), true));
+check('p2 rtmp raw fallback driver', ($p2Raw['debug']['driver'] ?? '') === 'raw');
+check('p2 rtmp raw fallback mode', ($p2Raw['debug']['mode'] ?? '') === 'relay-unary');
+check('p2 rtmp raw fallback fields include payload', in_array('payload', array_column($p2Raw['debug']['fields'] ?? [], 'name'), true));
 $p2NoRef = new ReflectionClass(\Tests\Fixtures\Protocol\P2NoDriverFixture::class);
 $p2No = $parser->metadata($p2NoRef, $p2NoRef->getMethod('offer'));
 check('webrtc p2 metadata not debuggable', ($p2No['debug']['debuggable'] ?? true) === false);
@@ -355,8 +355,11 @@ check('unregistered driver not debuggable with relay enabled and target', ($unre
 // 目录条目必须携带 defaultFormat，供定义解析计划消费
 check('rest default format', ProtocolCatalog::get('rest')['defaultFormat'] === 'openapi');
 check('grpc default format', ProtocolCatalog::get('grpc')['defaultFormat'] === 'proto');
-check('amqp p2 fallback driver', ProtocolCatalog::get('amqp')['defaultDriver'] === 'raw');
-check('amqp p2 fallback mode', ProtocolCatalog::get('amqp')['defaultMode'] === 'relay-unary');
+check('amqp uses specialized read/write relay', ProtocolCatalog::get('amqp')['defaultDriver'] === 'amqp' && ProtocolCatalog::get('amqp')['defaultMode'] === 'relay-unary');
+check('kafka uses specialized read-only relay', ProtocolCatalog::get('kafka')['defaultDriver'] === 'kafka' && ProtocolCatalog::get('kafka')['defaultMode'] === 'relay-unary');
+check('xmpp uses specialized relay', ProtocolCatalog::get('xmpp')['defaultDriver'] === 'xmpp' && ProtocolCatalog::get('xmpp')['defaultMode'] === 'relay-unary');
+check('mqtt stays streaming', ProtocolCatalog::get('mqtt')['defaultDriver'] === 'mqtt' && ProtocolCatalog::get('mqtt')['defaultMode'] === 'relay-stream');
+check('stomp stays streaming', ProtocolCatalog::get('stomp')['defaultDriver'] === 'stomp' && ProtocolCatalog::get('stomp')['defaultMode'] === 'relay-stream');
 check('binary-body uses http relay', ProtocolCatalog::get('binary-body')['defaultDriver'] === 'http-relay' && ProtocolCatalog::get('binary-body')['defaultMode'] === 'relay-unary');
 check('websocket-binary uses browser websocket', ProtocolCatalog::get('websocket-binary')['defaultDriver'] === 'websocket' && ProtocolCatalog::get('websocket-binary')['defaultMode'] === 'browser-websocket');
 check('socket.io uses browser websocket fallback', ProtocolCatalog::get('socket.io')['defaultMode'] === 'browser-websocket');

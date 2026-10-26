@@ -154,6 +154,38 @@ class StompSubscribeFixture
     public function receive() {}
 }
 
+#[Protocol('kafka')]
+class KafkaDebugFixture
+{
+    #[Channel('debug', action: 'fetch')]
+    #[Debug(driver: 'kafka', target: 'kafka://127.0.0.1:19021')]
+    public function fetch() {}
+}
+
+#[Protocol('amqp')]
+class AmqpDebugFixture
+{
+    #[Channel('debug/queue', action: 'receive')]
+    #[Debug(driver: 'amqp', target: 'amqp://127.0.0.1:19022')]
+    public function receive() {}
+}
+
+#[Protocol('xmpp')]
+class XmppDebugFixture
+{
+    #[Channel('debug@localhost', action: 'send')]
+    #[Debug(driver: 'xmpp', target: 'xmpp://127.0.0.1:19023')]
+    public function send() {}
+}
+
+#[Protocol('xmpp')]
+class XmppNoStarttlsFixture
+{
+    #[Channel('debug@localhost', action: 'send')]
+    #[Debug(driver: 'xmpp', target: 'xmpp://127.0.0.1:19024')]
+    public function send() {}
+}
+
 #[Protocol('coap')]
 class CoapDebugFixture
 {
@@ -179,13 +211,13 @@ class Iso8583ProxyFixture
     public function send() {}
 }
 
-// P2 协议无专用驱动,回退到原始套接字面板
-#[Protocol('amqp')]
-#[Channel('tcp://broker:5672')]
-#[Debug(target: 'tcp://broker:5672')]
+// P2 尚无专用驱动的协议回退到原始套接字面板(AMQP/Kafka/XMPP 已接入专用驱动)
+#[Protocol('rtmp')]
+#[Channel('tcp://broker:1935')]
+#[Debug(target: 'tcp://broker:1935')]
 class P2RawFixture
 {
-    #[Title('Publish AMQP frame')]
+    #[Title('Publish RTMP frame')]
     public function publish() {}
 }
 
