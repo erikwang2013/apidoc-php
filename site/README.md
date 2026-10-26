@@ -18,6 +18,7 @@ site/
 ├── sitemap.xml                # 构建产物，含中英 hreflang 与图片条目
 ├── content/{zh,en}/*.md       # 使用指南正文
 ├── assets/                    # CSS、JS、three.js、宠物与项目图片
+├── assets/search-index.json   # 构建期生成的站内搜索索引
 ├── assets/img/weixinpay.png   # 微信赞赏收款码
 ├── assets/img/alipay.png      # 支付宝赞赏收款码
 ├── bench.py                   # TTFB / 整页加载实测
@@ -60,6 +61,10 @@ python3 bench.py
 python3 bench.py --full
 ```
 
+## 站内搜索
+
+页头搜索按钮（快捷键 `/` 或 `Ctrl/Cmd+K`）打开全站搜索。`build.py` 从生成的 HTML 主内容区提取标题、二级/三级章节与正文，写入 `assets/search-index.json`；前端按当前语言过滤，匹配标题与正文并高亮关键词。索引 URL 带 `build.py` + `content/` 的内容哈希，避免静态资源长缓存导致旧索引。
+
 ## 部署
 
 ```nginx
@@ -98,13 +103,13 @@ location ~* \.html$ {
 性能口径与实测：
 
 - 验收口径：所有页面与静态资源的服务器响应（TTFB）< 50ms；本机热加载整页中位数 ≤ 1s。
-- 空闲机器实测：60 个响应全部低于 50ms；整页热加载中位数约 200–380ms（`python3 bench.py --full`）。机器高负载时整页数字会明显波动，以实际输出为准。
+- 空闲机器实测：61 个响应全部低于 50ms；整页热加载中位数约 200–380ms（`python3 bench.py --full`）。机器高负载时整页数字会明显波动，以实际输出为准。
 - 站点全部为静态文件，不依赖后端。three.js 约 670 KB，busuanzi 统计和 three.js 都在 `load` 事件之后空闲加载，不进入整页加载关键路径。
 - 以上数字随机器与网络变化；跨公网访问时延迟主要由 RTT、CDN 与压缩决定，`bench.py` 只对本机静态服务负责。
 
 ## 图片与第三方资源
 
-- 所有页面图片均从 `assets/img/` 本地加载，包括项目宠物、12 种表情、Social Preview、任意协议调试架构图、Go/Rust 架构/功能/生命周期图、Rust 多协议调试图与 apidoc-ui 预览图。
+- 所有页面图片均从 `assets/img/` 本地加载（站内搜索索引位于 `assets/search-index.json`，由 `build.py` 自动生成），包括项目宠物、12 种表情、Social Preview、任意协议调试架构图、Go/Rust 架构/功能/生命周期图、Rust 多协议调试图与 apidoc-ui 预览图。
 - `assets/img/php/protocol-debug.svg` 与根目录 `assets/protocol-debug.svg` 保持一致，用于 PHP 指南和 README 的协议调试示意图。
 - Three.js 0.160.0，MIT License，位于 `assets/vendor/three.module.min.js`，许可证见 `assets/vendor/LICENSE-three.txt`。
 - 唯一的外部资源是页脚 busuanzi 统计脚本；它在 `load` 事件之后空闲注入，不进入页面加载关键路径。

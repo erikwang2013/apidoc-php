@@ -8,7 +8,7 @@
   <meta name="theme-color" content="#f7f6fc">
   <link rel="icon" href="../../assets/img/apidoc-pet.svg" type="image/svg+xml">
   <link rel="preload" href="../../assets/img/apidoc-pet.svg" as="image">
-  <link rel="stylesheet" href="../../assets/css/style.css">
+  <link rel="stylesheet" href="../../assets/css/style.css?v=69586538bda0">
   <link rel="canonical" href="https://apidoc.erik.xyz/en/docs/go.html">
   <meta name="robots" content="index,follow,max-image-preview:large,max-snippet:-1,max-video-preview:-1">
   <meta name="author" content="erik">
@@ -44,11 +44,12 @@
   <meta name="twitter:image:alt" content="Apidoc: API documentation for PHP, Go and Rust">
   <script type="application/ld+json">{"@context":"https://schema.org","@graph":[{"@type":"Person","@id":"https://apidoc.erik.xyz/#person","name":"erik","url":"https://erik.xyz","sameAs":["https://github.com/erikwang2013"]},{"@type":"Organization","@id":"https://apidoc.erik.xyz/#organization","name":"Apidoc","url":"https://apidoc.erik.xyz/","description":"Open-source API documentation for PHP, Go and Rust.","logo":{"@type":"ImageObject","url":"https://apidoc.erik.xyz/assets/img/apidoc-pet.svg"},"sameAs":["https://github.com/erikwang2013"],"founder":{"@id":"https://apidoc.erik.xyz/#person"}},{"@type":"WebSite","@id":"https://apidoc.erik.xyz/#website","url":"https://apidoc.erik.xyz/","name":"Apidoc","description":"API documentation for PHP, Go and Rust.","inLanguage":["zh-CN","en"],"publisher":{"@id":"https://apidoc.erik.xyz/#organization"}},{"@type":"TechArticle","@id":"https://apidoc.erik.xyz/en/docs/go.html#article","headline":"Go API Documentation Guide","description":"Declare docs as typed structs next to route registration and expose menus/protocols/detail/export APIs for apidoc-ui to render and debug. Supports @protocol annotations, response caching, Mock, auth and param inference across 8 Go frameworks.","url":"https://apidoc.erik.xyz/en/docs/go.html","mainEntityOfPage":{"@id":"https://apidoc.erik.xyz/en/docs/go.html"},"inLanguage":"en","author":{"@id":"https://apidoc.erik.xyz/#person"},"publisher":{"@id":"https://apidoc.erik.xyz/#organization"},"isPartOf":{"@id":"https://apidoc.erik.xyz/en/docs/"},"about":"Go","articleSection":"Go","dateModified":"2026-10-26","image":"https://apidoc.erik.xyz/assets/img/social-preview.png","keywords":"Go API documentation, net/http, Gin, Echo, Chi, Fiber, beego, Kratos, go-zero, protocol annotations, response cache"},{"@type":"BreadcrumbList","@id":"https://apidoc.erik.xyz/en/docs/go.html#breadcrumb","itemListElement":[{"@type":"ListItem","position":1,"name":"Home","item":"https://apidoc.erik.xyz/en/"},{"@type":"ListItem","position":2,"name":"Usage guides","item":"https://apidoc.erik.xyz/en/docs/"},{"@type":"ListItem","position":3,"name":"Go","item":"https://apidoc.erik.xyz/en/docs/go.html"}]}]}</script><meta property="article:modified_time" content="2026-10-26"><meta property="article:section" content="Go">
 </head>
-<body data-copy-label="Copy" data-copied-label="Copied" data-menu-open="Open menu" data-menu-close="Close menu">
+<body data-copy-label="Copy" data-copied-label="Copied" data-menu-open="Open menu" data-menu-close="Close menu" data-root="../../" data-page="en/docs/go.html" data-search-version="d786ad17f778">
   <a class="skip-link" href="#main">Skip to main content</a>
   <svg class="icon-sprite" aria-hidden="true" focusable="false" xmlns="http://www.w3.org/2000/svg">
   <symbol id="i-arrow" viewBox="0 0 20 20"><path d="M3 10h13M11 5l5 5-5 5"/></symbol>
   <symbol id="i-external" viewBox="0 0 20 20"><path d="M8 4h8v8M16 4L4 16"/></symbol>
+  <symbol id="i-search" viewBox="0 0 24 24"><circle cx="11" cy="11" r="7"/><path d="m20 20-3.5-3.5"/></symbol>
   <symbol id="i-code" viewBox="0 0 24 24"><path d="M8 6l-5 6 5 6M16 6l5 6-5 6"/></symbol>
   <symbol id="i-terminal" viewBox="0 0 24 24"><path d="M3 5h18v14H3zM6 9l3 3-3 3M12 15h5"/></symbol>
   <symbol id="i-spark" viewBox="0 0 24 24"><path d="M12 3v4M12 17v4M3 12h4M17 12h4M6 6l2.5 2.5M15.5 15.5L18 18M18 6l-2.5 2.5M8.5 15.5L6 18"/></symbol>
@@ -84,11 +85,32 @@
       <a href="../index.html">Home</a><a href="../index.html#languages">Languages</a><a href="../index.html#features">Features</a><a href="index.html" class="is-active">Guides</a><a href="../index.html#install">Install</a><a href="../index.html#versions">Versions</a><a href="../index.html#download">Downloads</a>
       <a class="nav-mobile-only" href="https://github.com/erikwang2013" target="_blank" rel="noopener">GitHub <svg class="icon icon-xs" aria-hidden="true"><use href="#i-external"></use></svg></a>
     </nav>
+    <button class="search-toggle" type="button" data-search-open aria-haspopup="dialog" aria-controls="search-dialog" aria-label="Search" title="Press / to search">
+      <svg class="icon " aria-hidden="true"><use href="#i-search"></use></svg><span class="search-toggle-label">Search</span><kbd>/</kbd>
+    </button>
     <a class="header-cta" href="https://github.com/erikwang2013" target="_blank" rel="noopener">
       GitHub <svg class="icon icon-xs" aria-hidden="true"><use href="#i-external"></use></svg>
     </a>
   </div>
 </header>
+  <dialog class="search-dialog" id="search-dialog" aria-labelledby="search-title"
+  data-empty="No matching content"
+  data-loading="Loading search index…"
+  data-error="Failed to load the search index"
+  data-results="results">
+  <div class="search-panel">
+    <div class="search-bar">
+      <svg class="icon search-bar-icon" aria-hidden="true"><use href="#i-search"></use></svg>
+      <input class="search-input" id="search-input" type="search" autocomplete="off" spellcheck="false" role="combobox" aria-autocomplete="list" aria-controls="search-results" placeholder="Search docs, annotations, protocols…" aria-label="Search docs, annotations, protocols…">
+      <kbd class="search-kbd">/</kbd>
+      <button class="search-close" type="button" aria-label="Close search" title="Close search">&times;</button>
+    </div>
+    <h2 class="sr-only" id="search-title">Search the site</h2>
+    <p class="search-hint" id="search-hint">Type a keyword to search every page</p>
+    <div class="search-results" id="search-results" role="listbox" aria-label="Search the site"></div>
+    <p class="search-status" id="search-status" role="status" aria-live="polite"></p>
+  </div>
+</dialog>
   <main id="main">
   <section class="docs-hero">
   <div class="wrap">
@@ -630,6 +652,6 @@
     <svg class="to-top-ring" viewBox="0 0 64 64" aria-hidden="true"><circle cx="32" cy="32" r="30"></circle></svg>
     <img class="to-top-pet" src="../../assets/img/apidoc-pet.svg" width="48" height="48" alt="">
   </button>
-  <script src="../../assets/js/main.js" defer></script>
+  <script src="../../assets/js/main.js?v=69586538bda0" defer></script>
 </body>
 </html>

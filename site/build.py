@@ -14,10 +14,12 @@ Outputs:
 from __future__ import annotations
 
 import datetime
+import hashlib
 import html
 import json
 import posixpath
 import re
+from html.parser import HTMLParser
 from pathlib import Path
 from string import Template
 from xml.sax.saxutils import escape as xml_escape
@@ -31,6 +33,27 @@ from pygments.util import ClassNotFound
 ROOT = Path(__file__).resolve().parent
 LANGS = ("zh", "en")
 SLUGS = ("php", "go", "rust", "ui")
+
+
+def _search_version() -> str:
+    digest = hashlib.sha256()
+    files = [ROOT / "build.py", *sorted((ROOT / "content").rglob("*.md"))]
+    for path in files:
+        digest.update(path.read_bytes())
+    return digest.hexdigest()[:12]
+
+
+SEARCH_VERSION = _search_version()
+
+
+def _asset_version() -> str:
+    digest = hashlib.sha256()
+    for rel_path in ("assets/css/style.css", "assets/js/main.js"):
+        digest.update((ROOT / rel_path).read_bytes())
+    return digest.hexdigest()[:12]
+
+
+ASSET_VERSION = _asset_version()
 HTML_LANG = {"zh": "zh-CN", "en": "en"}
 OTHER = {"zh": "en", "en": "zh"}
 COPY = {"zh": "复制", "en": "Copy"}
@@ -342,6 +365,7 @@ UI = {
     "zh": {
         "copy": COPY["zh"], "copied": COPIED["zh"], "menu_open": MENU_OPEN["zh"], "menu_close": MENU_CLOSE["zh"], "back_top": BACK_TOP["zh"],
         "nav_languages": "语言实现", "nav_features": "核心能力", "nav_docs": "使用文档", "nav_install": "安装", "nav_versions": "版本", "nav_download": "下载",
+        "search": "搜索", "search_title": "搜索站点", "search_placeholder": "搜索文档、注解、协议…", "search_hint": "输入关键词，搜索全部页面", "search_empty": "没有找到匹配内容", "search_loading": "正在加载搜索索引…", "search_results": "条结果", "search_close": "关闭搜索", "search_shortcut": "按 / 打开搜索", "search_error": "搜索索引加载失败",
         "github": "GitHub", "home": "首页", "docs": "使用文档", "read_guide": "阅读使用指南", "open_docs": "打开文档中心",
         "hero_kicker": "Apidoc / PHP · Go · Rust",
         "hero_title": '一套 API 文档体系，<br><span class="mark">三种开发语言</span>。',
@@ -421,6 +445,7 @@ UI = {
     "en": {
         "copy": COPY["en"], "copied": COPIED["en"], "menu_open": MENU_OPEN["en"], "menu_close": MENU_CLOSE["en"], "back_top": BACK_TOP["en"],
         "nav_languages": "Languages", "nav_features": "Features", "nav_docs": "Guides", "nav_install": "Install", "nav_versions": "Versions", "nav_download": "Downloads",
+        "search": "Search", "search_title": "Search the site", "search_placeholder": "Search docs, annotations, protocols…", "search_hint": "Type a keyword to search every page", "search_empty": "No matching content", "search_loading": "Loading search index…", "search_results": "results", "search_close": "Close search", "search_shortcut": "Press / to search", "search_error": "Failed to load the search index",
         "github": "GitHub", "home": "Home", "docs": "Usage guides", "read_guide": "Read the guide", "open_docs": "Open the guides",
         "hero_kicker": "Apidoc / PHP · Go · Rust",
         "hero_title": 'One API docs layer.<br><span class="mark">Three languages</span>.',
@@ -555,6 +580,7 @@ HEADER_ICONS = {
 SPRITE = """<svg class="icon-sprite" aria-hidden="true" focusable="false" xmlns="http://www.w3.org/2000/svg">
   <symbol id="i-arrow" viewBox="0 0 20 20"><path d="M3 10h13M11 5l5 5-5 5"/></symbol>
   <symbol id="i-external" viewBox="0 0 20 20"><path d="M8 4h8v8M16 4L4 16"/></symbol>
+  <symbol id="i-search" viewBox="0 0 24 24"><circle cx="11" cy="11" r="7"/><path d="m20 20-3.5-3.5"/></symbol>
   <symbol id="i-code" viewBox="0 0 24 24"><path d="M8 6l-5 6 5 6M16 6l5 6-5 6"/></symbol>
   <symbol id="i-terminal" viewBox="0 0 24 24"><path d="M3 5h18v14H3zM6 9l3 3-3 3M12 15h5"/></symbol>
   <symbol id="i-spark" viewBox="0 0 24 24"><path d="M12 3v4M12 17v4M3 12h4M17 12h4M6 6l2.5 2.5M15.5 15.5L18 18M18 6l-2.5 2.5M8.5 15.5L6 18"/></symbol>
@@ -717,6 +743,123 @@ def page_image(rel_path: str) -> tuple[str, str] | None:
     return None
 
 
+class SearchPageParser(HTMLParser):
+    """Extract page title and H2/H3 sections from a generated page's main content."""
+
+    SKIP_TAGS = {"script", "style", "svg", "button", "pre"}
+    SKIP_CLASSES = {
+        "docs-breadcrumb", "docs-badges", "docs-actions", "docs-meta",
+        "docs-sidebar", "docs-toc", "docs-toc-mobile", "docs-next", "docs-help",
+    }
+    VOID_TAGS = {"area", "base", "br", "col", "embed", "hr", "img", "input",
+                 "link", "meta", "param", "source", "track", "wbr"}
+
+    def __init__(self) -> None:
+        super().__init__(convert_charrefs=True)
+        self.in_main = False
+        self.skip_depth = 0
+        self.page_title = ""
+        self.sections: list[dict[str, str]] = []
+        self.heading = ""
+        self.heading_id = ""
+        self.heading_text: list[str] = []
+        self.section_title = ""
+        self.section_id = ""
+        self.text: list[str] = []
+
+    @staticmethod
+    def clean(parts: list[str]) -> str:
+        return re.sub(r"\s+", " ", " ".join(parts)).strip()
+
+    def flush_section(self) -> None:
+        text = self.clean(self.text)[:4000]
+        if self.section_title or text:
+            self.sections.append({
+                "id": self.section_id,
+                "title": self.section_title,
+                "text": text,
+            })
+        self.section_title = ""
+        self.section_id = ""
+        self.text = []
+
+    def handle_starttag(self, tag: str, attrs: list[tuple[str, str | None]]) -> None:
+        if self.skip_depth:
+            if tag not in self.VOID_TAGS:
+                self.skip_depth += 1
+            return
+        if tag == "main" and dict(attrs).get("id") == "main":
+            self.in_main = True
+            return
+        if not self.in_main:
+            return
+        classes = set((dict(attrs).get("class") or "").split())
+        if tag in self.SKIP_TAGS or classes & self.SKIP_CLASSES:
+            self.skip_depth = 1
+            return
+        if tag in ("h1", "h2", "h3"):
+            if tag != "h1":
+                self.flush_section()
+            self.heading = tag
+            self.heading_id = dict(attrs).get("id", "") or ""
+            self.heading_text = []
+
+    def handle_endtag(self, tag: str) -> None:
+        if self.skip_depth:
+            if tag not in self.VOID_TAGS:
+                self.skip_depth -= 1
+            return
+        if not self.in_main:
+            return
+        if tag == self.heading:
+            text = self.clean(self.heading_text)
+            if tag == "h1":
+                self.page_title = text
+            else:
+                self.section_title = text
+                self.section_id = self.heading_id
+            self.heading = ""
+            self.heading_text = []
+        elif tag == "main":
+            self.flush_section()
+            self.in_main = False
+
+    def handle_data(self, data: str) -> None:
+        if not self.in_main or self.skip_depth:
+            return
+        if self.heading:
+            self.heading_text.append(data)
+        else:
+            self.text.append(data)
+
+
+def build_search_index() -> None:
+    pages: list[dict] = []
+    for rel_path in site_pages():
+        path = ROOT / rel_path
+        if not path.is_file():
+            continue
+        parser = SearchPageParser()
+        parser.feed(path.read_text(encoding="utf-8"))
+        title = parser.page_title
+        if rel_path in HOME_REL.values():
+            title = "Apidoc · API 文档" if rel_path == HOME_REL["zh"] else "Apidoc · API docs"
+        elif rel_path in DOCS_HUB_REL.values():
+            title = "Apidoc 文档中心" if rel_path == DOCS_HUB_REL["zh"] else "Apidoc Guides"
+        elif not title:
+            title = "Apidoc"
+        pages.append({
+            "lang": "en" if rel_path.startswith("en/") else "zh",
+            "url": rel_path,
+            "title": title,
+            "sections": parser.sections,
+        })
+    write(
+        "assets/search-index.json",
+        json.dumps({"pages": pages}, ensure_ascii=False, separators=(",", ":")),
+    )
+
+
 def lexer_for(language: str):
     try:
         options = {"stripall": True}
@@ -805,11 +948,36 @@ def render_header(lang: str, current: str, active: str) -> str:
       {nav_html}
       <a class="nav-mobile-only" href="https://github.com/erikwang2013" target="_blank" rel="noopener">{UI[lang]['github']} {icon('i-external', 'icon-xs')}</a>
     </nav>
+    <button class="search-toggle" type="button" data-search-open aria-haspopup="dialog" aria-controls="search-dialog" aria-label="{UI[lang]['search']}" title="{UI[lang]['search_shortcut']}">
+      {icon('i-search')}<span class="search-toggle-label">{UI[lang]['search']}</span><kbd>/</kbd>
+    </button>
     <a class="header-cta" href="https://github.com/erikwang2013" target="_blank" rel="noopener">
       {UI[lang]['github']} {icon('i-external', 'icon-xs')}
     </a>
   </div>
 </header>'''
+
+
+def render_search(lang: str) -> str:
+    t = UI[lang]
+    return f'''<dialog class="search-dialog" id="search-dialog" aria-labelledby="search-title"
+  data-empty="{html.escape(t['search_empty'], quote=True)}"
+  data-loading="{html.escape(t['search_loading'], quote=True)}"
+  data-error="{html.escape(t['search_error'], quote=True)}"
+  data-results="{html.escape(t['search_results'], quote=True)}">
+  <div class="search-panel">
+    <div class="search-bar">
+      {icon('i-search', 'search-bar-icon')}
+      <input class="search-input" id="search-input" type="search" autocomplete="off" spellcheck="false" role="combobox" aria-autocomplete="list" aria-controls="search-results" placeholder="{html.escape(t['search_placeholder'], quote=True)}" aria-label="{html.escape(t['search_placeholder'], quote=True)}">
+      <kbd class="search-kbd">/</kbd>
+      <button class="search-close" type="button" aria-label="{html.escape(t['search_close'], quote=True)}" title="{html.escape(t['search_close'], quote=True)}">&times;</button>
+    </div>
+    <h2 class="sr-only" id="search-title">{html.escape(t['search_title'])}</h2>
+    <p class="search-hint" id="search-hint">{html.escape(t['search_hint'])}</p>
+    <div class="search-results" id="search-results" role="listbox" aria-label="{html.escape(t['search_title'], quote=True)}"></div>
+    <p class="search-status" id="search-status" role="status" aria-live="polite"></p>
+  </div>
+</dialog>'''
 
 
 def render_footer(lang: str, current: str) -> str:
@@ -901,7 +1069,7 @@ SHELL = Template('''<!doctype html>
   <meta name="theme-color" content="#f7f6fc">
   <link rel="icon" href="${root}assets/img/apidoc-pet.svg" type="image/svg+xml">
   <link rel="preload" href="${root}assets/img/apidoc-pet.svg" as="image">
-  <link rel="stylesheet" href="${root}assets/css/style.css">
+  <link rel="stylesheet" href="${root}assets/css/style.css?v=$asset_version">
   <link rel="canonical" href="$canonical">
   <meta name="robots" content="index,follow,max-image-preview:large,max-snippet:-1,max-video-preview:-1">
   <meta name="author" content="erik">
@@ -937,10 +1105,11 @@ SHELL = Template('''<!doctype html>
   <meta name="twitter:image:alt" content="$og_image_alt">
   $extra_head
 </head>
-<body data-copy-label="$copy" data-copied-label="$copied" data-menu-open="$menu_open" data-menu-close="$menu_close">
+<body data-copy-label="$copy" data-copied-label="$copied" data-menu-open="$menu_open" data-menu-close="$menu_close" data-root="$root" data-page="$page" data-search-version="$search_version">
   <a class="skip-link" href="#main">$skip</a>
   $sprite
   $header
+  $search
   <main id="main">
   $body
   </main>
@@ -949,7 +1118,7 @@ SHELL = Template('''<!doctype html>
     <svg class="to-top-ring" viewBox="0 0 64 64" aria-hidden="true"><circle cx="32" cy="32" r="30"></circle></svg>
     <img class="to-top-pet" src="${root}assets/img/apidoc-pet.svg" width="48" height="48" alt="">
   </button>
-  <script src="${root}assets/js/main.js" defer></script>
+  <script src="${root}assets/js/main.js?v=$asset_version" defer></script>
 </body>
 </html>''')
 
@@ -962,6 +1131,9 @@ def page_shell(lang: str, current: str, body: str, title: str, description: str,
         title=html.escape(title, quote=False),
         description=html.escape(description, quote=True),
         root=root,
+        page=current,
+        search_version=SEARCH_VERSION,
+        asset_version=ASSET_VERSION,
         canonical=canonical_url(current),
         alt_zh=canonical_url(alt_zh),
         alt_en=canonical_url(alt_en),
@@ -979,6 +1151,7 @@ def page_shell(lang: str, current: str, body: str, title: str, description: str,
         skip="跳到主要内容" if lang == "zh" else "Skip to main content",
         sprite=SPRITE,
         header=render_header(lang, current, "home" if current in ("index.html", "en/index.html") else "docs"),
+        search=render_search(lang),
         body=body,
         footer=render_footer(lang, current),
         back_top=UI[lang]["back_top"],
@@ -1677,7 +1850,7 @@ def build_redirect() -> None:
 def build_404() -> None:
     write(
         "404.html",
-        '''<!doctype html>
+        f'''<!doctype html>
 <html lang="zh-CN">
 <head>
   <meta charset="utf-8">
@@ -1686,7 +1859,7 @@ def build_404() -> None:
   <meta name="robots" content="noindex,follow">
   <meta name="theme-color" content="#f7f6fc">
   <link rel="icon" href="assets/img/apidoc-pet.svg" type="image/svg+xml">
-  <link rel="stylesheet" href="assets/css/style.css">
+  <link rel="stylesheet" href="assets/css/style.css?v={ASSET_VERSION}">
 </head>
 <body>
   <main class="wrap not-found">
@@ -1761,6 +1934,7 @@ def main() -> None:
         render_docs_hub(lang)
         for slug in SLUGS:
             render_doc(lang, slug)
+    build_search_index()
     build_redirect()
     build_404()
     build_robots()

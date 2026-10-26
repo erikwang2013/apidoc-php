@@ -334,6 +334,41 @@ class BuildContractTest(unittest.TestCase):
             else:
                 self.assertIn("API 文档", h1, f"{rel_path}: {h1}")
 
+    def test_search_ui_and_index(self) -> None:
+        for rel_path in PAGES:
+            html_text = read(rel_path)
+            for needle in (
+                'data-search-open',
+                'id="search-dialog"',
+                'id="search-input"',
+            ):
+                self.assert_contains(needle, html_text, f"{rel_path}: missing {needle}")
+            self.assertIn('data-root="', html_text, f"{rel_path}: data-root missing")
+            self.assertIn('data-page="', html_text, f"{rel_path}: data-page missing")
+            self.assertIn('data-search-version="', html_text, f"{rel_path}: data-search-version missing")
+
+        index_path = ROOT / "assets" / "search-index.json"
+        self.assertTrue(index_path.is_file(), "search-index.json missing")
+        data = json.loads(index_path.read_text(encoding="utf-8"))
+        pages = data.get("pages", [])
+        self.assertEqual(len(pages), len(PAGES), "search index page count")
+        seen_langs = set()
+        for page in pages:
+            self.assertIn(page.get("lang"), ("zh", "en"), page)
+            seen_langs.add(page["lang"])
+            self.assertIn(page.get("url"), PAGES, page)
+            self.assertTrue(page.get("title"), page)
+            self.assertTrue(page.get("sections"), page)
+            for section in page["sections"]:
+                self.assertIn("title", section, page["url"])
+                self.assertIn("text", section, page["url"])
+        self.assertEqual(seen_langs, {"zh", "en"}, "search index languages")
+
+        script = read("assets/js/main.js")
+        self.assertIn("assets/search-index.json", script)
+        self.assertIn("search-dialog", script)
+        self.assertIn("ArrowDown", script)
+
     def test_docs_content_images_have_width_and_height(self) -> None:
         docs_pages = (
             "docs/php.html",
