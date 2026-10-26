@@ -7,8 +7,8 @@
   <rect width="940" height="860" fill="url(#wm)"/>
   <rect x="0" y="0" width="940" height="860" fill="none" stroke="#333" stroke-width="2"/>
 
-  <text x="470" y="38" text-anchor="middle" font-size="26" font-weight="bold" fill="#222">apidoc-rust Overall Architecture (M1–M6 + P1–P6 Multi-Protocol)</text>
-  <text x="470" y="60" text-anchor="middle" font-size="13" fill="#555">Annotations → document model → adapters → browser-direct / server executors → exports &amp; integrations</text>
+  <text x="470" y="38" text-anchor="middle" font-size="26" font-weight="bold" fill="#222">apidoc-rust Overall Architecture (M1–M6 + P1–P6 + UIC-1)</text>
+  <text x="470" y="60" text-anchor="middle" font-size="13" fill="#555">Annotations → document model → adapters → browser-direct / server executors → 9 definitions → exports &amp; integrations</text>
 
   <!-- User code -->
   <rect x="60" y="78" width="820" height="74" rx="8" fill="#fdf6e3" stroke="#b58900" stroke-width="2"/>
@@ -31,8 +31,8 @@
   <!-- Adapters -->
   <rect x="60" y="364" width="820" height="74" rx="8" fill="#eafaf1" stroke="#27ae60" stroke-width="2"/>
   <text x="80" y="390" font-size="16" font-weight="bold" fill="#1e8449">Adapters · axum / actix-web (1:1 feature parity)</text>
-  <text x="80" y="412" font-size="12.5" fill="#333" font-family="monospace">/apidoc · api.json · export · mock · auth · share · generate</text>
-  <text x="80" y="430" font-size="12.5" fill="#333" font-family="monospace">/apidoc/debug · /apidoc/debug/stream · /apidoc/webhook/:id · CORS</text>
+  <text x="80" y="412" font-size="12.5" fill="#333" font-family="monospace">/apidoc · ui: native|vue · api.json · export · mock · auth · share · generate</text>
+  <text x="80" y="430" font-size="12.5" fill="#333" font-family="monospace">/ui/v1/* · /apidoc/debug · /apidoc/debug/stream · /apidoc/webhook/:id · CORS</text>
 
   <!-- Browser direct -->
   <rect x="60" y="452" width="400" height="154" rx="8" fill="#eaf7ef" stroke="#27ae60" stroke-width="2"/>
@@ -62,8 +62,8 @@
   <!-- Exports -->
   <rect x="60" y="702" width="820" height="74" rx="8" fill="#fdf6e3" stroke="#b58900" stroke-width="2"/>
   <text x="80" y="728" font-size="16" font-weight="bold" fill="#5f4b00">Exports &amp; integrations</text>
-  <text x="80" y="750" font-size="12.5" fill="#333">md / ts / swagger(OpenAPI 3.0) / asyncapi(2.6) · codegen · Mock · share links</text>
-  <text x="80" y="768" font-size="12.5" fill="#555">apidoc-idl: .proto / .thrift import · Dubbo Nacos registry · Webhook event capture</text>
+  <text x="80" y="750" font-size="12.5" fill="#333">md / ts / swagger(OpenAPI 3.0) / asyncapi(2.6) · codegen · Mock · share links · Nacos Dubbo</text>
+  <text x="80" y="768" font-size="12.5" fill="#555">9 definitions: proto / WSDL-XSD / GraphQL / OpenAPI / AsyncAPI / JSON Schema / JSON-RPC / XML-RPC / OData EDMX</text>
 
   <!-- workspace -->
   <rect x="60" y="786" width="820" height="26" rx="8" fill="#fdfefe" stroke="#95a5a6" stroke-width="2"/>
@@ -71,7 +71,7 @@
 
   <!-- legend -->
   <rect x="60" y="826" width="22" height="12" fill="#27ae60"/>
-  <text x="90" y="837" font-size="12.5" fill="#333">Implemented (M1–M6 + P1–P6)</text>
+  <text x="90" y="837" font-size="12.5" fill="#333">Implemented (M1–M6 + P1–P6 + UIC-1)</text>
   <text x="330" y="837" font-size="12.5" fill="#555">Server debugging off by default · browser-direct needs no deps · see multiprotocol-en.svg</text>
   <text x="700" y="850" font-size="12" fill="#888">watermark: https://erik.xyz</text>
 </svg>

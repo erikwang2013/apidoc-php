@@ -1,12 +1,12 @@
-Go 版把接口文档声明成类型化结构体，并和路由注册放在一起。文档与路由同生；库输出 menus/protocols/detail/export 文档 API，由 apidoc-ui 负责渲染、在线调试与协议面板。它适合已经使用 Go HTTP 框架、希望文档跟着路由走的项目。
+Go 版把接口文档声明成类型化结构体，并和路由注册放在一起。文档与路由同生；库输出 menus/protocols/detail/export 文档 API，并通过 UIC-1 提供内置 Vue UI、服务端调试执行器与 9 种定义解析。它适合已经使用 Go HTTP 框架、希望文档跟着路由走的项目。
 
-<figure class="doc-figure"><img src="{{root}}assets/img/go/{{imglang}}/architecture.svg" alt="apidoc-go architecture"><figcaption>apidoc-go 架构：路由注册、文档存储、响应缓存与外部文档 API。</figcaption></figure>
+<figure class="doc-figure"><img src="{{root}}assets/img/go/{{imglang}}/architecture.svg" alt="apidoc-go architecture"><figcaption>apidoc-go 架构：路由注册、文档存储、响应缓存、UIC-1 与共享 Vue UI。</figcaption></figure>
 
 ## 适用场景
 
 - net/http、Gin、Echo、Chi、Fiber、beego、Kratos、go-zero 服务端项目。
 - 路由注册和文档声明希望放在同一处，避免文档与 handler 脱节。
-- 需要外部 apidoc-ui 渲染文档、在线调试、协议注解、Mock、多应用/多版本、密码鉴权、响应缓存与 JSON/TypeScript 导出。
+- 需要内置 Vue UI、在线调试、协议注解、9 种定义解析、Mock、多应用/多版本、密码鉴权、响应缓存与 JSON/TypeScript 导出。
 - 接受 Go 1.24+，并且能把文档注册写进现有路由初始化流程。
 
 ## 安装
@@ -59,7 +59,7 @@ func main() {
 }
 ```
 
-文档 API 位于 `http://localhost:8080/apidoc/api/...`，由 apidoc-ui（或同契约的静态前端）读取。`Mount` 只挂载文档 API，不再内置 Web UI。
+文档 API 位于 `http://localhost:8080/apidoc/api/...`，由 apidoc-ui（或同契约的静态前端）读取。`Mount` 只挂载文档 API；设置 `Config.UIPath` 后可由 Go 直接托管 `dist/uic1-ui` 共享 Vue 构建。
 
 | 接口 | 说明 |
 | --- | --- |
@@ -83,9 +83,9 @@ func main() {
 func PublishTemp() {}
 ```
 
-`@protocol` 接受 HTTP/2、HTTP/3、SOAP、GraphQL、gRPC、Dubbo、Thrift、Hessian、WebSocket、SSE、MQTT、STOMP、Kafka、CoAP、Modbus TCP、DNP3、TCP、UDP 等协议及别名；完整清单见 `GET /api/protocols`。二进制 body 用 `@param ... type=binary`（或 `hex`/`base64`）+ `in=payload` 声明。
+`@protocol` 接受 HTTP/2、HTTP/3、SOAP、GraphQL、gRPC、Thrift、Dubbo、Hessian、WebSocket、SSE、MQTT、STOMP、Kafka、AMQP、XMPP、CoAP、LwM2M、Modbus TCP、DNP3、IEC 104、BACnet、OPC UA、ISO 8583、RTSP、SIP、RTP/RTCP、RTMP、TCP、UDP、Unix socket、raw 等协议及别名；完整清单见 `GET /api/protocols`。二进制 body 用 `@param ... type=binary`（或 `hex`/`base64`）+ `in=payload` 声明。
 
-协议执行不进入 Go 库：库只输出协议元数据，由 apidoc-ui 渲染调试面板并发起测试请求；库不启动协议服务，也不提供 `/api/debug/*` 执行端点。需要服务端执行时使用 PHP 或 Rust 版。
+UIC-1 服务端执行器按构建标签编译（如 `apidoc_debug_all`），通过 `/ui/v1/debugSend|Start|Poll|Stop` 执行；未编译的协议不会出现在 capabilities 中。浏览器直连的 HTTP/WebSocket/SSE 不经过执行器。
 
 ## 核心模型与注册规则
 
@@ -259,20 +259,22 @@ for _, r := range results {
 - 接口详情页自动生成 Mock 示例；`Param.Mock` / `Response.Mock` 可以指定固定字符串。
 - 未指定 Mock 时，mock 包按类型生成：`string`、`int`、`float`、`bool`、`object` 等。
 - 在线调试由 apidoc-ui 从浏览器直连目标服务；跨域来源必须在 `DebugOrigins` 中配置，适配器会下发 CORS 头。
-- 协议接口只返回元数据，调试面板与测试请求由外部 UI 负责；Go 库没有服务端中继端点。
+- 浏览器协议由 apidoc-ui 直连；需要服务端执行的协议经 UIC-1 执行器，Go 按构建标签编译，并在 capabilities 中只声明已编译的协议。
 - `/api/menus`、`/api/protocols`、`/api/export` 的响应按文档版本预序列化缓存，`Register` / `SetAppMeta` 后自动失效；响应带 `ETag` 与 `Cache-Control: private, max-age=300`，重复访问可走 304。
 
-## UIC-1 统一接口（开发中）
+## UIC-1 统一接口
 
-Phase 1–2 增加 `/ui/v1` 契约，让 apidoc-ui 自动识别 Go 并按能力显示入口：
+`/ui/v1` 统一契约已在 Go 完整实现，apidoc-ui 可自动识别 Go 并按能力显示入口：
 
 - 读接口：`capabilities`、`config`、`menus`、`detail`、`docMenus`、`docDetail`、`verifyAuth`。
-- 浏览器调试：HTTP / WebSocket / SSE；服务端中继仍为空，Phase 3 才会加入 Go 原生执行器。
-- Phase 2 管理能力：分享记录 CRUD/登录、缓存清理/预热、声明式生成器与代码模板、`exportAllData`。
+- 调试：浏览器直连 HTTP / WebSocket / SSE；服务端执行器覆盖 HTTP、HTTP/2、HTTP/3、SOAP、GraphQL、JSON-RPC、XML-RPC、OData、MCP、A2A、Webhook、TCP/UDP/Unix/raw、MQTT、STOMP、AMQP、Kafka、XMPP、CoAP、LwM2M、Modbus、DNP3、IEC 104、BACnet、OPC UA、RTSP、SIP、RTP/RTCP、RTMP、gRPC、Thrift、Dubbo、Hessian、ISO 8583，经 `/ui/v1/debugSend|Start|Poll|Stop` 调用，按构建标签选择性编译。
+- 管理能力：分享记录 CRUD/登录、缓存清理/预热、声明式生成器与代码模板、`exportAllData`。
+- 定义解析：`@definition` 注解与 `DefinitionRoot` 配置支持 proto、WSDL/XSD、GraphQL、OpenAPI、AsyncAPI、JSON Schema、JSON-RPC、XML-RPC、OData EDMX 共 9 种格式。
 - 鉴权使用 Bearer token，并按应用/分享 scope 校验；不支持的能力通过 capabilities 明确关闭。
+- `Config.UIPath` 可托管共享 `dist/uic1-ui` 构建；同一产物也服务 PHP 与 Rust。
 - 原有 `GET /api/menus|protocols|detail|export` 保持兼容；UIC-1 是新增层，不替换原生 API。
 
-发布版能力以仓库 `main` / Releases 为准；Phase 3/4 完成前不要把 Go 标成完整协议执行后端。
+发布版能力以仓库 `main` / Releases 为准；Go 已是完整协议执行后端，执行器按构建标签选择性编译。
 
 ## 鉴权
 
@@ -341,7 +343,7 @@ Phase 1–2 增加 `/ui/v1` 契约，让 apidoc-ui 自动识别 Go 并按能力�
 
 <figure class="doc-figure"><img src="{{root}}assets/img/go/{{imglang}}/features.svg" alt="apidoc-go features"><figcaption>apidoc-go 功能图：文档、协议注解、Mock、响应缓存、导出与适配器。</figcaption></figure>
 
-<figure class="doc-figure"><img src="{{root}}assets/img/go/{{imglang}}/lifecycle.svg" alt="apidoc-go lifecycle"><figcaption>apidoc-go 生命周期：注册、存储、响应缓存与外部 UI 调试。</figcaption></figure>
+<figure class="doc-figure"><img src="{{root}}assets/img/go/{{imglang}}/lifecycle.svg" alt="apidoc-go lifecycle"><figcaption>apidoc-go 生命周期：注册、存储、响应缓存、UIC-1 与内置 Vue UI。</figcaption></figure>
 
 ## 参考
 

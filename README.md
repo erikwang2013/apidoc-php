@@ -22,7 +22,8 @@ Apidoc 是一款通过解析 **PHP 8 attributes** 自动生成 API 接口文档�
 - **开箱即用**：无需繁杂配置，安装后按文档编写 attributes 即可自动生成 API 文档。
 - **轻松编写**：支持通用注释定义（definitions）、数据表字段的 `ref` / `table` 引用，几句注解即可完成完整字段定义。
 - **在线调试**：文档页内直接调试接口，支持全局参数带入、Mock 数据、前置/后置调试事件。
-- **任意协议**：用 `Protocol` / `Channel` / `Debug` 注解声明 MQTT、STOMP、gRPC、WebSocket、SSE、TCP/UDP 等协议，详情页生成对应调试面板；`Definition` 可解析 OpenAPI、protobuf、WSDL 等本地定义。
+- **任意协议**：用 `Protocol` / `Channel` / `Debug` 注解声明 MQTT、STOMP、gRPC、Thrift、Dubbo、HTTP/2、HTTP/3、Kafka、AMQP、XMPP、DNP3、IEC 104、BACnet、OPC UA、RTP/RTCP、RTMP、LwM2M 等协议，详情页生成对应调试面板；内置 27 个调试驱动。
+- **统一 UI**：同一份 apidoc-ui（Vue 3）通过 UIC-1 能力协商自动识别 PHP、Go、Rust，共用应用/版本、调试、分享、缓存与导出入口。
 - **多应用/多版本**：单应用、多应用、多版本项目均可配置，接口按应用/版本分组展示与切换。
 - **分组/Tag**：控制器与接口支持多级分组与 Tag 标记。
 - **Markdown 文档**：可将 `.md` 文件挂载为文档页。
@@ -101,31 +102,36 @@ public function publishTemperature() {}
 ],
 ```
 
-### 协议覆盖与回退
+### 协议覆盖
 
-P1 已有专用驱动的协议使用专用面板，其余协议回退到通用面板（`webrtc`/`webrtc-datachannel` 除外）。**通用面板不实现协议语义**：`raw` 只按 `text`/`hex`/`base64` 发送原始字节，HTTP 中继只发普通 HTTP 请求，浏览器 WebSocket 只收发 WebSocket 帧。
+协议详情页按 `ProtocolCatalog` 选择浏览器面板或服务端中继。当前注册 **27 个调试驱动**：`raw`、`http-relay`、`mqtt`、`stomp`、`coap`、`modbus-tcp`、`iso8583`、`rtsp`、`sip`、`grpc`、`hessian`、`hls`、`thrift`、`dubbo`、`http2`、`http3`、`amqp`、`kafka`、`xmpp`、`dnp3`、`iec104`、`bacnet`、`opcua`、`rtp`、`rtcp`、`rtmp`、`lwm2m`。
 
-| 协议 id | P1 专用驱动 | P2 通用回退 |
+| 协议 id | 驱动 | 调试方式 |
 | - | - | - |
-| `http` `rest` `soap` `graphql` `json-rpc` `xml-rpc` `webhooks` `odata` `mcp` `a2a` | `http`（浏览器 HTTP 面板） | — |
-| `websocket` | 浏览器 WebSocket | — |
-| `sse` | 浏览器 EventSource | — |
-| `mqtt` `stomp` | `mqtt` / `stomp`（发布单次中继、订阅流式） | — |
-| `coap` `modbus-tcp` `iso8583` `rtsp` `sip` `hls` `grpc` `hessian` | 同名专用驱动 | — |
-| `tcp` `udp` `unix-socket` `raw-socket` | `raw` | — |
-| `thrift` `dubbo` `amqp` `kafka` `xmpp` `rtmp` `opc-ua` `dnp3` `iec-104` `lwm2m` `rtp` `rtcp` `bacnet-ip` | 无 | `raw`（TCP/UDP/UDS 文本/hex/base64） |
-| `binary-body` | 无 | `http-relay`（单次 HTTP 中继） |
-| `websocket-binary` | 无 | 浏览器 WebSocket |
-| `socket.io` | 无 | 浏览器 WebSocket 原始回退（Engine.IO 驱动仍为 P2） |
-| `stomp-binary` | 无 | `stomp`（发布/发送单次中继，接收流式） |
-| `http2` `http3` | 无 | 浏览器 HTTP（不实现 HTTP/2、HTTP/3 语义） |
-| `webrtc` `webrtc-datachannel` | 无 | 无（需手动 SDP/信令，P2） |
+| `http` `rest` `soap` `graphql` `json-rpc` `xml-rpc` `webhooks` `odata` `mcp` `a2a` | `http` | 浏览器 HTTP |
+| `websocket` | 浏览器 WebSocket | 浏览器直连 |
+| `sse` | 浏览器 EventSource | 浏览器直连 |
+| `hls` | `hls` | 浏览器 HLS 预览（不进入服务端中继） |
+| `mqtt` `stomp` | `mqtt` / `stomp` | 中继：单次 + 流式 |
+| `kafka` `amqp` `xmpp` | 同名驱动 | 中继：单次 |
+| `grpc` `thrift` `dubbo` `hessian` | 同名驱动 | 中继：单次 |
+| `http2` `http3` | `http2` / `http3` | 中继：真实 HTTP/2、HTTP/3 请求 |
+| `coap` `modbus-tcp` `iso8583` `rtsp` `sip` `dnp3` `iec104` `bacnet` `opcua` `rtp` `rtcp` `rtmp` `lwm2m` | 同名驱动 | 中继：单次 |
+| `tcp` `udp` `unix-socket` `raw-socket` | `raw` | 中继：文本/hex/base64 原始报文 |
+| `binary-body` | `http-relay` | 中继：普通 HTTP 请求 |
+| `websocket-binary` `socket.io` | 浏览器 WebSocket | 浏览器直连（原始帧回退） |
+| `stomp-binary` | `stomp` | 中继：单次 + 流式 |
+| `webrtc` `webrtc-datachannel` | 无 | 只读面板（需手动 SDP/信令） |
+
+- 协议 id 与驱动名不一致的别名（`iec-104`、`opc-ua`、`bacnet-ip`）自动映射到对应驱动。
+- `http2` / `http3` 执行真实 HTTP/2、HTTP/3 请求；宿主 curl 缺少 HTTP/3 支持时，capabilities 会自动省略该驱动。
+- 通用面板不实现协议语义：`raw` 只按 `text`/`hex`/`base64` 发送原始字节，HTTP 中继只发普通 HTTP 请求，浏览器 WebSocket 只收发 WebSocket 帧。
 
 注解参数、调试模式与中继安全说明见 [Attributes 使用说明](docs/ATTRIBUTES.md) 的「任意协议调试」。
 
 ### 协议定义解析
 
-`#[Definition]` 可读取本地 `.proto`、`.wsdl`、`.graphql`、OpenAPI/AsyncAPI（JSON/YAML）、JSON Schema、JSON-RPC/XML-RPC 定义和 OData `$metadata`，解析出操作、消息与字段，并在详情页展示定义校验/样例校验结果。支持本地 import 与 `$ref`，只读本地文件、不发起网络请求；文件大小、行数、递归深度和 import 数有上限。P1 未覆盖的 `thrift`/`dubbo` 等仍可用 raw 调试面板。
+`#[Definition]` 可读取本地 `.proto`、`.wsdl`、`.graphql`、OpenAPI/AsyncAPI（JSON/YAML）、JSON Schema、JSON-RPC/XML-RPC 定义和 OData `$metadata`，解析出操作、消息与字段，并在详情页展示定义校验/样例校验结果。共支持 9 种格式：proto、WSDL/XSD、GraphQL SDL、OpenAPI、AsyncAPI、JSON Schema、JSON-RPC、XML-RPC、OData EDMX。支持本地 import 与 `$ref`，只读本地文件、不发起网络请求；文件大小、行数、递归深度和 import 数有上限。
 
 ```php
 #[Protocol('grpc')]
@@ -136,6 +142,23 @@ public function sayHello() {}
 
 支持的格式、参数、限制与配置见 [Attributes 使用说明](docs/ATTRIBUTES.md) 的「协议定义解析」。
 
+## 🔗 UIC-1 统一接口与共享 UI
+
+UIC-1 是 PHP / Go / Rust 共用的 `/ui/v1` 契约。PHP 在保留 `apiMenus`、`apiDetail`、`apiShare*` 等 legacy 路由的同时，已完整实现：
+
+- 读接口：`capabilities` / `config` / `menus` / `detail` / `docMenus` / `docDetail` / `verifyAuth`。
+- 调试：`debugSend` / `debugStart` / `debugPoll` / `debugStop`；中继列表按 `DebugRegistry` 的实际可用驱动声明。
+- 管理：分享记录 CRUD、缓存清理/预热、生成器、代码模板与 `exportAllData`。
+- 分享动作能力为 `actions:false`：统一界面不执行任意 PHP callable，legacy `handleApiShareAction` 保留给旧接口。
+- 声明式生成器 `/ui/v1/generator` 只读取 `ui_generator` 配置并在内存中渲染，不执行 middleware、不写文件、不建表；legacy `/generator` 保留原有副作用行为。
+- `capabilities` 会报告 `share`、`cache.mode`、`generator.sideEffects:false` 与 `exports` 列表，UI 据此隐藏或解释不可用入口。
+
+部署共享 Vue UI：
+
+1. 在 apidoc-ui 仓库执行 `npm run package:ui`，产物在 `dist/uic1-ui/`（含 `manifest.json` 与内容 `sha256`）。
+2. 把整个目录部署到静态服务器、CDN 或反向代理目录；同一份产物可同时服务 PHP、Go、Rust。
+3. 在 `config.js` 中设置 `BACKEND: "auto"` 与 `HTTP.API_PREFIX: "/apidoc"`，启动后通过 `/ui/v1/capabilities` 自动识别 PHP。
+4. PHP 不内置静态文件服务；旧版页面与 legacy 路由保持可用，回滚时无需改动后端。
 
 ## ⚡性能预算
 

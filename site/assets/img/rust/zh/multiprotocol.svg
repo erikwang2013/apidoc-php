@@ -11,20 +11,20 @@
   <rect x="0" y="0" width="940" height="820" fill="none" stroke="#333" stroke-width="2"/>
 
   <text x="470" y="36" text-anchor="middle" font-size="25" font-weight="bold" fill="#222">apidoc-rust 多协议调试架构（P0–P6）</text>
-  <text x="470" y="58" text-anchor="middle" font-size="13" fill="#555">注解生成文档与调试面板 · 浏览器直连 + 服务端代发 · 默认构建零重型依赖</text>
+  <text x="470" y="58" text-anchor="middle" font-size="13" fill="#555">注解生成文档与调试面板 · 浏览器直连 + 服务端代发 · 三端共用 Vue UI · 默认构建零重型依赖</text>
 
   <!-- 1. 注解层 -->
   <rect x="40" y="78" width="860" height="92" rx="10" fill="#fdf6e3" stroke="#b58900" stroke-width="2"/>
   <text x="58" y="104" font-size="16" font-weight="bold" fill="#5f4b00">1 · 注解层（编译期）</text>
   <text x="58" y="126" font-size="12.5" font-family="monospace" fill="#333">#[apidoc::grpc(...)]  #[apidoc::websocket("wss://…")]  #[apidoc::mqtt(..., topic="sensors/#")]</text>
   <text x="58" y="146" font-size="12.5" font-family="monospace" fill="#333">#[apidoc::event(direction="in", name="message")]  #[apidoc::param(..., field="1")]</text>
-  <text x="58" y="164" font-size="12" fill="#7a5b00">45 个协议别名 + 通用 protocol(kind) · kind / 参数 / 字段号编译期校验</text>
+  <text x="58" y="164" font-size="12" fill="#7a5b00">45 个协议别名 + 通用 protocol(kind) · 9 种定义解析 · kind / 参数 / 字段号编译期校验</text>
 
   <!-- 2. 文档与 UI -->
   <rect x="40" y="186" width="860" height="98" rx="10" fill="#e8e4f8" stroke="#6c5ce7" stroke-width="2"/>
   <text x="58" y="212" font-size="16" font-weight="bold" fill="#3d2f8f">2 · 文档模型与 UI</text>
   <text x="58" y="236" font-size="12.5" font-family="monospace" fill="#333">DocEndpoint { protocol, protocol_opts, events, params.field }</text>
-  <text x="58" y="256" font-size="12.5" fill="#333">api.json · 协议徽标/连接参数/事件表 · 协议调试面板 · md / ts / swagger / asyncapi 导出</text>
+  <text x="58" y="256" font-size="12.5" fill="#333">api.json · 原生 / Vue 双 UI · 协议徽标/连接参数/事件表 · 调试面板 · md / ts / swagger / asyncapi 导出</text>
   <text x="58" y="274" font-size="12" fill="#4a3d99">构建期物化：请求期只查表 + Bytes 克隆，本地 p99 &lt; 10ms</text>
 
   <!-- 3a. 浏览器直连 -->

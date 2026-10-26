@@ -7,8 +7,8 @@
   <rect width="940" height="860" fill="url(#wm)"/>
   <rect x="0" y="0" width="940" height="860" fill="none" stroke="#333" stroke-width="2"/>
 
-  <text x="470" y="38" text-anchor="middle" font-size="26" font-weight="bold" fill="#222">apidoc-rust 总体架构（M1–M6 + P1–P6 多协议）</text>
-  <text x="470" y="60" text-anchor="middle" font-size="13" fill="#555">注解 → 文档模型 → 适配器 → 浏览器直连 / 服务端代发 → 导出与集成</text>
+  <text x="470" y="38" text-anchor="middle" font-size="26" font-weight="bold" fill="#222">apidoc-rust 总体架构（M1–M6 + P1–P6 + UIC-1）</text>
+  <text x="470" y="60" text-anchor="middle" font-size="13" fill="#555">注解 → 文档模型 → 适配器 → 浏览器直连 / 服务端代发 → 9 种定义解析 → 导出与集成</text>
 
   <!-- 用户代码层 -->
   <rect x="60" y="78" width="820" height="74" rx="8" fill="#fdf6e3" stroke="#b58900" stroke-width="2"/>
@@ -31,8 +31,8 @@
   <!-- 适配器层 -->
   <rect x="60" y="364" width="820" height="74" rx="8" fill="#eafaf1" stroke="#27ae60" stroke-width="2"/>
   <text x="80" y="390" font-size="16" font-weight="bold" fill="#1e8449">适配器层 · axum / actix-web（功能 1:1）</text>
-  <text x="80" y="412" font-size="12.5" fill="#333" font-family="monospace">/apidoc · api.json · export · mock · auth · share · generate</text>
-  <text x="80" y="430" font-size="12.5" fill="#333" font-family="monospace">/apidoc/debug · /apidoc/debug/stream · /apidoc/webhook/:id · CORS</text>
+  <text x="80" y="412" font-size="12.5" fill="#333" font-family="monospace">/apidoc · ui: native|vue · api.json · export · mock · auth · share · generate</text>
+  <text x="80" y="430" font-size="12.5" fill="#333" font-family="monospace">/ui/v1/* · /apidoc/debug · /apidoc/debug/stream · /apidoc/webhook/:id · CORS</text>
 
   <!-- 调试能力：浏览器直连 -->
   <rect x="60" y="452" width="400" height="154" rx="8" fill="#eaf7ef" stroke="#27ae60" stroke-width="2"/>
@@ -62,8 +62,8 @@
   <!-- 导出与集成 -->
   <rect x="60" y="702" width="820" height="74" rx="8" fill="#fdf6e3" stroke="#b58900" stroke-width="2"/>
   <text x="80" y="728" font-size="16" font-weight="bold" fill="#5f4b00">导出与集成</text>
-  <text x="80" y="750" font-size="12.5" fill="#333">md / ts / swagger(OpenAPI 3.0) / asyncapi(2.6) · 代码生成 · Mock · 分享链接</text>
-  <text x="80" y="768" font-size="12.5" fill="#555">apidoc-idl：.proto / .thrift 导入 · Dubbo Nacos 注册中心 · Webhook 事件捕获</text>
+  <text x="80" y="750" font-size="12.5" fill="#333">md / ts / swagger(OpenAPI 3.0) / asyncapi(2.6) · 代码生成 · Mock · 分享链接 · Nacos Dubbo</text>
+  <text x="80" y="768" font-size="12.5" fill="#555">9 种定义解析：proto / WSDL-XSD / GraphQL / OpenAPI / AsyncAPI / JSON Schema / JSON-RPC / XML-RPC / OData EDMX</text>
 
   <!-- workspace -->
   <rect x="60" y="786" width="820" height="26" rx="8" fill="#fdfefe" stroke="#95a5a6" stroke-width="2"/>
@@ -71,7 +71,7 @@
 
   <!-- 图例 -->
   <rect x="60" y="826" width="22" height="12" fill="#27ae60"/>
-  <text x="90" y="837" font-size="12.5" fill="#333">已实现（M1–M6 + P1–P6）</text>
+  <text x="90" y="837" font-size="12.5" fill="#333">已实现（M1–M6 + P1–P6 + UIC-1）</text>
   <text x="330" y="837" font-size="12.5" fill="#555">服务端调试默认关闭 · 浏览器直连零依赖 · 详情见 multiprotocol.svg</text>
   <text x="700" y="850" font-size="12" fill="#888">watermark: https://erik.xyz</text>
 </svg>

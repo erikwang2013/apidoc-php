@@ -278,14 +278,17 @@ class Definitions
 public function publishTemperature() {}
 ```
 
-- HTTP/REST/SOAP/GraphQL/JSON-RPC/XML-RPC/OData/Webhooks：浏览器直连，沿用原调试面板。
-- WebSocket/SSE：浏览器原生 WebSocket / EventSource。
-- MQTT/STOMP、gRPC、TCP/UDP、CoAP、Modbus、ISO 8583、RTSP、SIP、HLS、Hessian：服务端中继。
-- 没有专用驱动的协议回退到 `raw` / `http-relay` / 浏览器面板；WebRTC 面板只读并提示原因。
+- HTTP/REST/SOAP/GraphQL/JSON-RPC/XML-RPC/OData/Webhooks/MCP/A2A：浏览器直连，沿用原调试面板。
+- WebSocket/SSE：浏览器原生 WebSocket / EventSource；HLS 在浏览器预览，不进入服务端中继。
+- 中继单次 + 流式：MQTT、STOMP。
+- 中继单次：Kafka、AMQP、XMPP、gRPC、Thrift、Dubbo、Hessian、HTTP/2、HTTP/3、CoAP、Modbus TCP、ISO 8583、RTSP、SIP、DNP3、IEC 104、BACnet、OPC UA、RTP、RTCP、RTMP、LwM2M。
+- 原始报文：TCP/UDP/Unix socket 走 `raw`；二进制 HTTP body 走 `http-relay`；`websocket-binary`/`socket.io` 使用浏览器 WebSocket 原始帧；`stomp-binary` 走 STOMP 中继；WebRTC 面板只读并提示原因。
+
+当前注册 27 个调试驱动：`raw`、`http-relay`、`mqtt`、`stomp`、`coap`、`modbus-tcp`、`iso8583`、`rtsp`、`sip`、`grpc`、`hessian`、`hls`、`thrift`、`dubbo`、`http2`、`http3`、`amqp`、`kafka`、`xmpp`、`dnp3`、`iec104`、`bacnet`、`opcua`、`rtp`、`rtcp`、`rtmp`、`lwm2m`。`iec-104`、`opc-ua`、`bacnet-ip` 等协议 id 会自动映射到驱动；HTTP/2、HTTP/3 执行真实请求，宿主 curl 不支持 HTTP/3 时该能力不会声明。
 
 中继默认关闭；开启后要求 token 或 shareKey，目标只来自接口注解，并受速率、超时、字节与会话数限制。完整覆盖表与配置见 [Attributes 文档](https://github.com/erikwang2013/apidoc-php/blob/main/docs/ATTRIBUTES.md)。
 
-`#[Definition]` 可解析本地 `.proto`、WSDL/XSD、GraphQL SDL、OpenAPI/AsyncAPI、JSON Schema、JSON-RPC/XML-RPC、OData EDMX，展示消息字段与校验错误；支持本地 import 与 `$ref`，不发起网络请求，路径限制在 `protocols.allowed_roots` 内，软链逃逸会被拒绝。修改定义文件后，详情缓存会按 mtime + size 指纹自动失效。
+`#[Definition]` 可解析本地 `.proto`、WSDL/XSD、GraphQL SDL、OpenAPI/AsyncAPI、JSON Schema、JSON-RPC/XML-RPC、OData EDMX 共 9 种格式，展示消息字段与校验错误；支持本地 import 与 `$ref`，不发起网络请求，路径限制在 `protocols.allowed_roots` 内，软链逃逸会被拒绝。修改定义文件后，详情缓存会按 mtime + size 指纹自动失效。
 
 缓存命中时，文档读接口与定义解析/渲染的本机 CPU 处理目标为 **P95 < 10ms**（墙钟受宿主 IO/调度影响）；运行 `php tests/performance.php` 验证。预算不含框架启动、HTTP 服务器与外部网络。
 
@@ -306,17 +309,18 @@ public function publishTemperature() {}
 - 缓存开启后，文档解析结果会被复用；修改注解后如果页面没更新，先清理缓存。
 - 安全修复版本加入了标识符白名单、路径校验、常量时间比较等边界防护。
 
-## UIC-1 统一接口（开发中）
+## UIC-1 统一接口
 
-Phase 1–2 在原有接口之外增加 `/ui/v1` 统一契约，供同一份 apidoc-ui 自动识别 PHP、Go、Rust：
+`/ui/v1` 统一契约已在 PHP 完整实现，同一份 apidoc-ui 可自动识别 PHP、Go、Rust：
 
-- `capabilities` / `config` / `menus` / `detail` / `docMenus` / `docDetail` / `verifyAuth` 与调试别名。
+- `capabilities` / `config` / `menus` / `detail` / `docMenus` / `docDetail` / `verifyAuth`，调试入口 `debugSend` / `debugStart` / `debugPoll` / `debugStop`。
 - 分享记录 CRUD、缓存清理/预热、生成器、代码模板与 `exportAllData`。
+- 声明式生成器 `/ui/v1/generator` 只读取 `ui_generator` 配置并在内存中渲染，不执行 middleware、不写文件、不建表；legacy `/generator` 保留原有副作用行为。
 - 原有 `apiMenus`、`apiDetail`、`apiShare*` 等 legacy 路由保持不变，旧版 UI 继续可用。
 - UIC-1 的分享动作能力为 `actions:false`：统一界面不执行任意 PHP callable；legacy `handleApiShareAction` 保留给旧接口。
 - `exportAllData` 让分享页的 Swagger/全量导出不再逐接口回退。
 
-Phase 3（Go 服务端执行器）与 Phase 4（Go/Rust 外部定义解析）仍在开发中；发布版能力以仓库 `main` / Releases 为准。
+部署时在 apidoc-ui 执行 `npm run package:ui`，把 `dist/uic1-ui/` 放到静态服务器/CDN，并设置 `BACKEND: "auto"` 与 `HTTP.API_PREFIX: "/apidoc"`。PHP 不托管静态文件；同一产物可同时服务 Go 与 Rust。
 
 ## 导出、分享与代码生成
 

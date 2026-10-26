@@ -278,14 +278,17 @@ Beyond HTTP, declare MQTT, STOMP, gRPC, TCP/UDP and other protocols on controlle
 public function publishTemperature() {}
 ```
 
-- HTTP/REST/SOAP/GraphQL/JSON-RPC/XML-RPC/OData/Webhooks: direct from the browser, using the existing debug panel.
-- WebSocket/SSE: native browser WebSocket / EventSource.
-- MQTT/STOMP, gRPC, TCP/UDP, CoAP, Modbus, ISO 8583, RTSP, SIP, HLS, Hessian: server-side relay.
-- Protocols without a dedicated driver fall back to `raw` / `http-relay` / browser panels. WebRTC is read-only and states the reason.
+- HTTP/REST/SOAP/GraphQL/JSON-RPC/XML-RPC/OData/Webhooks/MCP/A2A: direct from the browser, using the existing debug panel.
+- WebSocket/SSE: native browser WebSocket / EventSource; HLS previews in the browser and never enters the server relay.
+- Relay unary and stream: MQTT, STOMP.
+- Relay unary: Kafka, AMQP, XMPP, gRPC, Thrift, Dubbo, Hessian, HTTP/2, HTTP/3, CoAP, Modbus TCP, ISO 8583, RTSP, SIP, DNP3, IEC 104, BACnet, OPC UA, RTP, RTCP, RTMP, LwM2M.
+- Raw payloads: TCP/UDP/Unix socket use `raw`; binary HTTP bodies use `http-relay`; `websocket-binary`/`socket.io` use browser WebSocket frames; `stomp-binary` uses the STOMP relay; WebRTC is read-only and states the reason.
+
+There are 27 registered debug drivers: `raw`, `http-relay`, `mqtt`, `stomp`, `coap`, `modbus-tcp`, `iso8583`, `rtsp`, `sip`, `grpc`, `hessian`, `hls`, `thrift`, `dubbo`, `http2`, `http3`, `amqp`, `kafka`, `xmpp`, `dnp3`, `iec104`, `bacnet`, `opcua`, `rtp`, `rtcp`, `rtmp` and `lwm2m`. Protocol id aliases such as `iec-104`, `opc-ua` and `bacnet-ip` map to their drivers. HTTP/2 and HTTP/3 issue real requests; HTTP/3 is not advertised when the host curl lacks support.
 
 The relay is off by default. When enabled it requires a token or shareKey, takes the target only from annotations, and enforces rate, timeout, byte and session limits. See the [Attributes reference](https://github.com/erikwang2013/apidoc-php/blob/main/docs/ATTRIBUTES.md) for the full coverage table and config.
 
-`#[Definition]` parses local `.proto`, WSDL/XSD, GraphQL SDL, OpenAPI/AsyncAPI, JSON Schema, JSON-RPC/XML-RPC and OData EDMX files, showing message fields and validation errors. Local imports and `$ref` are supported; no network requests are made, paths stay under `protocols.allowed_roots`, and symlinks escaping the root are rejected. Detail caches are invalidated by mtime + size fingerprints when a definition changes.
+`#[Definition]` parses 9 local formats: `.proto`, WSDL/XSD, GraphQL SDL, OpenAPI, AsyncAPI, JSON Schema, JSON-RPC, XML-RPC and OData EDMX, showing message fields and validation errors. Local imports and `$ref` are supported; no network requests are made, paths stay under `protocols.allowed_roots`, and symlinks escaping the root are rejected. Detail caches are invalidated by mtime + size fingerprints when a definition changes.
 
 With a cache hit, document read endpoints and definition parsing/rendering target **P95 < 10 ms** of local CPU processing; wall time also depends on host I/O and scheduling. Run `php tests/performance.php` to verify. The budget excludes framework startup, the HTTP server and external network time.
 
@@ -306,17 +309,18 @@ With a cache hit, document read endpoints and definition parsing/rendering targe
 - Caching reuses parsed documentation. Clear the cache when annotations do not appear after an edit.
 - Security releases add identifier allowlists, path checks and constant-time comparison.
 
-## UIC-1 unified endpoints (in progress)
+## UIC-1 unified endpoints
 
-Phase 1–2 adds a `/ui/v1` contract alongside the existing routes so one apidoc-ui build can discover PHP, Go and Rust:
+The `/ui/v1` contract is fully implemented in PHP, so one apidoc-ui build can discover PHP, Go and Rust:
 
-- `capabilities`, `config`, `menus`, `detail`, `docMenus`, `docDetail`, `verifyAuth` and debug aliases.
+- `capabilities`, `config`, `menus`, `detail`, `docMenus`, `docDetail`, `verifyAuth`, plus `debugSend`, `debugStart`, `debugPoll` and `debugStop`.
 - Share record CRUD, cache clear/warm, generators, code templates and `exportAllData`.
+- The declarative `/ui/v1/generator` reads only `ui_generator` config and renders in memory: no middleware, file writes or tables. Legacy `/generator` keeps its side effects.
 - Existing `apiMenus`, `apiDetail`, `apiShare*` and other legacy routes remain unchanged for older UI builds.
 - UIC-1 advertises `share.actions:false`; the unified UI never runs arbitrary PHP callables. Legacy `handleApiShareAction` remains on the old route.
 - `exportAllData` removes the per-endpoint fallback from share-page Swagger and full exports.
 
-Phase 3 (Go server executors) and Phase 4 (Go/Rust external definition parsing) are still in progress; released capabilities follow each repository's `main` and Releases.
+Deploy by running `npm run package:ui` in apidoc-ui and serving `dist/uic1-ui/` from a static host or CDN, with `BACKEND: "auto"` and `HTTP.API_PREFIX: "/apidoc"`. PHP does not serve the static files; the same build also serves Go and Rust.
 
 ## Exports, sharing and code generation
 
