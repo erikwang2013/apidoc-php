@@ -1338,7 +1338,7 @@ async fn get_user() {}''', "rust", "user.rs", "cmp-rust"),
     download_links = [
         ("Packagist", "PHP package", "https://packagist.org/packages/erikwang2013/apidoc-php"),
         ("apidoc-php", "GitHub", DOCS["php"]["repo"]),
-        ("apidoc-go", "v1.1.0", DOCS["go"]["repo"]),
+        ("apidoc-go", "v1.1.1", DOCS["go"]["repo"]),
         ("apidoc-rust", "v2.2.0", DOCS["rust"]["repo"]),
         ("apidoc-ui", "v3.4.0", DOCS["ui"]["repo"]),
     ]
