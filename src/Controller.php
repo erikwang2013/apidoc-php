@@ -98,20 +98,25 @@ class Controller
     public function getConfig()
     {
         $this->init(false);
+        return Helper::showJson(0, "", $this->resolveFeConfig());
+    }
+
+    /**
+     * 分享/全局鉴权后的前端配置; legacy getConfig 与 uiConfig 共用
+     */
+    protected function resolveFeConfig(): array
+    {
         $params = $this->requestParams;
         if (!empty($params['shareKey'])) {
             // 接口分享
             $shareData = (new ApiShare())->checkShareAuth($this->config, $params);
             if (!empty($shareData['appKeys'])) {
-                $config = ConfigProvider::getFeConfig($shareData['appKeys']);
-            } else {
-                $config = ConfigProvider::getFeConfig();
+                return ConfigProvider::getFeConfig($shareData['appKeys']);
             }
-        } else {
-            (new Auth($this->config))->checkAuth($params);
-            $config = ConfigProvider::getFeConfig();
+            return ConfigProvider::getFeConfig();
         }
-        return Helper::showJson(0, "", $config);
+        (new Auth($this->config))->checkAuth($params);
+        return ConfigProvider::getFeConfig();
     }
 
     /**
@@ -656,7 +661,10 @@ class Controller
 
     public function uiConfig()
     {
-        return $this->getConfig();
+        $this->init(false);
+        $config = $this->resolveFeConfig();
+        $config['capabilities'] = UiCapabilities::fromConfig($this->config);
+        return Helper::showJson(0, "", $config);
     }
 
     public function uiMenus()
@@ -730,6 +738,158 @@ class Controller
             $token = (new Auth($this->config))->verifyPlain($password, $appKey);
         }
         return Helper::showJson(0, "", ['token' => $token]);
+    }
+
+    /**
+     * 导出详情叶子节点必须稳定的字段;缺省时补空,避免 UI 导出器按字段取值时崩溃
+     */
+    private const EXPORT_DETAIL_DEFAULTS = [
+        'name' => '',
+        'title' => '',
+        'menuKey' => '',
+        'method' => '',
+        'url' => '',
+        'desc' => '',
+        'header' => [],
+        'query' => [],
+        'routeParam' => [],
+        'param' => [],
+        'responseSuccess' => [],
+        'responseError' => [],
+        'responseStatus' => [],
+        'protocol' => [],
+        'channel' => [],
+        'definitions' => [],
+        'validation' => ['ok' => true, 'errors' => [], 'warnings' => []],
+    ];
+
+    public function uiAddApiShare()
+    {
+        return $this->addApiShare();
+    }
+
+    public function uiGetApiShareList()
+    {
+        return $this->getApiShareList();
+    }
+
+    public function uiGetApiShareDetail()
+    {
+        $this->init(true);
+        $params = $this->requestParams;
+        if (empty($params['key'])) {
+            throw new ErrorException('field not found', ['field' => 'key']);
+        }
+        $data = (new ApiShare())->getShareDetailByKey($params['key']);
+        unset($data['password']);
+        // ShareRecord 契约要求 key;legacy 详情响应里没有
+        $data['key'] = (string)$params['key'];
+        return Helper::showJson(0, "", $data);
+    }
+
+    public function uiDeleteApiShare()
+    {
+        return $this->deleteApiShare();
+    }
+
+    public function uiHandleApiShareAction()
+    {
+        return $this->handleApiShareAction();
+    }
+
+    public function uiCacheClear()
+    {
+        $this->cancelAllCache();
+        return Helper::showJson(0, "", ['ok' => true, 'mode' => 'server']);
+    }
+
+    public function uiCacheWarm()
+    {
+        $this->createAllCache();
+        return Helper::showJson(0, "", ['ok' => true, 'mode' => 'server', 'message' => 'cache rebuilt']);
+    }
+
+    /**
+     * UIC-1 生成器别名。PHP legacy 生成器会执行 middleware、写源码、可能建表,
+     * 因此 capabilities 声明 generator.sideEffects=true,UI 保持 legacy 的成功提示语义,
+     * 不把它当作无副作用的声明式预览。
+     */
+    public function uiGenerator()
+    {
+        return $this->createGenerator();
+    }
+
+    public function uiRenderCodeTemplate()
+    {
+        return $this->renderCodeTemplate();
+    }
+
+    /**
+     * 批量导出:直接复用菜单/详情解析,不向自身发 HTTP 请求。
+     * key 为分享记录 key(属主鉴权后按分享范围过滤),appKey 限定单个应用,都为空时导出全部应用。
+     */
+    public function uiExportAllData()
+    {
+        $this->init(false);
+        $params = $this->requestParams;
+        if (!empty($params['key'])) {
+            // key 是属主导出(range 选择);只认全局/应用 token,分享 token 不能借 key 读取其他分享
+            (new Auth($this->config))->checkAuth($params);
+            $shareData = (new ApiShare())->getShareDetailByKey((string)$params['key']);
+            unset($shareData['password']);
+        } else {
+            $shareData = $this->checkAuth();
+        }
+        $appKey = (string)($params['appKey'] ?? '');
+        $filterAppKeys = [];
+        if (is_array($shareData)) {
+            if ($appKey !== '') {
+                if (!empty($shareData['appKeys']) && !in_array($appKey, $shareData['appKeys'], true)) {
+                    throw new ErrorException('share not exists');
+                }
+                $filterAppKeys = [$appKey];
+            } else {
+                $filterAppKeys = !empty($shareData['appKeys']) ? $shareData['appKeys'] : [];
+            }
+        } elseif ($appKey !== '') {
+            $filterAppKeys = [$appKey];
+        }
+        $config = $this->config;
+        $apps = !empty($config['apps']) ? Helper::handleAppsConfig($config['apps'], false, $config) : [];
+        $apiData = ApiShare::getAppShareApis($config, $apps, "", $filterAppKeys, true);
+        if (is_array($shareData) && ($shareData['type'] ?? '') === 'api') {
+            $apiData = Helper::filterTreeNodesByKeys($apiData, (array)($shareData['apiKeys'] ?? []), 'menuKey');
+        }
+        return Helper::showJson(0, "", ['apiData' => $this->normalizeExportTree($apiData)]);
+    }
+
+    /**
+     * 给导出叶子补齐契约字段;app/分组节点原样保留(UI 递归取带 appKey 的叶子 app)
+     */
+    private function normalizeExportTree(array $nodes, string $parentAppKey = ''): array
+    {
+        foreach ($nodes as &$node) {
+            if (!is_array($node)) {
+                continue;
+            }
+            $appKey = !empty($node['appKey']) ? (string)$node['appKey'] : $parentAppKey;
+            if (!empty($node['children']) && is_array($node['children'])) {
+                $node['children'] = $this->normalizeExportTree($node['children'], $appKey);
+                continue;
+            }
+            if (!isset($node['url']) && !isset($node['method'])) {
+                // 空应用/分组节点,不是接口叶子
+                continue;
+            }
+            foreach (self::EXPORT_DETAIL_DEFAULTS as $field => $default) {
+                if (!array_key_exists($field, $node)) {
+                    $node[$field] = $default;
+                }
+            }
+            $node['appKey'] = $appKey;
+        }
+        unset($node);
+        return $nodes;
     }
 
 }

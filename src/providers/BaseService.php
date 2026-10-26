@@ -43,6 +43,16 @@ trait BaseService
         ['rule'=>'ui/v1/debugStart','route'=>'uiDebugStart'],
         ['rule'=>'ui/v1/debugPoll','route'=>'uiDebugPoll'],
         ['rule'=>'ui/v1/debugStop','route'=>'uiDebugStop'],
+        ['rule'=>'ui/v1/addApiShare','route'=>'uiAddApiShare'],
+        ['rule'=>'ui/v1/getApiShareList','route'=>'uiGetApiShareList'],
+        ['rule'=>'ui/v1/getApiShareDetail','route'=>'uiGetApiShareDetail'],
+        ['rule'=>'ui/v1/deleteApiShare','route'=>'uiDeleteApiShare'],
+        ['rule'=>'ui/v1/handleApiShareAction','route'=>'uiHandleApiShareAction'],
+        ['rule'=>'ui/v1/cache/clear','route'=>'uiCacheClear'],
+        ['rule'=>'ui/v1/cache/warm','route'=>'uiCacheWarm'],
+        ['rule'=>'ui/v1/generator','route'=>'uiGenerator'],
+        ['rule'=>'ui/v1/renderCodeTemplate','route'=>'uiRenderCodeTemplate'],
+        ['rule'=>'ui/v1/exportAllData','route'=>'uiExportAllData'],
         // 注:原 exportSwagger 路由已移除(ExportSwagger 类从未实现);
         // 各 provider 中 export_config 的读取为预留配置(当前无消费者),暂留以兼容旧配置
     ];

@@ -47,8 +47,9 @@ class UiCapabilities
                 'generator' => [
                     'forms' => true,
                     'templates' => true,
-                    // UIC-1 renders declaratively; the legacy generator keeps side effects.
-                    'sideEffects' => false,
+                    // PHP only has the legacy generator (middleware, writes files, may create
+                    // tables), so the UI must keep the legacy success flow, not a fake preview.
+                    'sideEffects' => true,
                 ],
                 'exports' => ['md', 'pdf', 'openapi', 'postman', 'asyncapi', 'typescript'],
                 'auth' => [

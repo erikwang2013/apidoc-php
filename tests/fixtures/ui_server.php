@@ -51,6 +51,18 @@ $routes = [
     '/apidoc/ui/v1/verifyAuth' => ['POST', 'uiVerifyAuth'],
     '/apidoc/ui/v1/menus' => ['POST', 'uiMenus'],
     '/apidoc/ui/v1/detail' => ['POST', 'uiDetail'],
+    '/apidoc/ui/v1/docMenus' => ['POST', 'uiDocMenus'],
+    '/apidoc/ui/v1/docDetail' => ['POST', 'uiDocDetail'],
+    '/apidoc/ui/v1/addApiShare' => ['POST', 'uiAddApiShare'],
+    '/apidoc/ui/v1/getApiShareList' => ['POST', 'uiGetApiShareList'],
+    '/apidoc/ui/v1/getApiShareDetail' => ['POST', 'uiGetApiShareDetail'],
+    '/apidoc/ui/v1/deleteApiShare' => ['POST', 'uiDeleteApiShare'],
+    '/apidoc/ui/v1/handleApiShareAction' => ['POST', 'uiHandleApiShareAction'],
+    '/apidoc/ui/v1/cache/clear' => ['POST', 'uiCacheClear'],
+    '/apidoc/ui/v1/cache/warm' => ['POST', 'uiCacheWarm'],
+    '/apidoc/ui/v1/generator' => ['POST', 'uiGenerator'],
+    '/apidoc/ui/v1/renderCodeTemplate' => ['POST', 'uiRenderCodeTemplate'],
+    '/apidoc/ui/v1/exportAllData' => ['POST', 'uiExportAllData'],
 ];
 
 $path = (string)parse_url((string)($_SERVER['REQUEST_URI'] ?? '/'), PHP_URL_PATH);
