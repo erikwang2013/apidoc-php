@@ -6,6 +6,7 @@ namespace erikwang2013\apidoc\protocol\debug\Driver;
 use InvalidArgumentException;
 use erikwang2013\apidoc\protocol\debug\DebugDriverInterface;
 use erikwang2013\apidoc\protocol\debug\DebugTarget;
+use erikwang2013\apidoc\protocol\debug\Support\TargetGuard;
 
 /**
  * ISO 8583 驱动:长度前缀 + MTI + bitmap + 字段十六进制,不做字段解码(P1)
@@ -106,7 +107,7 @@ class Iso8583Driver implements DebugDriverInterface
         $errno = 0;
         $errstr = '';
         $socket = @stream_socket_client(
-            'tcp://' . $target['host'] . ':' . $target['port'],
+            'tcp://' . TargetGuard::connectHost($target, $context) . ':' . $target['port'],
             $errno,
             $errstr,
             $timeout,

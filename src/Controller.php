@@ -8,6 +8,7 @@ use erikwang2013\apidoc\parses\ParseCodeTemplate;
 use erikwang2013\apidoc\parses\ParseProtocol;
 use erikwang2013\apidoc\parses\ParseApiMenus;
 use erikwang2013\apidoc\parses\ParseMarkdown;
+use erikwang2013\apidoc\generator\Declarative;
 use erikwang2013\apidoc\protocol\debug\DebugProxy;
 use erikwang2013\apidoc\protocol\debug\DebugSession;
 use erikwang2013\apidoc\utils\ApiShare;
@@ -701,6 +702,10 @@ class Controller
     {
         $this->init(false);
         $config = $this->resolveFeConfig();
+        // UIC-1 只暴露声明式生成器;legacy generator 会写文件/建表,不能进入前端预览流程
+        $config['generator'] = (new Declarative($this->config))->descriptors();
+        // 模板只暴露逻辑名,服务端路径留在服务端;客户端回传逻辑名后由 ParseCodeTemplate 解析
+        $config['code_template'] = ParseCodeTemplate::descriptors($this->config);
         $config['capabilities'] = UiCapabilities::fromConfig($this->config);
         return Helper::showJson(0, "", $config);
     }
@@ -852,19 +857,26 @@ class Controller
     }
 
     /**
-     * UIC-1 生成器别名。PHP legacy 生成器会执行 middleware、写源码、可能建表,
-     * 因此 capabilities 声明 generator.sideEffects=true,UI 保持 legacy 的成功提示语义,
-     * 不把它当作无副作用的声明式预览。
+     * UIC-1 声明式生成器:只渲染 ui_generator 配置的模板到内存,
+     * 不执行 middleware、不写文件、不建表;legacy /generator 行为不变。
      */
     public function uiGenerator()
     {
-        return $this->createGenerator();
+        $this->init(false);
+        $this->requireAdmin();
+        $files = (new Declarative($this->config))->render($this->requestParams);
+        return Helper::showJson(0, "", ['files' => $files]);
     }
 
     public function uiRenderCodeTemplate()
     {
         // 按应用渲染:与 Go/Rust 一致,允许该 app 自己的 token;模板白名单在 ParseCodeTemplate 里
-        return $this->renderCodeTemplate();
+        $this->init(true);
+        if (empty($this->requestParams['appKey'])) {
+            throw new ErrorException("appkey not found");
+        }
+        $code = (new ParseCodeTemplate($this->config))->renderCode($this->requestParams, true);
+        return Helper::showJson(0, "", ['code' => $code]);
     }
 
     /**

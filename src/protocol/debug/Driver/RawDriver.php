@@ -7,6 +7,7 @@ use InvalidArgumentException;
 use erikwang2013\apidoc\protocol\debug\DebugDriverInterface;
 use erikwang2013\apidoc\protocol\debug\DebugTarget;
 use erikwang2013\apidoc\protocol\debug\Support\Hex;
+use erikwang2013\apidoc\protocol\debug\Support\TargetGuard;
 
 /**
  * 原始套接字驱动(TCP/UDP/UDS)
@@ -61,7 +62,7 @@ class RawDriver implements DebugDriverInterface
         }
         $address = $target['scheme'] === 'unix'
             ? 'unix://' . $target['path']
-            : $target['scheme'] . '://' . $target['host'] . ':' . $target['port'];
+            : $target['scheme'] . '://' . TargetGuard::connectHost($target, $context) . ':' . $target['port'];
 
         $errno = 0;
         $errstr = '';

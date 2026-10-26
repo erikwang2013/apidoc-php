@@ -23,6 +23,42 @@ class GrpcFixture
     public function sayHello() {}
 }
 
+#[Protocol('thrift')]
+#[Debug(driver: 'thrift', target: 'tcp://127.0.0.1:19014', meta: ['method' => 'ping'])]
+class ThriftFixture
+{
+    #[Channel('ping', action: 'call')]
+    #[Title('Thrift ping')]
+    public function ping() {}
+}
+
+#[Protocol('dubbo')]
+#[Debug(driver: 'dubbo', target: 'tcp://127.0.0.1:19015', meta: ['method' => 'echo', 'service' => 'com.demo.Echo'])]
+class DubboFixture
+{
+    #[Channel('com.demo.Echo#echo', action: 'call')]
+    #[Title('Dubbo echo')]
+    public function echo() {}
+}
+
+#[Protocol('http2')]
+#[Debug(target: 'http://127.0.0.1:19016/echo')]
+class Http2Fixture
+{
+    #[Channel('/echo', action: 'call')]
+    #[Title('HTTP/2 echo')]
+    public function echo() {}
+}
+
+#[Protocol('http3')]
+#[Debug(target: 'https://127.0.0.1:19016/echo')]
+class Http3Fixture
+{
+    #[Channel('/echo', action: 'call')]
+    #[Title('HTTP/3 echo')]
+    public function echo() {}
+}
+
 #[Protocol('tcp')]
 class PositionalDebugFixture
 {
@@ -118,6 +154,46 @@ class StompSubscribeFixture
     public function receive() {}
 }
 
+#[Protocol('kafka')]
+class KafkaDebugFixture
+{
+    #[Channel('debug', action: 'fetch')]
+    #[Debug(driver: 'kafka', target: 'kafka://127.0.0.1:19021')]
+    public function fetch() {}
+}
+
+#[Protocol('kafka')]
+class KafkaMetadataHostFixture
+{
+    #[Channel('debug', action: 'fetch')]
+    #[Debug(driver: 'kafka', target: 'kafka://127.0.0.1:19026')]
+    public function fetch() {}
+}
+
+#[Protocol('amqp')]
+class AmqpDebugFixture
+{
+    #[Channel('debug/queue', action: 'receive')]
+    #[Debug(driver: 'amqp', target: 'amqp://127.0.0.1:19022')]
+    public function receive() {}
+}
+
+#[Protocol('xmpp')]
+class XmppDebugFixture
+{
+    #[Channel('debug@localhost', action: 'send')]
+    #[Debug(driver: 'xmpp', target: 'xmpp://127.0.0.1:19023')]
+    public function send() {}
+}
+
+#[Protocol('xmpp')]
+class XmppNoStarttlsFixture
+{
+    #[Channel('debug@localhost', action: 'send')]
+    #[Debug(driver: 'xmpp', target: 'xmpp://127.0.0.1:19024')]
+    public function send() {}
+}
+
 #[Protocol('coap')]
 class CoapDebugFixture
 {
@@ -143,13 +219,94 @@ class Iso8583ProxyFixture
     public function send() {}
 }
 
-// P2 协议无专用驱动,回退到原始套接字面板
-#[Protocol('amqp')]
-#[Channel('tcp://broker:5672')]
-#[Debug(target: 'tcp://broker:5672')]
+#[Protocol('dnp3')]
+class Dnp3DebugFixture
+{
+    #[Channel('/debug/dnp3')]
+    #[Debug(driver: 'dnp3', target: 'dnp3://127.0.0.1:19030')]
+    public function read() {}
+}
+
+#[Protocol('iec104')]
+class Iec104DebugFixture
+{
+    #[Channel('/debug/iec104')]
+    #[Debug(driver: 'iec104', target: 'iec104://127.0.0.1:19031')]
+    public function interrogation() {}
+}
+
+#[Protocol('bacnet')]
+class BacnetDebugFixture
+{
+    #[Channel('/debug/bacnet')]
+    #[Debug(driver: 'bacnet', target: 'bacnet://127.0.0.1:19032')]
+    public function whoIs() {}
+}
+
+#[Protocol('opcua')]
+class OpcuaDebugFixture
+{
+    #[Channel('/debug/opcua')]
+    #[Debug(driver: 'opcua', target: 'opc.tcp://127.0.0.1:19033')]
+    public function read() {}
+}
+
+#[Protocol('rtp')]
+class RtpDebugFixture
+{
+    #[Channel('/debug/rtp')]
+    #[Debug(driver: 'rtp', target: 'rtp://127.0.0.1:19034')]
+    public function send() {}
+}
+
+#[Protocol('rtcp')]
+class RtcpDebugFixture
+{
+    #[Channel('/debug/rtcp')]
+    #[Debug(driver: 'rtcp', target: 'rtcp://127.0.0.1:19035')]
+    public function send() {}
+}
+
+#[Protocol('rtmp')]
+class RtmpDebugFixture
+{
+    #[Channel('/debug/rtmp')]
+    #[Debug(driver: 'rtmp', target: 'rtmp://127.0.0.1:19036')]
+    public function connect() {}
+}
+
+#[Protocol('lwm2m')]
+class Lwm2mDebugFixture
+{
+    #[Channel('/debug/lwm2m')]
+    #[Debug(driver: 'lwm2m', target: 'lwm2m://127.0.0.1:19037')]
+    public function read() {}
+}
+
+// 目录中本就以原始套接字为默认驱动的协议
+// 特殊协议不注解 driver 时也必须回退到专用驱动,而不是 raw
+#[Protocol('iec104')]
+#[Debug(target: 'iec104://127.0.0.1:19031')]
+class Iec104FallbackFixture
+{
+    #[Title('Interrogate')]
+    public function interrogation() {}
+}
+
+#[Protocol('lwm2m')]
+#[Debug(target: 'lwm2m://127.0.0.1:19037')]
+class Lwm2mFallbackFixture
+{
+    #[Title('Read resource')]
+    public function read() {}
+}
+
+#[Protocol('raw-socket')]
+#[Channel('tcp://broker:9000')]
+#[Debug(target: 'tcp://broker:9000')]
 class P2RawFixture
 {
-    #[Title('Publish AMQP frame')]
+    #[Title('Send raw frame')]
     public function publish() {}
 }
 
@@ -223,4 +380,20 @@ class CacheFixture
     #[Definition(file: 'tests/fixtures/protocol/json-schema/cache.json')]
     #[Title('Cache')]
     public function user() {}
+}
+
+#[Protocol('http2')]
+#[Debug(target: 'tcp://127.0.0.1:19016')]
+class Http2SchemeMismatchFixture
+{
+    #[Title('HTTP/2 over tcp')]
+    public function echo() {}
+}
+
+#[Protocol('http3')]
+#[Debug(target: 'http://127.0.0.1:19016/echo')]
+class Http3SchemeMismatchFixture
+{
+    #[Title('HTTP/3 over http')]
+    public function echo() {}
 }

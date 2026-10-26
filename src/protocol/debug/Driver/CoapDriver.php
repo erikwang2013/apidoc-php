@@ -7,6 +7,7 @@ use InvalidArgumentException;
 use erikwang2013\apidoc\protocol\debug\DebugDriverInterface;
 use erikwang2013\apidoc\protocol\debug\DebugTarget;
 use erikwang2013\apidoc\protocol\debug\Support\Hex;
+use erikwang2013\apidoc\protocol\debug\Support\TargetGuard;
 
 /**
  * CoAP (RFC 7252) 驱动:UDP 单次请求/响应
@@ -191,7 +192,7 @@ class CoapDriver implements DebugDriverInterface
         $errno = 0;
         $errstr = '';
         $socket = @stream_socket_client(
-            'udp://' . $target['host'] . ':' . $target['port'],
+            'udp://' . TargetGuard::connectHost($target, $context) . ':' . $target['port'],
             $errno,
             $errstr,
             $timeout

@@ -7,6 +7,7 @@ use InvalidArgumentException;
 use erikwang2013\apidoc\protocol\debug\DebugTarget;
 use erikwang2013\apidoc\protocol\debug\StreamingDriverInterface;
 use erikwang2013\apidoc\protocol\debug\Support\Hex;
+use erikwang2013\apidoc\protocol\debug\Support\TargetGuard;
 
 /**
  * STOMP 1.2 驱动:单次 SEND + 流式订阅(Task 9)
@@ -77,7 +78,7 @@ class StompDriver implements StreamingDriverInterface
         $errno = 0;
         $errstr = '';
         $socket = @stream_socket_client(
-            'tcp://' . $target['host'] . ':' . $target['port'],
+            'tcp://' . TargetGuard::connectHost($target, $context) . ':' . $target['port'],
             $errno,
             $errstr,
             min($timeout, 5.0),
@@ -334,7 +335,7 @@ class StompDriver implements StreamingDriverInterface
         $errno = 0;
         $errstr = '';
         $socket = @stream_socket_client(
-            'tcp://' . $target['host'] . ':' . $target['port'],
+            'tcp://' . TargetGuard::connectHost($target, $context) . ':' . $target['port'],
             $errno,
             $errstr,
             $timeout,

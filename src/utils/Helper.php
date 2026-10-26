@@ -130,9 +130,13 @@ class Helper
     {
         $str = $temp;
         foreach ($data as $k => $v) {
+            // 数组/对象没有可预测的字符串形式,跳过而不是抛 TypeError
+            if (!is_scalar($v) && $v !== null) {
+                continue;
+            }
             $key = '${'. $prefix . $k . '}';
             if (strpos($str, $key) !== false) {
-                $str = str_replace($key, $v, $str);
+                $str = str_replace($key, (string)$v, $str);
             }
         }
         return $str;

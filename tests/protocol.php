@@ -14,6 +14,8 @@ use erikwang2013\apidoc\protocol\ProtocolCatalog;
 use erikwang2013\apidoc\protocol\debug\DebugRegistry;
 use erikwang2013\apidoc\protocol\debug\DebugTarget;
 use erikwang2013\apidoc\protocol\debug\Driver\GrpcDriver;
+use erikwang2013\apidoc\protocol\debug\Driver\Http2Driver;
+use erikwang2013\apidoc\protocol\debug\Driver\Http3Driver;
 use erikwang2013\apidoc\utils\ConfigProvider;
 
 error_reporting(E_ALL);
@@ -187,6 +189,38 @@ check('grpc debug driver', ($grpc['debug']['driver'] ?? '') === 'grpc');
 $grpcAvailable = GrpcDriver::available();
 check('grpc debuggable follows curl http2 capability', ($grpc['debug']['debuggable'] ?? !$grpcAvailable) === $grpcAvailable);
 check('grpc reason matches curl http2 capability', ($grpc['debug']['debugReason'] ?? null) === ($grpcAvailable ? '' : 'curl HTTP/2 is required for gRPC'));
+$thriftRef = new ReflectionClass(\Tests\Fixtures\Protocol\ThriftFixture::class);
+$thrift = $parser->metadata($thriftRef, $thriftRef->getMethod('ping'));
+check('thrift debug mode', ($thrift['debug']['mode'] ?? '') === 'relay-unary');
+check('thrift debug driver', ($thrift['debug']['driver'] ?? '') === 'thrift');
+check('thrift debug fields', !array_diff(['method', 'transport', 'schema', 'args', 'payload'], array_column($thrift['debug']['fields'] ?? [], 'name')));
+$dubboRef = new ReflectionClass(\Tests\Fixtures\Protocol\DubboFixture::class);
+$dubbo = $parser->metadata($dubboRef, $dubboRef->getMethod('echo'));
+check('dubbo debug mode', ($dubbo['debug']['mode'] ?? '') === 'relay-unary');
+check('dubbo debug driver', ($dubbo['debug']['driver'] ?? '') === 'dubbo');
+check('dubbo debug fields', !array_diff(['service', 'method', 'version', 'param_types', 'args', 'payload'], array_column($dubbo['debug']['fields'] ?? [], 'name')));
+$http2Ref = new ReflectionClass(\Tests\Fixtures\Protocol\Http2Fixture::class);
+$http2 = $parser->metadata($http2Ref, $http2Ref->getMethod('echo'));
+check('http2 debug mode', ($http2['debug']['mode'] ?? '') === 'relay-unary');
+check('http2 debug driver', ($http2['debug']['driver'] ?? '') === 'http2');
+$http2Available = Http2Driver::available();
+check('http2 debuggable follows curl http2 capability', ($http2['debug']['debuggable'] ?? !$http2Available) === $http2Available);
+check('http2 reason matches curl http2 capability', ($http2['debug']['debugReason'] ?? null) === ($http2Available ? '' : 'curl HTTP/2 is required for HTTP/2'));
+$http3Ref = new ReflectionClass(\Tests\Fixtures\Protocol\Http3Fixture::class);
+$http3 = $parser->metadata($http3Ref, $http3Ref->getMethod('echo'));
+check('http3 debug mode', ($http3['debug']['mode'] ?? '') === 'relay-unary');
+check('http3 debug driver', ($http3['debug']['driver'] ?? '') === 'http3');
+$http3Available = Http3Driver::available();
+check('http3 debuggable follows curl http3 capability', ($http3['debug']['debuggable'] ?? !$http3Available) === $http3Available);
+check('http3 reason matches curl http3 capability', ($http3['debug']['debugReason'] ?? null) === ($http3Available ? '' : 'curl HTTP/3 is required for HTTP/3'));
+$http2SchemeRef = new ReflectionClass(\Tests\Fixtures\Protocol\Http2SchemeMismatchFixture::class);
+$http2Scheme = $parser->metadata($http2SchemeRef, $http2SchemeRef->getMethod('echo'));
+check('http2 tcp target not debuggable', ($http2Scheme['debug']['debuggable'] ?? true) === false);
+check('http2 tcp target reason is scheme-aware', ($http2Scheme['debug']['debugReason'] ?? '') === 'HTTP/2 需要 http:// 或 https:// 目标,当前为 tcp://');
+$http3SchemeRef = new ReflectionClass(\Tests\Fixtures\Protocol\Http3SchemeMismatchFixture::class);
+$http3Scheme = $parser->metadata($http3SchemeRef, $http3SchemeRef->getMethod('echo'));
+check('http3 plain http target not debuggable', ($http3Scheme['debug']['debuggable'] ?? true) === false);
+check('http3 plain http target reason is scheme-aware', ($http3Scheme['debug']['debugReason'] ?? '') === 'HTTP/3 需要 https:// 目标,当前为 http://');
 $posRef = new ReflectionClass(\Tests\Fixtures\Protocol\PositionalDebugFixture::class);
 $pos = $parser->metadata($posRef, $posRef->getMethod('send'));
 check('positional Debug lands on driver', ($pos['debug']['driver'] ?? '') === 'raw');
@@ -195,6 +229,14 @@ $defRef = new ReflectionClass(\Tests\Fixtures\Protocol\DefaultDriverFixture::cla
 $def = $parser->metadata($defRef, $defRef->getMethod('publish'));
 check('empty Debug.driver falls back to catalog driver', ($def['debug']['driver'] ?? '') === 'mqtt');
 check('mqtt without action keeps catalog mode', ($def['debug']['mode'] ?? '') === 'relay-stream');
+$iecFallbackRef = new ReflectionClass(\Tests\Fixtures\Protocol\Iec104FallbackFixture::class);
+$iecFallback = $parser->metadata($iecFallbackRef, $iecFallbackRef->getMethod('interrogation'));
+check('iec104 canonical id falls back to specialized driver', ($iecFallback['debug']['driver'] ?? '') === 'iec104'
+    && ($iecFallback['debug']['mode'] ?? '') === 'relay-unary');
+$lwm2mFallbackRef = new ReflectionClass(\Tests\Fixtures\Protocol\Lwm2mFallbackFixture::class);
+$lwm2mFallback = $parser->metadata($lwm2mFallbackRef, $lwm2mFallbackRef->getMethod('read'));
+check('lwm2m canonical id no longer falls back to raw', ($lwm2mFallback['debug']['driver'] ?? '') === 'lwm2m'
+    && ($lwm2mFallback['debug']['mode'] ?? '') === 'relay-unary');
 check('registered driver is debuggable with relay enabled', ($pos['debug']['debuggable'] ?? false) === true);
 $relayOffConfig = $config;
 $relayOffConfig['protocols']['debug']['relay_enable'] = false;
@@ -205,9 +247,9 @@ check('unknown protocol falls back', ProtocolCatalog::get('nope')['label'] === '
 // ---------- P2 回退:目录驱动与元数据 ----------
 $p2RawRef = new ReflectionClass(\Tests\Fixtures\Protocol\P2RawFixture::class);
 $p2Raw = $parser->metadata($p2RawRef, $p2RawRef->getMethod('publish'));
-check('p2 amqp raw fallback driver', ($p2Raw['debug']['driver'] ?? '') === 'raw');
-check('p2 amqp raw fallback mode', ($p2Raw['debug']['mode'] ?? '') === 'relay-unary');
-check('p2 amqp raw fallback fields include payload', in_array('payload', array_column($p2Raw['debug']['fields'] ?? [], 'name'), true));
+check('raw-socket keeps raw driver', ($p2Raw['debug']['driver'] ?? '') === 'raw');
+check('raw-socket fallback mode', ($p2Raw['debug']['mode'] ?? '') === 'relay-unary');
+check('raw-socket fallback fields include payload', in_array('payload', array_column($p2Raw['debug']['fields'] ?? [], 'name'), true));
 $p2NoRef = new ReflectionClass(\Tests\Fixtures\Protocol\P2NoDriverFixture::class);
 $p2No = $parser->metadata($p2NoRef, $p2NoRef->getMethod('offer'));
 check('webrtc p2 metadata not debuggable', ($p2No['debug']['debuggable'] ?? true) === false);
@@ -321,13 +363,38 @@ check('unregistered driver not debuggable with relay enabled and target', ($unre
 // 目录条目必须携带 defaultFormat，供定义解析计划消费
 check('rest default format', ProtocolCatalog::get('rest')['defaultFormat'] === 'openapi');
 check('grpc default format', ProtocolCatalog::get('grpc')['defaultFormat'] === 'proto');
-check('amqp p2 fallback driver', ProtocolCatalog::get('amqp')['defaultDriver'] === 'raw');
-check('amqp p2 fallback mode', ProtocolCatalog::get('amqp')['defaultMode'] === 'relay-unary');
+check('amqp uses specialized read/write relay', ProtocolCatalog::get('amqp')['defaultDriver'] === 'amqp' && ProtocolCatalog::get('amqp')['defaultMode'] === 'relay-unary');
+check('kafka uses specialized read-only relay', ProtocolCatalog::get('kafka')['defaultDriver'] === 'kafka' && ProtocolCatalog::get('kafka')['defaultMode'] === 'relay-unary');
+check('xmpp uses specialized relay', ProtocolCatalog::get('xmpp')['defaultDriver'] === 'xmpp' && ProtocolCatalog::get('xmpp')['defaultMode'] === 'relay-unary');
+check('mqtt stays streaming', ProtocolCatalog::get('mqtt')['defaultDriver'] === 'mqtt' && ProtocolCatalog::get('mqtt')['defaultMode'] === 'relay-stream');
+check('stomp stays streaming', ProtocolCatalog::get('stomp')['defaultDriver'] === 'stomp' && ProtocolCatalog::get('stomp')['defaultMode'] === 'relay-stream');
 check('binary-body uses http relay', ProtocolCatalog::get('binary-body')['defaultDriver'] === 'http-relay' && ProtocolCatalog::get('binary-body')['defaultMode'] === 'relay-unary');
 check('websocket-binary uses browser websocket', ProtocolCatalog::get('websocket-binary')['defaultDriver'] === 'websocket' && ProtocolCatalog::get('websocket-binary')['defaultMode'] === 'browser-websocket');
 check('socket.io uses browser websocket fallback', ProtocolCatalog::get('socket.io')['defaultMode'] === 'browser-websocket');
 check('stomp-binary uses stomp driver', ProtocolCatalog::get('stomp-binary')['defaultDriver'] === 'stomp' && ProtocolCatalog::get('stomp-binary')['defaultMode'] === 'relay-stream');
-check('http2 uses browser http', ProtocolCatalog::get('http2')['defaultDriver'] === 'http' && ProtocolCatalog::get('http2')['defaultMode'] === 'browser-http');
+check('http2 uses specialized relay', ProtocolCatalog::get('http2')['defaultDriver'] === 'http2' && ProtocolCatalog::get('http2')['defaultMode'] === 'relay-unary');
+check('http3 uses specialized relay', ProtocolCatalog::get('http3')['defaultDriver'] === 'http3' && ProtocolCatalog::get('http3')['defaultMode'] === 'relay-unary');
+check('thrift uses specialized relay', ProtocolCatalog::get('thrift')['defaultDriver'] === 'thrift' && ProtocolCatalog::get('thrift')['defaultMode'] === 'relay-unary');
+check('dubbo uses specialized relay', ProtocolCatalog::get('dubbo')['defaultDriver'] === 'dubbo' && ProtocolCatalog::get('dubbo')['defaultMode'] === 'relay-unary');
+check('grpc catalog stays specialized', ProtocolCatalog::get('grpc')['defaultDriver'] === 'grpc' && ProtocolCatalog::get('grpc')['defaultMode'] === 'relay-unary');
+check('hessian catalog stays specialized', ProtocolCatalog::get('hessian')['defaultDriver'] === 'hessian' && ProtocolCatalog::get('hessian')['defaultMode'] === 'relay-unary');
+check('iso8583 catalog stays specialized', ProtocolCatalog::get('iso8583')['defaultDriver'] === 'iso8583' && ProtocolCatalog::get('iso8583')['defaultMode'] === 'relay-unary');
+check('coap catalog stays specialized', ProtocolCatalog::get('coap')['defaultDriver'] === 'coap' && ProtocolCatalog::get('coap')['defaultMode'] === 'relay-unary');
+check('modbus catalog uses modbus-tcp driver', ProtocolCatalog::get('modbus')['defaultDriver'] === 'modbus-tcp' && ProtocolCatalog::get('modbus-tcp')['defaultDriver'] === 'modbus-tcp');
+check('rtsp catalog stays specialized', ProtocolCatalog::get('rtsp')['defaultDriver'] === 'rtsp' && ProtocolCatalog::get('rtsp')['defaultMode'] === 'relay-unary');
+check('sip catalog stays specialized', ProtocolCatalog::get('sip')['defaultDriver'] === 'sip' && ProtocolCatalog::get('sip')['defaultMode'] === 'relay-unary');
+check('hls catalog stays browser http', ProtocolCatalog::get('hls')['defaultDriver'] === 'hls' && ProtocolCatalog::get('hls')['defaultMode'] === 'browser-http');
+check('dnp3/iec104/bacnet use specialized relays', ProtocolCatalog::get('dnp3')['defaultDriver'] === 'dnp3'
+    && ProtocolCatalog::get('iec104')['defaultDriver'] === 'iec104'
+    && ProtocolCatalog::get('iec-104')['defaultDriver'] === 'iec104'
+    && ProtocolCatalog::get('bacnet')['defaultDriver'] === 'bacnet'
+    && ProtocolCatalog::get('bacnet-ip')['defaultDriver'] === 'bacnet');
+check('opcua/rtmp/rtp/rtcp/lwm2m use specialized relays', ProtocolCatalog::get('opcua')['defaultDriver'] === 'opcua'
+    && ProtocolCatalog::get('opc-ua')['defaultDriver'] === 'opcua'
+    && ProtocolCatalog::get('rtmp')['defaultDriver'] === 'rtmp'
+    && ProtocolCatalog::get('rtp')['defaultDriver'] === 'rtp'
+    && ProtocolCatalog::get('rtcp')['defaultDriver'] === 'rtcp'
+    && ProtocolCatalog::get('lwm2m')['defaultDriver'] === 'lwm2m');
 check('webrtc keeps no driver', ProtocolCatalog::get('webrtc')['defaultDriver'] === '' && ProtocolCatalog::get('webrtc')['defaultMode'] === '');
 check('webrtc p2 reason', ProtocolCatalog::get('webrtc')['debugReason'] === 'WebRTC 需要手动 SDP/信令（P2）');
 $noDriverIds = ['webrtc', 'webrtc-datachannel'];

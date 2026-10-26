@@ -63,12 +63,36 @@ class ParseApiDetail
      */
     protected function assertApiInAppScope(ReflectionClass $refClass): void
     {
-        $appPath = $this->currentApp['path'] ?? '';
+        if (!$this->classInAppScope($refClass, $this->currentApp)) {
+            throw new ErrorException("api not in app scope");
+        }
+    }
+
+    /**
+     * 只读判断类是否属于指定 app;供代码模板过滤越权 selected 使用
+     * @param string $appKey
+     * @param string $class
+     * @return bool
+     */
+    public function isClassInAppScope(string $appKey, string $class): bool
+    {
+        try {
+            $refClass = new ReflectionClass($class);
+            $currentApp = Helper::getCurrentAppConfig($appKey)['appConfig'];
+        } catch (\Throwable $e) {
+            return false;
+        }
+        return $this->classInAppScope($refClass, $currentApp);
+    }
+
+    protected function classInAppScope(ReflectionClass $refClass, array $currentApp): bool
+    {
+        $appPath = $currentApp['path'] ?? '';
         $paths = is_array($appPath) ? $appPath : [$appPath];
         $file = $refClass->getFileName();
         $fileReal = $file !== false ? realpath($file) : false;
         if ($fileReal === false) {
-            throw new ErrorException("api not in app scope");
+            return false;
         }
         foreach ($paths as $path) {
             if (!is_string($path) || $path === '') {
@@ -76,10 +100,10 @@ class ParseApiDetail
             }
             $dirReal = realpath(APIDOC_ROOT_PATH . str_replace('\\', '/', $path));
             if ($dirReal !== false && strpos($fileReal, rtrim($dirReal, '/\\') . DIRECTORY_SEPARATOR) === 0) {
-                return;
+                return true;
             }
         }
-        throw new ErrorException("api not in app scope");
+        return false;
     }
 
     public function parseApiMethod($refClass,$refMethod,$currentAppData = null){

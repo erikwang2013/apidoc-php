@@ -8,6 +8,7 @@ use erikwang2013\apidoc\protocol\debug\DebugDriverInterface;
 use erikwang2013\apidoc\protocol\debug\DebugTarget;
 use erikwang2013\apidoc\protocol\debug\Support\Hex;
 use erikwang2013\apidoc\protocol\debug\Support\HttpClient;
+use erikwang2013\apidoc\protocol\debug\Support\TargetGuard;
 
 /**
  * Hessian 2.0 驱动:序列化调用参数并发起 HTTP POST,解码应答值
@@ -15,6 +16,10 @@ use erikwang2013\apidoc\protocol\debug\Support\HttpClient;
  */
 class HessianDriver implements DebugDriverInterface
 {
+    // 响应来自对端,限制嵌套与集合元素数,避免小报文放大成 CPU/内存开销
+    private const MAX_DEPTH = 32;
+    private const MAX_ELEMENTS = 65536;
+
     public function name(): string
     {
         return 'hessian';
@@ -77,14 +82,14 @@ class HessianDriver implements DebugDriverInterface
         if (strlen($body) > $maxBytes) {
             return ['ok' => false, 'error' => 'request exceeds max_bytes'];
         }
-        $result = HttpClient::request([
+        $result = HttpClient::request(array_merge([
             'url' => (string)$context['target'],
             'method' => 'POST',
             'headers' => ['Content-Type: x-application/hessian', 'Accept: x-application/hessian'],
             'body' => $body,
             'timeout' => (float)($context['timeout'] ?? 5),
             'maxBytes' => $maxBytes,
-        ]);
+        ], TargetGuard::httpOptions($target, $context)));
         if (isset($result['error'])) {
             return ['ok' => false, 'error' => $result['error']];
         }
@@ -158,6 +163,9 @@ class HessianDriver implements DebugDriverInterface
                 $offset++;
                 $fault = [];
                 while (true) {
+                    if (count($fault) >= self::MAX_ELEMENTS) {
+                        throw new InvalidArgumentException('hessian fault exceeds ' . self::MAX_ELEMENTS . ' entries');
+                    }
                     if ($offset >= strlen($data)) {
                         throw new InvalidArgumentException('hessian fault 缺少结束标记');
                     }
@@ -322,13 +330,29 @@ class HessianDriver implements DebugDriverInterface
     }
 
     /**
+     * 从指定偏移解码一个值,供 Dubbo flag 4 继续读 attachments
      * @param string $data
      * @param int $offset
      * @return mixed
      * @throws InvalidArgumentException
      */
-    protected function readValue(string $data, int &$offset)
+    public function decodeAt(string $data, int &$offset)
     {
+        return $this->readValue($data, $offset);
+    }
+
+    /**
+     * @param string $data
+     * @param int $offset
+     * @param int $depth
+     * @return mixed
+     * @throws InvalidArgumentException
+     */
+    protected function readValue(string $data, int &$offset, int $depth = 0)
+    {
+        if ($depth > self::MAX_DEPTH) {
+            throw new InvalidArgumentException('hessian value nesting exceeds ' . self::MAX_DEPTH);
+        }
         if ($offset >= strlen($data)) {
             throw new InvalidArgumentException('hessian 数据截断');
         }
@@ -361,10 +385,10 @@ class HessianDriver implements DebugDriverInterface
             return $this->readLong($data, $offset);
         }
         if (($code >= 0x55 && $code <= 0x58) || ($code >= 0x70 && $code <= 0x7f)) {
-            return $this->readList($data, $offset, $code);
+            return $this->readList($data, $offset, $code, $depth);
         }
         if ($code === 0x48 || $code === 0x4d) {
-            return $this->readMap($data, $offset, $code);
+            return $this->readMap($data, $offset, $code, $depth);
         }
         throw new InvalidArgumentException(sprintf('不支持的 hessian 值类型: 0x%02x', $code));
     }
@@ -482,11 +506,11 @@ class HessianDriver implements DebugDriverInterface
         throw new InvalidArgumentException('hessian double 编码非法');
     }
 
-    protected function readList(string $data, int &$offset, int $code): array
+    protected function readList(string $data, int &$offset, int $code, int $depth = 0): array
     {
         $this->readByte($data, $offset); // 消费列表标记
         if ($code === 0x55 || $code === 0x56) {
-            $this->readValue($data, $offset); // 类型串
+            $this->readValue($data, $offset, $depth); // 类型串
         }
         if ($code === 0x55 || $code === 0x57) {
             $items = [];
@@ -494,51 +518,61 @@ class HessianDriver implements DebugDriverInterface
                 if ($offset >= strlen($data)) {
                     throw new InvalidArgumentException('hessian list 缺少结束标记');
                 }
+                if (count($items) >= self::MAX_ELEMENTS) {
+                    throw new InvalidArgumentException('hessian list exceeds ' . self::MAX_ELEMENTS . ' elements');
+                }
                 if (ord($data[$offset]) === 0x5a) {
                     $offset++;
                     return $items;
                 }
-                $items[] = $this->readValue($data, $offset);
+                $items[] = $this->readValue($data, $offset, $depth + 1);
             }
         }
         if ($code >= 0x70 && $code <= 0x77) {
-            $this->readValue($data, $offset); // 类型引用
+            $this->readValue($data, $offset, $depth); // 类型引用
             $length = $code - 0x70;
         } elseif ($code >= 0x78 && $code <= 0x7f) {
             $length = $code - 0x78;
         } else {
-            $length = $this->readValue($data, $offset);
+            $length = $this->readValue($data, $offset, $depth);
             if (!is_int($length) || $length < 0) {
                 throw new InvalidArgumentException('hessian list 长度非法');
             }
         }
+        // 每个元素至少 1 字节,长度大于剩余字节说明报文伪造或截断
+        if ($length > self::MAX_ELEMENTS || $length > strlen($data) - $offset) {
+            throw new InvalidArgumentException('hessian list length ' . $length . ' exceeds bounds');
+        }
         $items = [];
         for ($i = 0; $i < $length; $i++) {
-            $items[] = $this->readValue($data, $offset);
+            $items[] = $this->readValue($data, $offset, $depth + 1);
         }
         return $items;
     }
 
-    protected function readMap(string $data, int &$offset, int $code): array
+    protected function readMap(string $data, int &$offset, int $code, int $depth = 0): array
     {
         $this->readByte($data, $offset); // 消费 map 标记
         if ($code === 0x4d) {
-            $this->readValue($data, $offset); // 'M' 带类型
+            $this->readValue($data, $offset, $depth); // 'M' 带类型
         }
         $map = [];
         while (true) {
             if ($offset >= strlen($data)) {
                 throw new InvalidArgumentException('hessian map 缺少结束标记');
             }
+            if (count($map) >= self::MAX_ELEMENTS) {
+                throw new InvalidArgumentException('hessian map exceeds ' . self::MAX_ELEMENTS . ' entries');
+            }
             if (ord($data[$offset]) === 0x5a) {
                 $offset++;
                 return $map;
             }
-            $key = $this->readValue($data, $offset);
+            $key = $this->readValue($data, $offset, $depth + 1);
             if (!is_scalar($key) && $key !== null) {
                 throw new InvalidArgumentException('hessian map 键类型非法');
             }
-            $map[(string)$key] = $this->readValue($data, $offset);
+            $map[(string)$key] = $this->readValue($data, $offset, $depth + 1);
         }
     }
 
