@@ -116,7 +116,9 @@ class OpcuaReader
     public function decodeDataValue(): mixed
     {
         $mask = $this->u8();
-        $value = ($mask & 0x01) !== 0 ? $this->decodeVariant() : null;
+        // present 的 Null/空字符串本身值就是 null,不能拿值判空
+        $hasValue = ($mask & 0x01) !== 0;
+        $value = $hasValue ? $this->decodeVariant() : null;
         $status = ($mask & 0x02) !== 0 ? $this->u32() : 0;
         if (($mask & 0x04) !== 0) {
             $this->i64();
@@ -130,7 +132,7 @@ class OpcuaReader
         if (($mask & 0x20) !== 0) {
             $this->u32();
         }
-        if ($value !== null && $status === 0) {
+        if ($hasValue && $status === 0) {
             return $value;
         }
         throw new InvalidArgumentException('opcua read status ' . static::statusLabel($status));
@@ -158,11 +160,9 @@ class OpcuaReader
             $value = $this->decodeScalar($typeId);
         }
         if ($hasDimensions) {
-            $count = $this->i32();
-            // 元素上限:尺寸数组只用于形状,超过上限仍按上限消费,避免恶意长度拖垮解析
-            for ($i = 0; $i < min(max(0, $count), 10000); $i++) {
-                $this->u32();
-            }
+            // 尺寸数组必须全部消费,否则后续字段错位;长度不足由 take 报截断
+            $count = max(0, $this->i32());
+            $this->take($count * 4);
         }
         return $value;
     }

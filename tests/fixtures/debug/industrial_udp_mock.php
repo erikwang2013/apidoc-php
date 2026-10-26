@@ -135,10 +135,10 @@ while (true) {
             stream_socket_sendto($server, bacnetBvlc("\x10\x00\xC4" . pack('N', $objectId)), 0, $peer);
             continue;
         }
-        if (substr($apdu, 0, 4) === "\x00\x00\x0C\xC4" && strlen($apdu) >= 10) {
-            $objectId = unpack('N', substr($apdu, 4, 4))[1];
-            $property = ord($apdu[9]);
-            $ack = "\x30\x00\x00\xC4" . pack('N', $objectId) . "\x19" . chr($property) . "\x3E"
+        if (substr($apdu, 0, 5) === "\x00\x00\x00\x0C\xC4" && strlen($apdu) >= 11) {
+            $objectId = unpack('N', substr($apdu, 5, 4))[1];
+            $property = ord($apdu[10]);
+            $ack = "\x30\x00\x0C\xC4" . pack('N', $objectId) . "\x19" . chr($property) . "\x3E"
                 . "\x44" . pack('G', 21.5);
             stream_socket_sendto($server, bacnetBvlc($ack), 0, $peer);
         }

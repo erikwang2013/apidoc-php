@@ -58,15 +58,16 @@ class RtmpDriver implements DebugDriverInterface
                 ];
             }
             $timeout = max(0.05, (float)($context['timeout'] ?? 5));
+            // 整个会话共用一个截止时间,慢连接不能额外获得一份超时
+            $deadline = microtime(true) + $timeout;
             $maxBytes = max(1, (int)($context['maxBytes'] ?? 1048576));
-            $socket = Socket::connect($target, $context, $timeout);
+            $socket = Socket::connect($target, $context, max(0.001, $deadline - microtime(true)));
         } catch (InvalidArgumentException $e) {
             return ['ok' => false, 'error' => $e->getMessage()];
         } catch (RuntimeException $e) {
             return ['ok' => false, 'error' => 'rtmp connect failed: ' . $e->getMessage()];
         }
         try {
-            $deadline = microtime(true) + $timeout;
             $this->handshake($socket, $deadline);
             $reader = ['chunkSize' => self::DEFAULT_CHUNK_SIZE, 'states' => []];
             $app = Input::string($input, 'app', 'live');

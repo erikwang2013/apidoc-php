@@ -120,7 +120,8 @@ class RtpDriver implements DebugDriverInterface
                 'durationMs' => (int)round((microtime(true) - $started) * 1000),
                 'bytes' => strlen($body),
                 'sent' => $count,
-                'received' => count($packets),
+                // 与 Rust x-received 一致:统计收到的原始数据报,含解码失败的
+                'received' => count($received),
             ],
         ];
     }

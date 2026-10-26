@@ -58,8 +58,9 @@ class BacnetDriver implements DebugDriverInterface
             $apdu = $this->requestApdu($operation, $broadcast, $input);
             $packet = $this->encodeBvlc($broadcast, $apdu);
             $timeout = max(0.05, (float)($context['timeout'] ?? 5));
+            // 显式 0 按 1ms 处理(对齐 Rust clamp),只有负数/非法值才回退默认
             $duration = min(
-                max(1, Input::int($input, 'duration_ms', 3000, 1, PHP_INT_MAX)),
+                max(1, Input::int($input, 'duration_ms', 3000, 0, PHP_INT_MAX)),
                 max(1, (int)round($timeout * 1000))
             );
             $maxBytes = max(1, (int)($context['maxBytes'] ?? 1048576));
@@ -170,7 +171,8 @@ class BacnetDriver implements DebugDriverInterface
             );
         }
         $objectId = ($objectType << 22) | $objectInstance;
-        return "\x00\x00\x0C\xC4" . pack('N', $objectId) . "\x19" . chr($property);
+        // Confirmed-Request 头 4 字节(flags/max-segs/invoke/service)之后才是对象上下文标签
+        return "\x00\x00\x00\x0C\xC4" . pack('N', $objectId) . "\x19" . chr($property);
     }
 
     /**

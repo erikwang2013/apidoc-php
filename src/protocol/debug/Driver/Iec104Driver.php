@@ -49,8 +49,9 @@ class Iec104Driver implements DebugDriverInterface
             }
             $commonAddress = Input::int($input, 'common_address', 1, 0, 0xFFFF);
             $timeout = max(0.05, (float)($context['timeout'] ?? 5));
+            // 显式 0 按 1ms 处理(对齐 Rust clamp),只有负数/非法值才回退默认
             $duration = min(
-                max(1, Input::int($input, 'duration_ms', 3000, 1, PHP_INT_MAX)),
+                max(1, Input::int($input, 'duration_ms', 3000, 0, PHP_INT_MAX)),
                 max(1, (int)round($timeout * 1000))
             );
             $operation = Input::string($input, 'operation', 'interrogation');

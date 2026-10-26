@@ -57,8 +57,9 @@ class Dnp3Driver implements DebugDriverInterface
                 return ['ok' => false, 'error' => 'dnp3 link_address and source_address must differ'];
             }
             $timeout = max(0.05, (float)($context['timeout'] ?? 5));
+            // 显式 0 按 1ms 处理(对齐 Rust clamp),只有负数/非法值才回退默认
             $duration = min(
-                max(1, Input::int($input, 'duration_ms', 3000, 1, PHP_INT_MAX)),
+                max(1, Input::int($input, 'duration_ms', 3000, 0, PHP_INT_MAX)),
                 max(1, (int)round($timeout * 1000))
             );
             $operation = Input::string($input, 'operation', 'integrity');
@@ -77,7 +78,7 @@ class Dnp3Driver implements DebugDriverInterface
                 return ['ok' => false, 'error' => 'dnp3 write failed'];
             }
             $deadline = microtime(true) + $duration / 1000;
-            $points = $this->collectPoints($socket, $deadline, $linkAddress, $masterAddress, $maxBytes);
+            [$points, $responses] = $this->collectPoints($socket, $deadline, $linkAddress, $masterAddress, $maxBytes);
         } catch (InvalidArgumentException $e) {
             return ['ok' => false, 'error' => $e->getMessage()];
         } catch (RuntimeException $e) {
@@ -99,7 +100,7 @@ class Dnp3Driver implements DebugDriverInterface
             'meta' => [
                 'durationMs' => (int)round((microtime(true) - $started) * 1000),
                 'bytes' => strlen($body),
-                'frames' => count($points),
+                'frames' => $responses,
             ],
         ];
     }
@@ -142,21 +143,17 @@ class Dnp3Driver implements DebugDriverInterface
         }
     }
 
+    /**
+     * @return array{0:array,1:int} [points, completed read responses]
+     */
     protected function collectPoints($socket, float $deadline, int $linkAddress, int $masterAddress, int $maxBytes): array
     {
         $points = [];
+        $responses = 0;
         $app = '';
         $totalBytes = 0;
         for ($frames = 0; $frames < self::MAX_FRAMES; $frames++) {
-            try {
-                $frame = $this->readLinkFrame($socket, $deadline);
-            } catch (RuntimeException $e) {
-                // 对端在响应中途关闭连接与超时等价;其他 IO 错误继续上报
-                if (strpos($e->getMessage(), 'connection closed') !== false) {
-                    break;
-                }
-                throw $e;
-            }
+            $frame = $this->readLinkFrame($socket, $deadline);
             if ($frame === null) {
                 break;
             }
@@ -178,7 +175,8 @@ class Dnp3Driver implements DebugDriverInterface
             if (($transport & 0x40) === 0) {
                 continue;
             }
-            if (strlen($app) < 2) {
+            // 应用头: control + function + 2 字节 IIN,对象从 IIN 之后开始
+            if (strlen($app) < 4) {
                 $app = '';
                 continue;
             }
@@ -186,12 +184,13 @@ class Dnp3Driver implements DebugDriverInterface
                 $app = '';
                 continue;
             }
-            foreach ($this->parseObjects(substr($app, 2)) as $point) {
+            foreach ($this->parseObjects(substr($app, 4)) as $point) {
                 $points[] = $point;
             }
             $app = '';
+            $responses++;
         }
-        return $points;
+        return [$points, $responses];
     }
 
     /**
@@ -200,7 +199,15 @@ class Dnp3Driver implements DebugDriverInterface
      */
     protected function readLinkFrame($socket, float $deadline): ?array
     {
-        $header = Socket::readExactOrNull($socket, 10, $deadline, 'dnp3 link header');
+        try {
+            $header = Socket::readExactOrNull($socket, 10, $deadline, 'dnp3 link header');
+        } catch (RuntimeException $e) {
+            // 帧间 EOF 表示对端正常收尾;超时由 readExactOrNull 返回 null
+            if (strpos($e->getMessage(), 'connection closed') !== false) {
+                return null;
+            }
+            throw $e;
+        }
         if ($header === null) {
             return null;
         }
@@ -216,7 +223,15 @@ class Dnp3Driver implements DebugDriverInterface
         }
         $dataLength = $length - 5;
         $blocks = (int)ceil($dataLength / 16);
-        $body = Socket::readExactOrNull($socket, $dataLength + $blocks * 2, $deadline, 'dnp3 link frame');
+        try {
+            $body = Socket::readExactOrNull($socket, $dataLength + $blocks * 2, $deadline, 'dnp3 link frame');
+        } catch (RuntimeException $e) {
+            // 已读到帧头后断连属于截断帧,不能当成正常结束
+            if (strpos($e->getMessage(), 'connection closed') !== false) {
+                throw new RuntimeException('truncated dnp3 frame');
+            }
+            throw $e;
+        }
         if ($body === null) {
             throw new RuntimeException('truncated dnp3 frame');
         }

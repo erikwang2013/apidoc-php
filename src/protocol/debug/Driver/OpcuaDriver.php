@@ -503,7 +503,18 @@ class OpcuaDriver implements DebugDriverInterface
             }
             return "\x08" . pack('P', $integer);
         }
-        if (is_numeric($value) || in_array(strtolower($value), ['inf', '+inf', '-inf', 'infinity', '+infinity', '-infinity', 'nan'], true)) {
+        // PHP 把 "inf"/"nan" 字符串转 float 会得到 0.0,必须显式映射 IEEE 特殊值
+        $lower = strtolower($value);
+        if (in_array($lower, ['inf', '+inf', 'infinity', '+infinity'], true)) {
+            return "\x0B" . pack('e', INF);
+        }
+        if (in_array($lower, ['-inf', '-infinity'], true)) {
+            return "\x0B" . pack('e', -INF);
+        }
+        if ($lower === 'nan') {
+            return "\x0B" . pack('e', NAN);
+        }
+        if (is_numeric($value)) {
             return "\x0B" . pack('e', (float)$value);
         }
         return "\x0C" . $this->putString($value);

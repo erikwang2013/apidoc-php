@@ -3,7 +3,7 @@ declare(strict_types=1);
 
 /**
  * DNP3 / IEC104 / RTMP / OPC UA 串行 TCP mock
- * 用法: php industrial_tcp_mock.php <dnp3|iec104|rtmp|opcua|opcua-auth-fail|opcua-bad-policy|silent> <port>
+ * 用法: php industrial_tcp_mock.php <dnp3|dnp3-truncated|iec104|iec104-nodata|rtmp|opcua|opcua-auth-fail|opcua-bad-policy|opcua-null|silent> <port>
  */
 
 $protocol = $argv[1] ?? '';
@@ -277,7 +277,17 @@ for ($connection = 0; $connection < 16; $connection++) {
             $objects = "\x1E\x01\x00\x00\x01"
                 . "\x01" . pack('V', 42)
                 . "\x01" . pack('V', 0xFFFFFFF9);
-            fwrite($client, dnp3Frame(0x44, 0, 1, "\xC0\xC0\x81" . $objects));
+            // 传输头 + 应用头(control/function/IIN) + 对象
+            fwrite($client, dnp3Frame(0x44, 0, 1, "\xC0\xC0\x81\x00\x00" . $objects));
+        }
+    } elseif ($protocol === 'dnp3-truncated') {
+        $header = readExact($client, 10);
+        if ($header !== '' && substr($header, 0, 2) === "\x05\x64") {
+            $dataLength = ord($header[2]) - 5;
+            readExact($client, $dataLength + (int)ceil($dataLength / 16) * 2);
+            // 合法帧头声明 1 字节用户数据,但只发 1 字节就断开
+            $out = "\x05\x64\x06\x44" . pack('v', 0) . pack('v', 1);
+            fwrite($client, $out . pack('v', dnp3Crc(substr($out, 2))) . "\xC0");
         }
     } elseif ($protocol === 'iec104') {
         $apdu = readExact($client, 6);
@@ -293,6 +303,20 @@ for ($connection = 0; $connection < 16; $connection++) {
             $asdu = "\x01\x01\x14\x00" . pack('v', 1) . "\x01\x00\x00\x01";
             fwrite($client, "\x68" . chr(4 + strlen($asdu)) . "\x02\x00\x00\x00" . $asdu);
         }
+    } elseif ($protocol === 'iec104-nodata') {
+        // 确认 STARTDT,但总召唤后不发 ASDU
+        $apdu = readExact($client, 6);
+        if ($apdu !== '' && ord($apdu[0]) === 0x68) {
+            readExact($client, ord($apdu[1]) - 4);
+            if (ord($apdu[2]) === 0x07) {
+                fwrite($client, "\x68\x04\x0B\x00\x00\x00");
+                $apdu = readExact($client, 6);
+                if ($apdu !== '' && ord($apdu[0]) === 0x68) {
+                    readExact($client, ord($apdu[1]) - 4);
+                }
+            }
+        }
+        usleep(500000);
     } elseif ($protocol === 'rtmp') {
         readExact($client, 1537);
         fwrite($client, "\x03" . str_repeat("\x00", 1536) . str_repeat("\x00", 1536));
@@ -370,8 +394,8 @@ for ($connection = 0; $connection < 16; $connection++) {
                 }
                 fwrite($client, uaMessage('MSG', 1, 1, 1, 1, "\x00\x00" . uaHeader()));
             } elseif ($service === 631) {
-                $response = "\x00\x00" . uaHeader() . pack('V', 1)
-                    . "\x01" . "\x06" . pack('V', 42);
+                $value = $protocol === 'opcua-null' ? "\x01\x00" : "\x01\x06" . pack('V', 42);
+                $response = "\x00\x00" . uaHeader() . pack('V', 1) . $value;
                 fwrite($client, uaMessage('MSG', 1, 1, 1, 1, $response));
             } elseif ($service === 527) {
                 $response = "\x00\x00" . uaHeader() . pack('V', 1) . pack('V', 0)
