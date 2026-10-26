@@ -29,9 +29,6 @@ class Controller
 
     protected $lang = "";
 
-    /** requireAdmin() already verified the global credential; skip init(true) re-checks. */
-    protected $adminVerified = false;
-
     public function init($checkAuth = false)
     {
         $this->config = ConfigProvider::get();
@@ -53,7 +50,7 @@ class Controller
             $this->lang = $this->requestParams['lang'];
             $this->config['lang_register_function']($this->lang);
         }
-        if ($checkAuth && !$this->adminVerified) {
+        if ($checkAuth) {
             (new Auth($this->config))->checkAuth($this->requestParams);
         }
     }
@@ -65,7 +62,6 @@ class Controller
      */
     protected function requireAdmin(): void
     {
-        $this->adminVerified = true;
         if (empty($this->config['auth']['enable'])) {
             return;
         }
@@ -343,7 +339,9 @@ class Controller
      */
     public function createGenerator()
     {
-        $this->init(true);
+        // 管理端路由:只认全局 token(legacy 路由的安全收紧,读接口不变)
+        $this->init(false);
+        $this->requireAdmin();
         $config = $this->config;
         $params = $this->requestParams;
         $res = (new generator\Index($config))->create($params);
@@ -356,7 +354,9 @@ class Controller
      */
     public function cancelAllCache()
     {
-        $this->init(true);
+        // 管理端路由:只认全局 token(legacy 路由的安全收紧,读接口不变)
+        $this->init(false);
+        $this->requireAdmin();
         $config = $this->config;
         $path = APIDOC_STORAGE_PATH . $config['cache']['folder']. '/apis';
         $res = DirAndFile::deleteDir($path);
@@ -369,7 +369,9 @@ class Controller
      */
     public function createAllCache()
     {
-        $this->init(true);
+        // 管理端路由:只认全局 token(legacy 路由的安全收紧,读接口不变)
+        $this->init(false);
+        $this->requireAdmin();
         $config = $this->config;
         $params = $this->requestParams;
         $apps = Helper::getAllApps($config['apps']);
@@ -428,7 +430,9 @@ class Controller
      */
     public function addApiShare()
     {
-        $this->init(true);
+        // 管理端路由:只认全局 token(legacy 路由的安全收紧,读接口不变)
+        $this->init(false);
+        $this->requireAdmin();
         $config = $this->config;
         $params = $this->requestParams;
         if (empty($params['name'])) {
@@ -457,7 +461,9 @@ class Controller
      */
     public function getApiShareList()
     {
-        $this->init(true);
+        // 管理端路由:只认全局 token(legacy 路由的安全收紧,读接口不变)
+        $this->init(false);
+        $this->requireAdmin();
         $config = $this->config;
         $params = $this->requestParams;
         $pageIndex = !empty($params['pageIndex']) ? $params['pageIndex'] : 1;
@@ -472,7 +478,9 @@ class Controller
      */
     public function getApiShareDetail()
     {
-        $this->init(true);
+        // 管理端路由:只认全局 token(legacy 路由的安全收紧,读接口不变)
+        $this->init(false);
+        $this->requireAdmin();
         $config = $this->config;
         $params = $this->requestParams;
         if (empty($params['key'])) {
@@ -489,7 +497,9 @@ class Controller
      */
     public function deleteApiShare()
     {
-        $this->init(true);
+        // 管理端路由:只认全局 token(legacy 路由的安全收紧,读接口不变)
+        $this->init(false);
+        $this->requireAdmin();
         $config = $this->config;
         $params = $this->requestParams;
         if (empty($params['key'])) {
@@ -506,7 +516,10 @@ class Controller
      */
     public function handleApiShareAction()
     {
-        $this->init(true);
+        // 管理端路由:只认全局 token(legacy 路由的安全收紧,读接口不变);
+        // legacy 行为保留:仍执行配置的 PHP 回调,但 payload 已无应用密码
+        $this->init(false);
+        $this->requireAdmin();
         $config = $this->config;
         $params = $this->requestParams;
         if (empty($params['key'])) {
@@ -790,15 +803,11 @@ class Controller
 
     public function uiAddApiShare()
     {
-        $this->init(false);
-        $this->requireAdmin();
         return $this->addApiShare();
     }
 
     public function uiGetApiShareList()
     {
-        $this->init(false);
-        $this->requireAdmin();
         return $this->getApiShareList();
     }
 
@@ -819,8 +828,6 @@ class Controller
 
     public function uiDeleteApiShare()
     {
-        $this->init(false);
-        $this->requireAdmin();
         return $this->deleteApiShare();
     }
 
@@ -834,16 +841,12 @@ class Controller
 
     public function uiCacheClear()
     {
-        $this->init(false);
-        $this->requireAdmin();
         $this->cancelAllCache();
         return Helper::showJson(0, "", ['ok' => true, 'mode' => 'server']);
     }
 
     public function uiCacheWarm()
     {
-        $this->init(false);
-        $this->requireAdmin();
         $this->createAllCache();
         return Helper::showJson(0, "", ['ok' => true, 'mode' => 'server', 'message' => 'cache rebuilt']);
     }
@@ -855,15 +858,12 @@ class Controller
      */
     public function uiGenerator()
     {
-        $this->init(false);
-        $this->requireAdmin();
         return $this->createGenerator();
     }
 
     public function uiRenderCodeTemplate()
     {
-        $this->init(false);
-        $this->requireAdmin();
+        // 按应用渲染:与 Go/Rust 一致,允许该 app 自己的 token;模板白名单在 ParseCodeTemplate 里
         return $this->renderCodeTemplate();
     }
 

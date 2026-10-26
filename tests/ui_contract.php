@@ -416,7 +416,7 @@ $appTokenCases = [
     'uiCacheClear' => [],
     'uiCacheWarm' => [],
     'uiGenerator' => [],
-    'uiRenderCodeTemplate' => [],
+    // uiRenderCodeTemplate is intentionally app-scoped (N1), not admin-only
     'uiExportAllData' => ['key' => 'share-test-1'],
 ];
 $appTokenStatuses = [];
@@ -536,5 +536,124 @@ foreach (($generatedList['data']['data'] ?? []) as $row) {
     }
 }
 check('M9 generated share keys are random hex', preg_match('/^[0-9a-f]{32}$/', $generatedKey) === 1);
+
+// ---------- N1: renderCodeTemplate stays app-scoped, templates are allowlisted ----------
+
+$codeTemplateItem = [
+    'title' => 'Sample',
+    'template' => 'tests/fixtures/templates/sample.tpl',
+    'select_mode' => 'api',
+    'multiple' => true,
+    'language' => 'text',
+    'tips' => '',
+    'limit' => 100,
+    'form' => ['items' => []],
+];
+$n1Extra = [
+    'apps' => [$protectedApp],
+    'code_template' => [$codeTemplateItem],
+    'share' => ['actions' => [['click' => fn () => true]]],
+    'cache' => ['enable' => false],
+];
+ui_contract_config([], $fixtureAppPath, $n1Extra);
+$n1AppToken = (new Auth(ConfigProvider::get()))->verifyPlain('APPSECRET-XYZ', 'default');
+$n1Params = [
+    'token' => $n1AppToken,
+    'appKey' => 'default',
+    'template' => $codeTemplateItem,
+    'selected' => [$menuKey],
+    'form' => ['name' => 'ok'],
+];
+
+ui_contract_config($n1Params, $fixtureAppPath, $n1Extra);
+$n1Render = (new Controller())->uiRenderCodeTemplate();
+check(
+    'N1 app token renders a configured template',
+    trim((string)($n1Render['data']['code'] ?? '')) === 'Sample ok'
+);
+
+ui_contract_config($n1Params, $fixtureAppPath, $n1Extra);
+$n1LegacyRender = (new Controller())->renderCodeTemplate();
+check(
+    'N1 legacy renderCodeTemplate stays app-scoped',
+    trim((string)($n1LegacyRender['data']['code'] ?? '')) === 'Sample ok'
+);
+
+$n1DeniedStatuses = [];
+$n1BadTemplates = [
+    ['template' => 'README.md', 'select_mode' => 'api', 'multiple' => true],
+    ['template' => '../composer.json', 'select_mode' => 'api', 'multiple' => true],
+    'README.md',
+];
+foreach ($n1BadTemplates as $badTemplate) {
+    ui_contract_config(array_merge($n1Params, ['template' => $badTemplate]), $fixtureAppPath, $n1Extra);
+    try {
+        (new Controller())->uiRenderCodeTemplate();
+        $n1DeniedStatuses[] = 0;
+    } catch (HttpException $e) {
+        $n1DeniedStatuses[] = $e->getStatusCode();
+    }
+}
+check(
+    'N1 unconfigured template paths rejected',
+    count($n1DeniedStatuses) === count($n1BadTemplates)
+    && array_unique($n1DeniedStatuses) === [412]
+);
+
+$publicAppExtra = [
+    'apps' => [['key' => 'default', 'title' => 'Default', 'path' => $fixtureAppPath]],
+    'code_template' => [$codeTemplateItem],
+    'cache' => ['enable' => false],
+];
+ui_contract_config([
+    'token' => $adminToken,
+    'appKey' => 'default',
+    'template' => $codeTemplateItem,
+    'selected' => [$menuKey],
+    'form' => ['name' => 'global'],
+], $fixtureAppPath, $publicAppExtra);
+$n1GlobalRender = (new Controller())->uiRenderCodeTemplate();
+check(
+    'N1 global token renders a configured template',
+    trim((string)($n1GlobalRender['data']['code'] ?? '')) === 'Sample global'
+);
+
+// ---------- R2: legacy management routes require the global token ----------
+
+$r2Cases = [
+    'addApiShare' => ['name' => 'evil', 'type' => 'all'],
+    'getApiShareList' => ['pageIndex' => 1],
+    'getApiShareDetail' => ['key' => 'share-test-1'],
+    'deleteApiShare' => ['key' => 'share-test-1'],
+    'handleApiShareAction' => ['key' => 'share-test-1', 'index' => 0],
+    'cancelAllCache' => [],
+    'createAllCache' => [],
+    'createGenerator' => [],
+];
+$r2Statuses = [];
+foreach ($r2Cases as $method => $params) {
+    ui_contract_config(
+        array_merge(['token' => $n1AppToken, 'appKey' => 'default'], $params),
+        $fixtureAppPath,
+        $n1Extra
+    );
+    try {
+        (new Controller())->{$method}();
+        $r2Statuses[$method] = 0;
+    } catch (HttpException $e) {
+        $r2Statuses[$method] = $e->getStatusCode();
+    } catch (\Throwable $e) {
+        $r2Statuses[$method] = -1;
+    }
+}
+check(
+    'R2 legacy management routes reject app tokens with 401',
+    count($r2Statuses) === count($r2Cases)
+    && array_unique(array_values($r2Statuses)) === [401]
+);
+
+ui_contract_config(['token' => $adminToken, 'pageIndex' => 1], $fixtureAppPath, $n1Extra);
+$r2LegacyList = (new Controller())->getApiShareList();
+check('R2 legacy management routes accept the global token', ($r2LegacyList['code'] ?? null) === 0);
 
 contract_exit();
