@@ -7,8 +7,10 @@
  */
 $host = $argv[1] ?? '127.0.0.1';
 $port = (int)($argv[2] ?? 19021);
-// metadata-ssrf 模式广播云元数据地址,用于验证驱动对 metadata broker 的二次 SSRF 校验
-$advertiseHost = ($argv[3] ?? '') === 'metadata-ssrf' ? '169.254.169.254' : $host;
+// metadata-ssrf 模式广播云元数据地址;metadata-host 模式广播 localhost,
+// 用于验证驱动对 metadata broker 的二次 SSRF 校验使用 DebugProxy 注入的配置
+$mode = $argv[3] ?? '';
+$advertiseHost = $mode === 'metadata-ssrf' ? '169.254.169.254' : ($mode === 'metadata-host' ? 'localhost' : $host);
 $server = @stream_socket_server("tcp://{$host}:{$port}", $errno, $errstr);
 if (!$server) {
     fwrite(STDERR, "{$errstr} ({$errno})\n");

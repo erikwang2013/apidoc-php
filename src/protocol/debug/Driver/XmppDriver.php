@@ -11,11 +11,11 @@ use erikwang2013\apidoc\protocol\debug\DebugDriverInterface;
 use erikwang2013\apidoc\protocol\debug\DebugTarget;
 use erikwang2013\apidoc\protocol\debug\Support\Hex;
 use erikwang2013\apidoc\protocol\debug\Support\Socket;
-use erikwang2013\apidoc\utils\ConfigProvider;
 
 /**
  * XMPP 一元执行器:连接强制 STARTTLS(证书校验到 JID 域名)→ SASL PLAIN → bind →
  * 可选发送一条 message → 收集响应。凭据只从字段读取,错误文本中的密码会被替换。
+ * 目标只接受 xmpp://(与 Rust 一致);不把 tcp:// 当作别名。
  * @package erikwang2013\apidoc\protocol\debug\Driver
  */
 class XmppDriver implements DebugDriverInterface
@@ -39,6 +39,16 @@ class XmppDriver implements DebugDriverInterface
      * @var bool 服务端是否已关闭 stream
      */
     protected $streamClosed = false;
+
+    /**
+     * @var array DebugProxy 注入的 protocols.debug
+     */
+    protected $debugConfig = [];
+
+    /**
+     * @var string 服务端流 XML 前缀
+     */
+    protected $streamPrefix = 'stream';
 
     public static function available(): bool
     {
@@ -80,6 +90,8 @@ class XmppDriver implements DebugDriverInterface
         $start = microtime(true);
         $this->buffer = '';
         $this->streamClosed = false;
+        $this->streamPrefix = 'stream';
+        $this->debugConfig = is_array($context['debugConfig'] ?? null) ? $context['debugConfig'] : [];
         if (!self::available()) {
             return ['ok' => false, 'error' => self::unavailableReason()];
         }
@@ -160,8 +172,8 @@ class XmppDriver implements DebugDriverInterface
             if ($scheme === 'xmpps') {
                 return ['ok' => false, 'error' => 'xmpps (direct TLS) is not supported; use xmpp:// which upgrades via STARTTLS'];
             }
-            if (!in_array($scheme, ['xmpp', 'tcp'], true)) {
-                return ['ok' => false, 'error' => 'unsupported xmpp scheme `' . $scheme . '`; use xmpp://'];
+            if ($scheme !== 'xmpp') {
+                return ['ok' => false, 'error' => 'xmpp driver requires an xmpp:// target'];
             }
             if (($target['path'] ?? '') !== '' && $target['path'] !== '/') {
                 return ['ok' => false, 'error' => 'invalid xmpp target; use xmpp://host[:port]'];
@@ -184,7 +196,7 @@ class XmppDriver implements DebugDriverInterface
                 $this->write(
                     $socket,
                     '<message to="' . $this->xml($to) . '" type="' . $this->xml($type) . '" id="' . $id . '">'
-                    . '<body>' . $this->xml($body) . '</body></message>'
+                    . '<body xml:lang="en">' . $this->xml($body) . '</body></message>'
                 );
             }
             $messages = $this->collectMessages($socket, $want, $durationMs, $deadline, $maxBytes);
@@ -202,7 +214,7 @@ class XmppDriver implements DebugDriverInterface
                 'status' => 0,
                 'headers' => ['x-messages' => (string)count($messages)],
                 'body' => $json,
-                'encoding' => 'json',
+                'encoding' => 'text',
                 'meta' => [
                     'durationMs' => (int)round((microtime(true) - $start) * 1000),
                     'messages' => count($messages),
@@ -298,7 +310,7 @@ class XmppDriver implements DebugDriverInterface
             stream_context_set_option($socket, 'ssl', 'cafile', $caFile);
         }
         stream_set_timeout($socket, max(1, (int)ceil($left)));
-        $result = @stream_socket_enable_crypto($socket, true, STREAM_CRYPTO_METHOD_TLS_CLIENT);
+        $result = @stream_socket_enable_crypto($socket, true, static::tlsCryptoMethod());
         if ($result !== true) {
             throw new RuntimeException('xmpp STARTTLS handshake failed');
         }
@@ -307,16 +319,19 @@ class XmppDriver implements DebugDriverInterface
     }
 
     /**
+     * TLS 1.2 是下限,与 Rust/rustls 参考实现一致
+     */
+    protected static function tlsCryptoMethod(): int
+    {
+        return STREAM_CRYPTO_METHOD_TLSv1_2_CLIENT | STREAM_CRYPTO_METHOD_TLSv1_3_CLIENT;
+    }
+
+    /**
      * 仅允许服务端配置的 CA 文件,客户端不能指定
      */
     protected function tlsCaFile(): string
     {
-        try {
-            $config = ConfigProvider::get('protocols.debug');
-        } catch (\Throwable $e) {
-            return '';
-        }
-        $path = is_array($config) ? ($config['tls_ca_file'] ?? '') : '';
+        $path = $this->debugConfig['tls_ca_file'] ?? '';
         if (!is_string($path) || $path === '') {
             return '';
         }
@@ -351,8 +366,8 @@ class XmppDriver implements DebugDriverInterface
             if ($root->localName !== 'message') {
                 continue;
             }
-            $bodyElement = $doc->getElementsByTagNameNS(self::CLIENT_NS, 'body')->item(0);
-            if (!$bodyElement instanceof DOMElement) {
+            $bodyElement = $this->selectBody($doc);
+            if ($bodyElement === null) {
                 continue;
             }
             $text = $bodyElement->textContent;
@@ -366,6 +381,27 @@ class XmppDriver implements DebugDriverInterface
             ];
         }
         return $messages;
+    }
+
+    /**
+     * 与 Rust get_best_body(["en"]) 对齐:优先英文,其次无语言标记;其他语言跳过
+     */
+    protected function selectBody(DOMDocument $doc): ?DOMElement
+    {
+        $fallback = null;
+        foreach ($doc->getElementsByTagNameNS(self::CLIENT_NS, 'body') as $body) {
+            if (!$body instanceof DOMElement) {
+                continue;
+            }
+            $lang = strtolower($body->getAttributeNS('http://www.w3.org/XML/1998/namespace', 'lang'));
+            if ($lang === 'en' || strpos($lang, 'en-') === 0) {
+                return $body;
+            }
+            if ($lang === '' && $fallback === null) {
+                $fallback = $body;
+            }
+        }
+        return $fallback;
     }
 
     protected function waitForFeatures($socket, float $deadline, int $maxBytes): DOMDocument
@@ -461,16 +497,23 @@ class XmppDriver implements DebugDriverInterface
                 $this->buffer = substr($this->buffer, $end + 2);
                 continue;
             }
-            if (preg_match('#^<stream:stream\b#i', $this->buffer) === 1) {
+            // 流头/流尾的 XML 前缀任意,按命名空间声明识别
+            if (preg_match('#^<(?<prefix>[A-Za-z_][\w.-]*):stream\b#i', $this->buffer, $matches) === 1) {
                 $end = $this->tagEnd($this->buffer, 0);
                 if ($end === null) {
                     $this->readMore($socket, $deadline, $maxBytes);
                     continue;
                 }
-                $this->buffer = substr($this->buffer, $end);
-                continue;
+                $prefix = (string)$matches['prefix'];
+                $declaration = '#\bxmlns:' . preg_quote($prefix, '#') . '\s*=\s*(["\'])'
+                    . preg_quote(self::STREAM_NS, '#') . '\1#';
+                if (preg_match($declaration, substr($this->buffer, 0, $end)) === 1) {
+                    $this->streamPrefix = $prefix;
+                    $this->buffer = substr($this->buffer, $end);
+                    continue;
+                }
             }
-            if (preg_match('#^</stream:stream\s*>#i', $this->buffer, $matches) === 1) {
+            if (preg_match('#^</(?:[A-Za-z_][\w.-]*:)?stream\s*>#i', $this->buffer, $matches) === 1) {
                 $this->buffer = substr($this->buffer, strlen($matches[0]));
                 $this->streamClosed = true;
                 continue;
@@ -597,7 +640,11 @@ class XmppDriver implements DebugDriverInterface
     protected function parseXml(string $stanza): DOMDocument
     {
         // stream 前缀的命名空间在流头上声明,补一个包裹根以完整解析
-        $wrapped = '<root xmlns="' . self::CLIENT_NS . '" xmlns:stream="' . self::STREAM_NS . '">' . $stanza . '</root>';
+        $wrapped = '<root xmlns="' . self::CLIENT_NS . '" xmlns:stream="' . self::STREAM_NS . '"';
+        if ($this->streamPrefix !== 'stream') {
+            $wrapped .= ' xmlns:' . $this->streamPrefix . '="' . self::STREAM_NS . '"';
+        }
+        $wrapped .= '>' . $stanza . '</root>';
         $doc = new DOMDocument();
         $previous = libxml_use_internal_errors(true);
         $ok = $doc->loadXML($wrapped, LIBXML_NONET | LIBXML_NOBLANKS);

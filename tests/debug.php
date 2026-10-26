@@ -41,6 +41,7 @@ use Tests\Fixtures\Protocol\AmqpDebugFixture;
 use Tests\Fixtures\Protocol\CoapDebugFixture;
 use Tests\Fixtures\Protocol\Iso8583ProxyFixture;
 use Tests\Fixtures\Protocol\KafkaDebugFixture;
+use Tests\Fixtures\Protocol\KafkaMetadataHostFixture;
 use Tests\Fixtures\Protocol\ModbusDebugFixture;
 use Tests\Fixtures\Protocol\MqttPublishFixture;
 use Tests\Fixtures\Protocol\MqttSubscribeFixture;
@@ -156,6 +157,7 @@ startFixture([PHP_BINARY, $root . '/tests/fixtures/debug/mqtt_broker.php', '127.
 startFixture([PHP_BINARY, $root . '/tests/fixtures/debug/stomp_server.php', '127.0.0.1', '19004'], $logDir . '/apidoc-debug-stomp.log');
 startFixture([PHP_BINARY, $root . '/tests/fixtures/debug/kafka_mock.php', '127.0.0.1', '19021'], $logDir . '/apidoc-debug-kafka.log');
 startFixture([PHP_BINARY, $root . '/tests/fixtures/debug/kafka_mock.php', '127.0.0.1', '19025', 'metadata-ssrf'], $logDir . '/apidoc-debug-kafka-ssrf.log');
+startFixture([PHP_BINARY, $root . '/tests/fixtures/debug/kafka_mock.php', '127.0.0.1', '19026', 'metadata-host'], $logDir . '/apidoc-debug-kafka-host.log');
 startFixture([PHP_BINARY, $root . '/tests/fixtures/debug/amqp_mock.php', '127.0.0.1', '19022'], $logDir . '/apidoc-debug-amqp.log');
 startFixture([PHP_BINARY, $root . '/tests/fixtures/debug/coap_server.php', '127.0.0.1', '19006'], $logDir . '/apidoc-debug-coap.log');
 startFixture([PHP_BINARY, $root . '/tests/fixtures/debug/modbus_server.php', '127.0.0.1', '19007'], $logDir . '/apidoc-debug-modbus.log');
@@ -181,7 +183,8 @@ if (!waitPort('127.0.0.1', 19011) || !waitPort('127.0.0.1', 19005) || !waitPort(
     || !waitPort('127.0.0.1', 19014) || !waitPort('127.0.0.1', 19015) || !waitPort('127.0.0.1', 19016)
     || !waitPort('127.0.0.1', 19017) || !waitPort('127.0.0.1', 19018) || !waitPort('127.0.0.1', 19019)
     || !waitPort('127.0.0.1', 19020) || !waitPort('127.0.0.1', 19021) || !waitPort('127.0.0.1', 19022)
-    || !waitPort('127.0.0.1', 19023) || !waitPort('127.0.0.1', 19024) || !waitPort('127.0.0.1', 19025)) {
+    || !waitPort('127.0.0.1', 19023) || !waitPort('127.0.0.1', 19024) || !waitPort('127.0.0.1', 19025)
+    || !waitPort('127.0.0.1', 19026)) {
     echo "FAIL  fixture 服务未就绪\n";
     exit(1);
 }
@@ -525,7 +528,13 @@ check('batch 3b drivers registered', DebugRegistry::driver('kafka') instanceof K
 check('xmpp driver available', XmppDriver::available());
 
 $loopGuard = ['host' => '127.0.0.1', 'port' => 19021, 'ips' => ['127.0.0.1'], 'unix' => false];
-$kafkaCtx = ['target' => 'kafka://127.0.0.1:19021', 'guard' => $loopGuard, 'timeout' => 2, 'maxBytes' => 1048576];
+$kafkaCtx = [
+    'target' => 'kafka://127.0.0.1:19021',
+    'guard' => $loopGuard,
+    'timeout' => 2,
+    'maxBytes' => 1048576,
+    'debugConfig' => $config['protocols']['debug'],
+];
 $kafka = new KafkaDriver();
 check('kafka requires topic', ($kafka->send([], $kafkaCtx)['ok'] ?? true) === false);
 check('kafka rejects produce', (function () use ($kafka, $kafkaCtx) {
@@ -542,7 +551,7 @@ check('kafka rejects invalid partition', (function () use ($kafka, $kafkaCtx) {
 })());
 $kafkaFetch = $kafka->send(['topic' => 'debug', 'offset' => 'earliest', 'messages' => 2], $kafkaCtx);
 $kafkaMessages = json_decode((string)($kafkaFetch['body'] ?? ''), true)['messages'] ?? [];
-check('kafka fetch ok', ($kafkaFetch['ok'] ?? false) === true && ($kafkaFetch['encoding'] ?? '') === 'json');
+check('kafka fetch ok', ($kafkaFetch['ok'] ?? false) === true && ($kafkaFetch['encoding'] ?? '') === 'text');
 check('kafka record batch decoded', count($kafkaMessages) === 2
     && ($kafkaMessages[0]['offset'] ?? -1) === 0
     && ($kafkaMessages[0]['payload'] ?? []) === ['encoding' => 'utf8', 'data' => 'hello']
@@ -563,6 +572,18 @@ check('kafka TLS target rejected', (function () use ($kafka, $kafkaCtx) {
     $ctx['target'] = 'kafkas://127.0.0.1:19021';
     $res = $kafka->send(['topic' => 'debug'], $ctx);
     return ($res['ok'] ?? true) === false && strpos((string)($res['error'] ?? ''), 'kafkas://') !== false;
+})());
+check('kafka rejects tcp alias like Rust', (function () use ($kafka, $kafkaCtx) {
+    $ctx = $kafkaCtx;
+    $ctx['target'] = 'tcp://127.0.0.1:19021';
+    $res = $kafka->send(['topic' => 'debug'], $ctx);
+    return ($res['ok'] ?? true) === false && strpos((string)($res['error'] ?? ''), 'kafka://') !== false;
+})());
+check('kafka rejects comma-separated bootstrap', (function () use ($kafka, $kafkaCtx) {
+    $ctx = $kafkaCtx;
+    $ctx['target'] = 'kafka://127.0.0.1:19021,127.0.0.1:19026';
+    $res = $kafka->send(['topic' => 'debug'], $ctx);
+    return ($res['ok'] ?? true) === false && strpos((string)($res['error'] ?? ''), 'multiple bootstrap') !== false;
 })());
 $kafkaSsrfCtx = $kafkaCtx;
 $kafkaSsrfCtx['target'] = 'kafka://127.0.0.1:19025';
@@ -602,6 +623,7 @@ $amqpConsume = $amqp->send([
 ], $amqpCtx);
 $amqpDelivery = json_decode((string)($amqpConsume['body'] ?? ''), true)['delivery'] ?? [];
 check('amqp consume round-trips published body', ($amqpConsume['ok'] ?? false) === true
+    && ($amqpConsume['encoding'] ?? '') === 'text'
     && ($amqpDelivery['routing_key'] ?? '') === 'debug/echo'
     && ($amqpDelivery['payload'] ?? []) === ['encoding' => 'utf8', 'data' => 'amqp-hello']);
 $amqpMany = $amqp->send([
@@ -638,10 +660,32 @@ check('amqp TLS target rejected', (function () use ($amqp, $amqpCtx) {
     $res = $amqp->send(['routing_key' => 'x'], $ctx);
     return ($res['ok'] ?? true) === false && strpos((string)($res['error'] ?? ''), 'TLS') !== false;
 })());
+check('amqp rejects tcp alias like Rust', (function () use ($amqp, $amqpCtx) {
+    $ctx = $amqpCtx;
+    $ctx['target'] = 'tcp://127.0.0.1:19022';
+    $res = $amqp->send(['routing_key' => 'x'], $ctx);
+    return ($res['ok'] ?? true) === false && strpos((string)($res['error'] ?? ''), 'amqp://') !== false;
+})());
+$amqpPartial = $amqp->send([
+    'consume' => 'true',
+    'queue' => 'debug/partial',
+    'username' => 'debug',
+    'password' => 'secret',
+    'messages' => 1,
+    'duration_ms' => 150,
+], $amqpCtx);
+check('amqp mid-delivery timeout is an error', ($amqpPartial['ok'] ?? true) === false
+    && strpos((string)($amqpPartial['error'] ?? ''), 'announced') !== false);
 
 $xmppGuard = $loopGuard;
 $xmppGuard['port'] = 19023;
-$xmppCtx = ['target' => 'xmpp://127.0.0.1:19023', 'guard' => $xmppGuard, 'timeout' => 3, 'maxBytes' => 1048576];
+$xmppCtx = [
+    'target' => 'xmpp://127.0.0.1:19023',
+    'guard' => $xmppGuard,
+    'timeout' => 3,
+    'maxBytes' => 1048576,
+    'debugConfig' => $config['protocols']['debug'],
+];
 $xmpp = new XmppDriver();
 check('xmpp requires jid', ($xmpp->send([], $xmppCtx)['ok'] ?? true) === false);
 check('xmpp rejects invalid jid', (function () use ($xmpp, $xmppCtx) {
@@ -669,9 +713,11 @@ $xmppSend = $xmpp->send([
     'duration_ms' => 1000,
 ], $xmppCtx);
 $xmppMessages = json_decode((string)($xmppSend['body'] ?? ''), true)['messages'] ?? [];
-check('xmpp STARTTLS SASL send and receive', ($xmppSend['ok'] ?? false) === true && count($xmppMessages) === 2
+check('xmpp STARTTLS SASL send and receive', ($xmppSend['ok'] ?? false) === true
+    && ($xmppSend['encoding'] ?? '') === 'text' && count($xmppMessages) === 2
     && ($xmppMessages[0] ?? []) === ['from' => 'bot@localhost/1', 'body' => 'hello']
     && ($xmppMessages[1] ?? []) === ['from' => 'echo@localhost/1', 'body' => 'echo:hi']);
+check('xmpp outbound body declares xml:lang en', ($xmppMessages[1]['body'] ?? '') === 'echo:hi');
 $xmppReceive = $xmpp->send([
     'jid' => 'debug@localhost/php',
     'password' => 'secret',
@@ -682,6 +728,15 @@ $xmppReceiveMessages = json_decode((string)($xmppReceive['body'] ?? ''), true)['
 check('xmpp receive-only collects message', ($xmppReceive['ok'] ?? false) === true
     && ($xmppReceiveMessages[0] ?? []) === ['from' => 'bot@localhost/1', 'body' => 'hello']
     && strpos((string)($xmppReceive['body'] ?? ''), 'secret') === false);
+$xmppPlain = $xmpp->send([
+    'jid' => 'plain@localhost/php',
+    'password' => 'secret',
+    'messages' => 1,
+    'duration_ms' => 1000,
+], $xmppCtx);
+$xmppPlainMessages = json_decode((string)($xmppPlain['body'] ?? ''), true)['messages'] ?? [];
+check('xmpp prefers no-lang body when english is missing', ($xmppPlain['ok'] ?? false) === true
+    && ($xmppPlainMessages[0] ?? []) === ['from' => 'bot@localhost/1', 'body' => 'neutral']);
 $xmppSilent = $xmpp->send([
     'jid' => 'silent@localhost/php',
     'password' => 'secret',
@@ -711,6 +766,37 @@ check('xmpp direct TLS target rejected', (function () use ($xmpp, $xmppCtx) {
     $res = $xmpp->send(['jid' => 'debug@localhost/php', 'password' => 'secret'], $ctx);
     return ($res['ok'] ?? true) === false && strpos((string)($res['error'] ?? ''), 'xmpps') !== false;
 })());
+check('xmpp rejects tcp alias like Rust', (function () use ($xmpp, $xmppCtx) {
+    $ctx = $xmppCtx;
+    $ctx['target'] = 'tcp://127.0.0.1:19023';
+    $res = $xmpp->send(['jid' => 'debug@localhost/php', 'password' => 'secret'], $ctx);
+    return ($res['ok'] ?? true) === false && strpos((string)($res['error'] ?? ''), 'xmpp://') !== false;
+})());
+$tlsMethod = new ReflectionMethod(XmppDriver::class, 'tlsCryptoMethod');
+$tlsMethod->setAccessible(true);
+$tlsBits = (int)$tlsMethod->invoke(null);
+check('xmpp TLS floor is exactly TLS 1.2+', $tlsBits === (STREAM_CRYPTO_METHOD_TLSv1_2_CLIENT | STREAM_CRYPTO_METHOD_TLSv1_3_CLIENT));
+$xmppPrefix = new XmppDriver();
+$nextStanza = new ReflectionMethod(XmppDriver::class, 'nextStanza');
+$nextStanza->setAccessible(true);
+$parseXml = new ReflectionMethod(XmppDriver::class, 'parseXml');
+$parseXml->setAccessible(true);
+$pair = stream_socket_pair(STREAM_PF_UNIX, STREAM_SOCK_STREAM, 0);
+fwrite($pair[0], '<?xml version="1.0"?><s:stream xmlns="jabber:client" xmlns:s="' . XmppDriver::STREAM_NS . '">'
+    . '<s:features><starttls xmlns="' . XmppDriver::TLS_NS . '"/></s:features></s:stream>');
+$prefixedStanza = $nextStanza->invoke($xmppPrefix, $pair[1], microtime(true) + 1, 4096);
+$prefixedDoc = $parseXml->invoke($xmppPrefix, $prefixedStanza);
+check('xmpp accepts arbitrary stream prefix', $prefixedDoc->documentElement->localName === 'features'
+    && $prefixedDoc->documentElement->namespaceURI === XmppDriver::STREAM_NS);
+$prefixedClosed = false;
+try {
+    $nextStanza->invoke($xmppPrefix, $pair[1], microtime(true) + 1, 4096);
+} catch (Throwable $e) {
+    $prefixedClosed = strpos($e->getMessage(), 'stream closed') !== false;
+}
+check('xmpp detects prefixed stream footer', $prefixedClosed);
+fclose($pair[0]);
+fclose($pair[1]);
 $scanElement = new ReflectionMethod(XmppDriver::class, 'scanElement');
 $scanElement->setAccessible(true);
 $xmppDoctypeRejected = false;
@@ -727,6 +813,53 @@ try {
     $xmppDepthRejected = strpos($e->getMessage(), 'deeply nested') !== false;
 }
 check('xmpp parser caps nesting depth', $xmppDepthRejected);
+
+// 驱动只能使用 DebugProxy 注入的 protocols.debug;不能回退到全局 ConfigProvider
+$permissiveGlobal = $config;
+$permissiveGlobal['protocols']['debug']['allow_hosts'] = [];
+ConfigProvider::set($permissiveGlobal);
+$strictInjected = $config;
+$strictInjected['protocols']['debug']['allow_hosts'] = ['127.0.0.1'];
+$kafkaInjectedStrict = (new DebugProxy($strictInjected))->send(
+    'api',
+    KafkaMetadataHostFixture::class . '@fetch',
+    ['fields' => ['topic' => 'debug']]
+);
+check('kafka metadata broker uses injected allow_hosts', ($kafkaInjectedStrict['ok'] ?? true) === false
+    && strpos((string)($kafkaInjectedStrict['error'] ?? ''), 'metadata broker') !== false
+    && strpos((string)($kafkaInjectedStrict['error'] ?? ''), 'allow_hosts') !== false);
+
+$strictGlobal = $config;
+$strictGlobal['protocols']['debug']['allow_hosts'] = ['127.0.0.1'];
+ConfigProvider::set($strictGlobal);
+$permissiveInjected = $config;
+$permissiveInjected['protocols']['debug']['allow_hosts'] = [];
+$kafkaInjectedPermissive = (new DebugProxy($permissiveInjected))->send(
+    'api',
+    KafkaMetadataHostFixture::class . '@fetch',
+    ['fields' => ['topic' => 'debug', 'messages' => 2]]
+);
+check('kafka metadata broker ignores stricter global config', ($kafkaInjectedPermissive['ok'] ?? false) === true
+    && count(json_decode((string)($kafkaInjectedPermissive['body'] ?? ''), true)['messages'] ?? []) === 2);
+
+$globalNoCa = $config;
+unset($globalNoCa['protocols']['debug']['tls_ca_file']);
+ConfigProvider::set($globalNoCa);
+$xmppInjectedCa = (new DebugProxy($config))->send('api', XmppDebugFixture::class . '@send', ['fields' => [
+    'jid' => 'debug@localhost/php', 'password' => 'secret', 'messages' => 1,
+]]);
+check('xmpp uses injected tls_ca_file without global CA', ($xmppInjectedCa['ok'] ?? false) === true
+    && (json_decode((string)($xmppInjectedCa['body'] ?? ''), true)['messages'][0]['body'] ?? '') === 'hello');
+
+ConfigProvider::set($config);
+$injectedNoCa = $config;
+unset($injectedNoCa['protocols']['debug']['tls_ca_file']);
+$xmppInjectedNoCa = (new DebugProxy($injectedNoCa))->send('api', XmppDebugFixture::class . '@send', ['fields' => [
+    'jid' => 'debug@localhost/php', 'password' => 'secret', 'messages' => 1,
+]]);
+check('xmpp ignores global CA when injection omits it', ($xmppInjectedNoCa['ok'] ?? true) === false
+    && strpos((string)($xmppInjectedNoCa['error'] ?? ''), 'STARTTLS') !== false);
+ConfigProvider::set($config);
 
 $kafkaUi = $proxy->send('api', KafkaDebugFixture::class . '@fetch', ['fields' => ['topic' => 'debug', 'messages' => 2]]);
 check('kafka driver through relay', ($kafkaUi['ok'] ?? false) === true

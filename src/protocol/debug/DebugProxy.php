@@ -305,6 +305,7 @@ class DebugProxy
             'meta' => $debug,
             'timeout' => $timeout,
             'maxBytes' => $maxBytes,
+            'debugConfig' => $debugConfig,
             'input' => $driverInput,
         ];
     }
@@ -317,6 +318,7 @@ class DebugProxy
             'meta' => $request['meta'],
             'timeout' => $request['timeout'],
             'maxBytes' => $request['maxBytes'],
+            'debugConfig' => $request['debugConfig'],
         ];
     }
 

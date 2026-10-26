@@ -24,7 +24,15 @@ class Socket
         $address = 'tcp://' . $host . ':' . (int)($target['port'] ?? 0);
         $errno = 0;
         $errstr = '';
-        $socket = @stream_socket_client($address, $errno, $errstr, max(0.05, $timeout), STREAM_CLIENT_CONNECT);
+        // 每个连接独立 context,避免 TLS 选项(cafile/verify)泄漏到后续请求
+        $socket = @stream_socket_client(
+            $address,
+            $errno,
+            $errstr,
+            max(0.05, $timeout),
+            STREAM_CLIENT_CONNECT,
+            stream_context_create()
+        );
         if (!is_resource($socket)) {
             $message = trim($errstr) !== '' ? $errstr . ' (' . $errno . ')' : 'connect failed (' . $errno . ')';
             throw new RuntimeException($message);

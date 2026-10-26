@@ -10,12 +10,12 @@ use erikwang2013\apidoc\protocol\debug\DebugTarget;
 use erikwang2013\apidoc\protocol\debug\Support\Hex;
 use erikwang2013\apidoc\protocol\debug\Support\Socket;
 use erikwang2013\apidoc\protocol\debug\Support\TargetGuard;
-use erikwang2013\apidoc\utils\ConfigProvider;
 
 /**
  * Kafka 2.0+ 只读执行器:Metadata v4 -> ListOffsets v1 -> Fetch v4(record batch v2)。
  * 与 Rust 参考实现一致只读不写;支持 SASL PLAIN 与 gzip 批次。
- * shortcut: 不校验批次 CRC32C,升级到需要损坏检测时补;TLS(kafkas://) 显式拒绝。
+ * shortcut: 单 broker bootstrap(kafka://host[:port],不接受逗号列表),升级到多 broker 解析时补;
+ * 不校验批次 CRC32C,升级到需要损坏检测时补;TLS(kafkas://) 显式拒绝。
  * @package erikwang2013\apidoc\protocol\debug\Driver
  */
 class KafkaDriver implements DebugDriverInterface
@@ -125,6 +125,7 @@ class KafkaDriver implements DebugDriverInterface
         $durationMs = is_numeric($durationRaw) ? (int)$durationRaw : 2000;
         $durationMs = max(1, min((int)round($timeout * 1000), $durationMs));
         $maxBytes = max(1, (int)($context['maxBytes'] ?? 1048576));
+        $debugConfig = is_array($context['debugConfig'] ?? null) ? $context['debugConfig'] : [];
 
         try {
             $target = DebugTarget::parse((string)($context['target'] ?? ''));
@@ -135,8 +136,11 @@ class KafkaDriver implements DebugDriverInterface
         if ($scheme === 'kafkas') {
             return ['ok' => false, 'error' => 'kafka TLS (kafkas://) is not supported by this build; use kafka:// (plaintext)'];
         }
-        if (!in_array($scheme, ['kafka', 'tcp'], true)) {
-            return ['ok' => false, 'error' => 'kafka driver requires a kafka:// or tcp:// target'];
+        if ($scheme !== 'kafka') {
+            return ['ok' => false, 'error' => 'kafka driver requires a kafka:// target'];
+        }
+        if (strpos((string)$target['host'], ',') !== false) {
+            return ['ok' => false, 'error' => 'kafka multiple bootstrap brokers are not supported; use a single kafka://host[:port]'];
         }
         if (strpos((string)$target['original'], '?') !== false) {
             return ['ok' => false, 'error' => 'kafka target must not contain query parameters'];
@@ -161,7 +165,7 @@ class KafkaDriver implements DebugDriverInterface
             if ($metadata['partitions'][$partition]['error'] !== 0) {
                 return $this->failure($this->errorText($metadata['partitions'][$partition]['error'], 'kafka partition ' . $partition . ' unavailable'), $redact);
             }
-            $brokers = $this->validateBrokers($metadata['brokers'], $redact);
+            $brokers = $this->validateBrokers($metadata['brokers'], $debugConfig);
             // broker 顺序处理连接:先释放 bootstrap,否则 leader 连接只能等到超时
             fclose($bootstrap);
             $sockets = [];
@@ -204,7 +208,7 @@ class KafkaDriver implements DebugDriverInterface
                 'status' => 0,
                 'headers' => ['x-topic' => $topic, 'x-messages' => (string)count($messages)],
                 'body' => $body === false ? '{"messages":[]}' : $body,
-                'encoding' => 'json',
+                'encoding' => 'text',
                 'meta' => [
                     'durationMs' => (int)round((microtime(true) - $start) * 1000),
                     'topic' => $topic,
@@ -225,12 +229,11 @@ class KafkaDriver implements DebugDriverInterface
 
     /**
      * @param array $metadataBrokers
-     * @param callable $redact
+     * @param array $config DebugProxy 注入的 protocols.debug
      * @return array<int,array{host:string,port:int,ips:array}>
      */
-    protected function validateBrokers(array $metadataBrokers, callable $redact): array
+    protected function validateBrokers(array $metadataBrokers, array $config): array
     {
-        $config = $this->debugConfig();
         $brokers = [];
         foreach ($metadataBrokers as $nodeId => $broker) {
             $host = (string)$broker['host'];
@@ -700,19 +703,6 @@ class KafkaDriver implements DebugDriverInterface
     {
         $name = isset(static::$errorNames[$code]) ? static::$errorNames[$code] : 'error ' . $code;
         return $prefix . ': ' . $name;
-    }
-
-    /**
-     * @return array protocols.debug 配置;未初始化时返回空
-     */
-    protected function debugConfig(): array
-    {
-        try {
-            $config = ConfigProvider::get('protocols.debug');
-            return is_array($config) ? $config : [];
-        } catch (\Throwable $e) {
-            return [];
-        }
     }
 
     /**

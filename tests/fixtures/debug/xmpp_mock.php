@@ -1,7 +1,8 @@
 <?php
 /**
  * XMPP 测试服务器:stream 头 -> STARTTLS(可关闭)-> SASL PLAIN -> bind/session ->
- * 可选发送 hello,并对客户端 message 回显 echo:<body>。
+ * hello 消息带多语言 body(en 优先),并对客户端 message 回显 echo:<body>;
+ * 客户端 body 缺少 xml:lang="en" 时回显 echo-no-lang:<body>。
  * 密码固定 secret;失败时 failure 文本会带出提交的密码,用于验证驱动脱敏。
  * 用法: php xmpp_mock.php <host> <port> <cert> <key> [no-starttls]
  */
@@ -40,10 +41,10 @@ function xml(string $value): string
     return htmlspecialchars($value, ENT_XML1 | ENT_QUOTES, 'UTF-8');
 }
 
-function streamHeader(): string
+function streamHeader(string $prefix = 'stream'): string
 {
     return '<?xml version="1.0"?>'
-        . '<stream:stream xmlns="jabber:client" xmlns:stream="' . STREAM_NS . '"'
+        . '<' . $prefix . ':stream xmlns="jabber:client" xmlns:' . $prefix . '="' . STREAM_NS . '"'
         . ' id="mock" from="localhost" version="1.0">';
 }
 
@@ -187,8 +188,12 @@ function handleConnection($conn, string $cert, string $key, bool $noStartTls): v
         writeAll($conn, '<iq type="result" id="' . xml($sessionId) . '"/>');
     }
 
-    if ($local !== 'silent') {
-        writeAll($conn, '<message from="bot@localhost/1" type="chat" id="hello"><body>hello</body></message>');
+    if ($local === 'plain') {
+        writeAll($conn, '<message from="bot@localhost/1" type="chat" id="hello">'
+            . '<body xml:lang="fr">bonjour</body><body>neutral</body></message>');
+    } elseif ($local !== 'silent') {
+        writeAll($conn, '<message from="bot@localhost/1" type="chat" id="hello">'
+            . '<body xml:lang="fr">bonjour</body><body xml:lang="en">hello</body><body>neutral</body></message>');
     }
     while (true) {
         $element = readElement($conn);
@@ -202,13 +207,14 @@ function handleConnection($conn, string $cert, string $key, bool $noStartTls): v
         if (strpos($element, '<message') !== 0) {
             continue;
         }
-        $body = preg_match('#<body>(.*?)</body>#s', $element, $matches) === 1
+        $body = preg_match('#<body\b[^>]*>(.*?)</body>#s', $element, $matches) === 1
             ? html_entity_decode($matches[1], ENT_XML1 | ENT_QUOTES, 'UTF-8')
             : '';
+        $english = preg_match('#<body\b[^>]*\bxml:lang="en"#', $element) === 1;
         writeAll(
             $conn,
             '<message from="echo@localhost/1" type="chat" id="echo">'
-            . '<body>' . xml('echo:' . $body) . '</body></message>'
+            . '<body>' . xml(($english ? 'echo:' : 'echo-no-lang:') . $body) . '</body></message>'
         );
     }
 }

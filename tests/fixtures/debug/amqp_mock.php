@@ -4,7 +4,7 @@
  * Basic.Publish(确认 Ack)、Basic.Consume(不 ack 投递)、Queue.Declare。
  * 凭据固定 debug/secret;失败响应会带出提交的密码,用于验证驱动脱敏。
  * queue=debug/queue 投递 hello 与 0x00FF;queue=debug/single 投递一条;
- * 其余队列返回最近一次 publish 到同名 routing_key 的消息。
+ * queue=debug/partial 只发 deliver/header 不发 body;其余队列返回最近一次 publish 到同名 routing_key 的消息。
  * 用法: php amqp_mock.php <host> <port>
  */
 $host = $argv[1] ?? '127.0.0.1';
@@ -154,6 +154,16 @@ function sendDelivery($conn, string $tag, int $deliveryTag, string $routingKey, 
     }
 }
 
+/**
+ * 只发送 deliver 与 content header,不发送 body:驱动必须报错而不是返回空结果
+ */
+function sendPartialDelivery($conn, string $tag, int $deliveryTag, string $routingKey): void
+{
+    $args = shortstr($tag) . pack('J', $deliveryTag) . "\x00" . shortstr('') . shortstr($routingKey);
+    sendMethod($conn, 1, 60, 60, $args);
+    sendFrame($conn, 2, 1, pack('n', 60) . pack('n', 0) . pack('J', 10) . pack('n', 0));
+}
+
 function handleConnection($conn): void
 {
     global $published;
@@ -234,6 +244,8 @@ function handleConnection($conn): void
                 sendDelivery($conn, $tag, 1, $queue, 'hello');
             } elseif ($queue === 'debug/large') {
                 sendDelivery($conn, $tag, 1, $queue, str_repeat('x', 300));
+            } elseif ($queue === 'debug/partial') {
+                sendPartialDelivery($conn, $tag, 1, $queue);
             } elseif (isset($published[$queue])) {
                 sendDelivery($conn, $tag, 1, $queue, $published[$queue]);
             }

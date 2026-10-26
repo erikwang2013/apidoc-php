@@ -13,6 +13,7 @@ use erikwang2013\apidoc\protocol\debug\Support\Socket;
 /**
  * AMQP 0-9-1 执行器:publish 走 Confirm.Select,consume 不 ack(断开后 broker 重新投递)。
  * 凭据只从字段读取;错误文本中的密码会被替换。TLS(amqps://) 显式拒绝。
+ * 目标只接受 amqp://(与 Rust 一致);不把 tcp:// 当作别名。
  * @package erikwang2013\apidoc\protocol\debug\Driver
  */
 class AmqpDriver implements DebugDriverInterface
@@ -124,8 +125,8 @@ class AmqpDriver implements DebugDriverInterface
         if ($scheme === 'amqps') {
             return ['ok' => false, 'error' => 'amqp over TLS requires a pinned transport; use amqp:// (plaintext) in this build'];
         }
-        if (!in_array($scheme, ['amqp', 'tcp'], true)) {
-            return ['ok' => false, 'error' => 'unsupported amqp scheme `' . $scheme . '`; use amqp://'];
+        if ($scheme !== 'amqp') {
+            return ['ok' => false, 'error' => 'amqp driver requires an amqp:// target'];
         }
         if (($target['path'] ?? '') !== '' && $target['path'] !== '/') {
             return ['ok' => false, 'error' => 'amqp vhost must be provided via opts.vhost, not the target URL'];
@@ -173,7 +174,7 @@ class AmqpDriver implements DebugDriverInterface
                 'status' => 0,
                 'headers' => ['x-messages' => (string)$count],
                 'body' => $json,
-                'encoding' => 'json',
+                'encoding' => 'text',
                 'meta' => [
                     'durationMs' => (int)round((microtime(true) - $start) * 1000),
                     'messages' => $count,
@@ -296,33 +297,41 @@ class AmqpDriver implements DebugDriverInterface
         while (count($deliveries) < $want && microtime(true) < $until) {
             try {
                 $frame = $this->readFrame($socket, $until, $maxBytes);
-                if ($frame['type'] === self::FRAME_HEARTBEAT) {
-                    continue;
-                }
-                if ($frame['type'] !== self::FRAME_METHOD) {
-                    throw new RuntimeException('amqp unexpected frame while consuming');
-                }
-                $payload = $frame['payload'];
-                $pos = 0;
-                $class = $this->readInt16($payload, $pos);
-                $method = $this->readInt16($payload, $pos);
-                $this->throwIfClose($class, $method, $payload, $pos);
-                if ($class === 60 && $method === 30) {
-                    throw new RuntimeException('amqp consumer was cancelled by the broker');
-                }
-                if ($class !== 60 || $method !== 60) {
-                    throw new RuntimeException('amqp unexpected method ' . $class . '.' . $method . ' while consuming');
-                }
-                $this->readShortstr($payload, $pos); // consumer tag
-                $this->readInt64($payload, $pos); // delivery tag
-                $this->readInt8($payload, $pos); // redelivered bit
-                $exchange = $this->readShortstr($payload, $pos);
-                $routingKey = $this->readShortstr($payload, $pos);
-                $content = $this->readContent($socket, $until, $maxBytes);
             } catch (RuntimeException $e) {
                 // 到 duration_ms 仍无消息时按成功返回空列表
                 if (strpos($e->getMessage(), 'timed out') !== false) {
                     break;
+                }
+                throw $e;
+            }
+            if ($frame['type'] === self::FRAME_HEARTBEAT) {
+                continue;
+            }
+            if ($frame['type'] !== self::FRAME_METHOD) {
+                throw new RuntimeException('amqp unexpected frame while consuming');
+            }
+            $payload = $frame['payload'];
+            $pos = 0;
+            $class = $this->readInt16($payload, $pos);
+            $method = $this->readInt16($payload, $pos);
+            $this->throwIfClose($class, $method, $payload, $pos);
+            if ($class === 60 && $method === 30) {
+                throw new RuntimeException('amqp consumer was cancelled by the broker');
+            }
+            if ($class !== 60 || $method !== 60) {
+                throw new RuntimeException('amqp unexpected method ' . $class . '.' . $method . ' while consuming');
+            }
+            $this->readShortstr($payload, $pos); // consumer tag
+            $this->readInt64($payload, $pos); // delivery tag
+            $this->readInt8($payload, $pos); // redelivered bit
+            $exchange = $this->readShortstr($payload, $pos);
+            $routingKey = $this->readShortstr($payload, $pos);
+            try {
+                $content = $this->readContent($socket, $until, $maxBytes);
+            } catch (RuntimeException $e) {
+                // deliver 已读出后超时:消息已被 broker 投递,不能报告成空结果
+                if (strpos($e->getMessage(), 'timed out') !== false) {
+                    throw new RuntimeException('amqp delivery timed out after the broker announced it');
                 }
                 throw $e;
             }

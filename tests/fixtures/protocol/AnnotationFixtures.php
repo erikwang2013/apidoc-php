@@ -162,6 +162,14 @@ class KafkaDebugFixture
     public function fetch() {}
 }
 
+#[Protocol('kafka')]
+class KafkaMetadataHostFixture
+{
+    #[Channel('debug', action: 'fetch')]
+    #[Debug(driver: 'kafka', target: 'kafka://127.0.0.1:19026')]
+    public function fetch() {}
+}
+
 #[Protocol('amqp')]
 class AmqpDebugFixture
 {
