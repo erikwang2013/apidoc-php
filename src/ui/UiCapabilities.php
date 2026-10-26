@@ -3,6 +3,8 @@ declare(strict_types=1);
 
 namespace erikwang2013\apidoc\ui;
 
+use erikwang2013\apidoc\generator\Declarative;
+use erikwang2013\apidoc\parses\ParseCodeTemplate;
 use erikwang2013\apidoc\protocol\debug\DebugRegistry;
 use erikwang2013\apidoc\utils\ConfigProvider;
 
@@ -47,8 +49,8 @@ class UiCapabilities
                 ],
                 'generator' => [
                     // UIC-1 renders only configured ui_generator/code_template entries in memory
-                    'forms' => !empty($config['ui_generator']),
-                    'templates' => !empty($config['code_template']),
+                    'forms' => (new Declarative($config))->descriptors() !== [],
+                    'templates' => ParseCodeTemplate::descriptors($config) !== [],
                     'sideEffects' => false,
                 ],
                 'exports' => ['md', 'pdf', 'openapi', 'postman', 'asyncapi', 'typescript'],

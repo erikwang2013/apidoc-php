@@ -704,6 +704,8 @@ class Controller
         $config = $this->resolveFeConfig();
         // UIC-1 只暴露声明式生成器;legacy generator 会写文件/建表,不能进入前端预览流程
         $config['generator'] = (new Declarative($this->config))->descriptors();
+        // 模板只暴露逻辑名,服务端路径留在服务端;客户端回传逻辑名后由 ParseCodeTemplate 解析
+        $config['code_template'] = ParseCodeTemplate::descriptors($this->config);
         $config['capabilities'] = UiCapabilities::fromConfig($this->config);
         return Helper::showJson(0, "", $config);
     }

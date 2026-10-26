@@ -569,7 +569,7 @@ $n1AppToken = (new Auth(ConfigProvider::get()))->verifyPlain('APPSECRET-XYZ', 'd
 $n1Params = [
     'token' => $n1AppToken,
     'appKey' => 'default',
-    'template' => $codeTemplateItem,
+    'template' => 'Sample',
     'selected' => [$menuKey],
     'form' => ['name' => 'ok'],
 ];
@@ -577,11 +577,12 @@ $n1Params = [
 ui_contract_config($n1Params, $fixtureAppPath, $n1Extra);
 $n1Render = (new Controller())->uiRenderCodeTemplate();
 check(
-    'N1 app token renders a configured template',
+    'N1 app token renders a configured template by logical name',
     trim((string)($n1Render['data']['code'] ?? '')) === 'Sample ok'
 );
 
-ui_contract_config($n1Params, $fixtureAppPath, $n1Extra);
+// legacy UI/route still echoes the configured path from legacy /getConfig
+ui_contract_config(array_merge($n1Params, ['template' => $codeTemplateItem]), $fixtureAppPath, $n1Extra);
 $n1LegacyRender = (new Controller())->renderCodeTemplate();
 check(
     'N1 legacy renderCodeTemplate stays app-scoped',
@@ -592,6 +593,8 @@ $n1DeniedStatuses = [];
 $n1BadTemplates = [
     ['template' => 'README.md', 'select_mode' => 'api', 'multiple' => true],
     ['template' => '../composer.json', 'select_mode' => 'api', 'multiple' => true],
+    // UIC-1 must not accept the configured server path, only the logical name
+    ['template' => 'tests/fixtures/templates/sample.tpl', 'title' => 'Sample'],
     'README.md',
 ];
 foreach ($n1BadTemplates as $badTemplate) {
@@ -617,7 +620,7 @@ $publicAppExtra = [
 ui_contract_config([
     'token' => $adminToken,
     'appKey' => 'default',
-    'template' => $codeTemplateItem,
+    'template' => 'Sample',
     'selected' => [$menuKey],
     'form' => ['name' => 'global'],
 ], $fixtureAppPath, $publicAppExtra);
@@ -678,6 +681,13 @@ check(
     && ($genConfig['data']['capabilities']['features']['generator']['templates'] ?? null) === true
     && ($genConfig['data']['capabilities']['features']['generator']['sideEffects'] ?? null) === false
 );
+$genCodeTemplate = $genConfig['data']['code_template'][0] ?? [];
+check(
+    'P2b uiConfig exposes logical code-template id, not server path',
+    ($genCodeTemplate['template'] ?? '') === 'Sample'
+    && ($genCodeTemplate['title'] ?? '') === 'Sample'
+    && strpos((string)json_encode($genConfig['data']['code_template']), 'tests/fixtures/templates') === false
+);
 
 $genParams = [
     'token' => $adminToken,
@@ -730,6 +740,77 @@ check(
     && array_unique($badGeneratorStatuses) === [412]
 );
 
+// I-2 regression: form values must not select the template file (composer.json probe)
+$probeGeneratorExtra = $generatorExtra;
+$probeGeneratorExtra['ui_generator'] = [[
+    'name' => 'probe',
+    'title' => 'Probe',
+    'files' => [['name' => 'gen', 'path' => 'tests/fixtures/generated', 'template' => '${form.read}']],
+]];
+ui_contract_config([
+    'token' => $adminToken,
+    'index' => 0,
+    'form' => ['appKey' => 'default', 'read' => 'composer.json'],
+], $fixtureAppPath, $probeGeneratorExtra);
+$probeStatus = 0;
+$probeLeak = false;
+try {
+    $probe = (new Controller())->uiGenerator();
+    $probeLeak = strpos((string)json_encode($probe), 'erikwang2013/apidoc-php') !== false;
+} catch (HttpException $e) {
+    $probeStatus = $e->getStatusCode();
+}
+check(
+    'I-2 form values cannot select an arbitrary template file',
+    $probeStatus === 412 && !$probeLeak
+);
+
+$arrayFormStatus = 0;
+try {
+    ui_contract_config(array_merge($genParams, ['form' => ['appKey' => 'default', 'name' => ['x']]]), $fixtureAppPath, $generatorExtra);
+    (new Controller())->uiGenerator();
+} catch (HttpException $e) {
+    $arrayFormStatus = $e->getStatusCode();
+} catch (\Throwable $e) {
+    $arrayFormStatus = -1;
+}
+check('M-4 array form values fail with 412, not TypeError', $arrayFormStatus === 412);
+
+$duplicateFileStatus = 0;
+$duplicateFileExtra = $generatorExtra;
+$duplicateFileExtra['ui_generator'] = [array_merge($generatorItem, ['files' => [
+    ['name' => 'gen', 'path' => 'tests/fixtures/generated', 'template' => $generatorTemplate],
+    ['name' => 'gen', 'path' => 'tests/fixtures/generated', 'template' => $generatorTemplate],
+]])];
+try {
+    ui_contract_config(['token' => $adminToken], $fixtureAppPath, $duplicateFileExtra);
+    (new Controller())->uiConfig();
+} catch (HttpException $e) {
+    $duplicateFileStatus = $e->getCode();
+}
+check('M-4 duplicate configured file names rejected', $duplicateFileStatus === 4014);
+
+$duplicateTemplateStatus = 0;
+$duplicateTemplateExtra = $generatorExtra;
+$duplicateTemplateExtra['code_template'] = [$codeTemplateItem, $codeTemplateItem];
+try {
+    ui_contract_config(['token' => $adminToken], $fixtureAppPath, $duplicateTemplateExtra);
+    (new Controller())->uiConfig();
+} catch (HttpException $e) {
+    $duplicateTemplateStatus = $e->getCode();
+}
+check('M-4 duplicate configured template names rejected', $duplicateTemplateStatus === 4016);
+
+$disabledGeneratorExtra = $generatorExtra;
+$disabledGeneratorExtra['ui_generator'] = [array_merge($generatorItem, ['enable' => false])];
+ui_contract_config(['token' => $adminToken], $fixtureAppPath, $disabledGeneratorExtra);
+$disabledGeneratorConfig = (new Controller())->uiConfig();
+check(
+    'M-3 capabilities omit forms when every generator is disabled',
+    ($disabledGeneratorConfig['data']['capabilities']['features']['generator']['forms'] ?? null) === false
+    && ($disabledGeneratorConfig['data']['generator'] ?? null) === []
+);
+
 $generatedLegacyFile = __DIR__ . '/fixtures/generated/Legacy.php';
 @unlink($generatedLegacyFile);
 ui_contract_config([
@@ -761,7 +842,7 @@ $scopeTemplateExtra = [
 $scopeTemplateParams = [
     'token' => $n1AppToken,
     'appKey' => 'default',
-    'template' => $countTemplateItem,
+    'template' => 'Sample',
     'selected' => [$menuKey, $outOfScopeKey],
     'form' => ['name' => 'scope'],
 ];
@@ -772,18 +853,22 @@ check(
     trim((string)($scopeRender['data']['code'] ?? '')) === 'Count 1 scope'
 );
 $legacyScopeStatus = 0;
-ui_contract_config($scopeTemplateParams, $fixtureAppPath, $scopeTemplateExtra);
+ui_contract_config(array_merge($scopeTemplateParams, ['template' => $countTemplateItem]), $fixtureAppPath, $scopeTemplateExtra);
 try {
     (new Controller())->renderCodeTemplate();
 } catch (HttpException $e) {
     $legacyScopeStatus = $e->getStatusCode();
+    $legacyScopeMessage = $e->getMessage();
 }
-check('P2b legacy renderCodeTemplate still rejects out-of-scope selected ids', $legacyScopeStatus !== 0);
+check(
+    'P2b legacy renderCodeTemplate still rejects out-of-scope selected ids',
+    $legacyScopeStatus === 501 && $legacyScopeMessage === 'api not in app scope'
+);
 
 $missingAppKeyStatus = 0;
 ui_contract_config([
     'token' => $adminToken,
-    'template' => $countTemplateItem,
+    'template' => 'Sample',
     'selected' => [$menuKey],
 ], $fixtureAppPath, $scopeTemplateExtra);
 try {

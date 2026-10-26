@@ -30,10 +30,7 @@ class Declarative
         $list = [];
         foreach ($this->items() as $item) {
             $files = [];
-            foreach ((array)($item['files'] ?? []) as $file) {
-                if (!is_array($file) || (string)($file['name'] ?? '') === '') {
-                    continue;
-                }
+            foreach ($this->fileSpecs($item) as $file) {
                 $entry = [
                     'name' => (string)$file['name'],
                     'path' => (string)($file['path'] ?? ''),
@@ -88,6 +85,12 @@ class Declarative
         if (!is_array($form)) {
             throw new ErrorException('invalid params', ['field' => 'form']);
         }
+        // 表单值只作为模板变量;数组/对象会让字符串替换不可预测,直接按参数错误拒绝
+        foreach ($form as $key => $value) {
+            if (!is_scalar($value) && $value !== null) {
+                throw new ErrorException('invalid params', ['field' => (string)$key]);
+            }
+        }
         $tables = $params['tables'] ?? [];
         if (!is_array($tables)) {
             throw new ErrorException('invalid params', ['field' => 'tables']);
@@ -108,13 +111,7 @@ class Declarative
             $requestFileMap[$file['name']] = $file;
         }
 
-        $specs = [];
-        foreach ((array)($generatorItem['files'] ?? []) as $file) {
-            if (!is_array($file) || (string)($file['name'] ?? '') === '') {
-                continue;
-            }
-            $specs[(string)$file['name']] = $file;
-        }
+        $specs = $this->fileSpecs($generatorItem);
         foreach ($requestFileMap as $name => $_) {
             if (!isset($specs[$name])) {
                 throw new ErrorException('file not found', ['file' => $name]);
@@ -145,9 +142,8 @@ class Declarative
             if (substr($namespace, -1) === '\\') {
                 $namespace = substr($namespace, 0, -1);
             }
+            // 模板路径只取服务端配置,不能由 form/appKey 选择文件(否则可读取项目内任意文件)
             $template = (string)($fileConfig['template'] ?? '');
-            $template = Helper::replaceCurrentAppTemplate($template, $currentApps);
-            $template = Helper::replaceTemplate($template, $form, 'form.');
             $templatePath = $this->resolvePath($template);
             if ($templatePath === false || !is_readable($templatePath)) {
                 throw new ErrorException('template not found', ['template' => $template]);
@@ -170,6 +166,28 @@ class Declarative
             ];
         }
         return $out;
+    }
+
+    /**
+     * 配置里的文件规格;重名会让后项静默覆盖前项,直接拒绝
+     * @param array $item ui_generator 项
+     * @return array<string,array>
+     * @throws ErrorException
+     */
+    protected function fileSpecs(array $item): array
+    {
+        $specs = [];
+        foreach ((array)($item['files'] ?? []) as $file) {
+            if (!is_array($file) || (string)($file['name'] ?? '') === '') {
+                continue;
+            }
+            $name = (string)$file['name'];
+            if (isset($specs[$name])) {
+                throw new ErrorException('duplicate file name', ['file' => $name]);
+            }
+            $specs[$name] = $file;
+        }
+        return $specs;
     }
 
     /**

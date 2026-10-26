@@ -29,7 +29,8 @@ class ParseCodeTemplate
         $appKey = (string)($params['appKey'] ?? '');
 
         // 只允许配置里的 code_template 项:客户端不能借 template 指定任意路径读取文件
-        $codeTemplate = $this->resolveCodeTemplate($params['template'] ?? []);
+        // UIC-1 只接受逻辑模板名;legacy 路由继续接受配置里的模板路径以保持原行为
+        $codeTemplate = $this->resolveCodeTemplate($params['template'] ?? [], !$filterOutOfScope);
 
         //解析接口数据
         $tplData = [];
@@ -104,13 +105,68 @@ class ParseCodeTemplate
     }
 
     /**
-     * 把客户端提交的 template 解析为配置中的 code_template 项。
-     * 支持按 template 路径匹配,或 template 为空时按 title 匹配(与 Go 一致);
-     * 未知/外部路径一律拒绝。
-     * @param mixed $requested
+     * UIC-1 /ui/v1/config 的 code_template 描述:服务端模板路径不下发,
+     * `template` 字段改为逻辑模板名,再由 renderCode 服务端解析回配置项。
+     * @param array $config
+     * @return array
      * @throws ErrorException
      */
-    protected function resolveCodeTemplate($requested): array
+    public static function descriptors(array $config): array
+    {
+        $list = [];
+        $ids = [];
+        foreach ((array)($config['code_template'] ?? []) as $item) {
+            if (!is_array($item)) {
+                throw new ErrorException('invalid params', ['field' => 'code_template']);
+            }
+            foreach (['name', 'title', 'template'] as $field) {
+                if (isset($item[$field]) && !is_string($item[$field])) {
+                    throw new ErrorException('invalid params', ['field' => $field]);
+                }
+            }
+            $id = static::templateId($item);
+            if ($id === '') {
+                throw new ErrorException('invalid params', ['field' => 'template']);
+            }
+            if (isset($ids[$id])) {
+                throw new ErrorException('duplicate template name', ['template' => $id]);
+            }
+            $ids[$id] = true;
+            unset($item['template']);
+            $item['template'] = $id;
+            if (!isset($item['title']) || !is_string($item['title']) || $item['title'] === '') {
+                $item['title'] = $id;
+            }
+            $list[] = $item;
+        }
+        return $list;
+    }
+
+    /**
+     * 逻辑模板名:优先配置的 name,否则用 title
+     * @param array $item
+     * @return string
+     */
+    public static function templateId(array $item): string
+    {
+        foreach (['name', 'title'] as $key) {
+            $value = $item[$key] ?? null;
+            if (is_string($value) && trim($value) !== '') {
+                return trim($value);
+            }
+        }
+        return '';
+    }
+
+    /**
+     * 把客户端提交的 template 解析为配置中的 code_template 项。
+     * 按逻辑模板名/标题匹配;legacy 路由额外允许按配置路径匹配(旧 UI 回传配置项)。
+     * 未知/外部路径一律拒绝。
+     * @param mixed $requested
+     * @param bool $allowConfiguredPath
+     * @throws ErrorException
+     */
+    protected function resolveCodeTemplate($requested, bool $allowConfiguredPath = true): array
     {
         if (is_string($requested)) {
             $requested = ['template' => $requested];
@@ -118,16 +174,19 @@ class ParseCodeTemplate
         if (!is_array($requested)) {
             $requested = [];
         }
-        $path = (string)($requested['template'] ?? '');
-        $title = (string)($requested['title'] ?? '');
+        $path = isset($requested['template']) && is_string($requested['template']) ? $requested['template'] : '';
+        $title = isset($requested['title']) && is_string($requested['title']) ? $requested['title'] : '';
         foreach ((array)($this->config['code_template'] ?? []) as $item) {
             if (!is_array($item)) {
                 continue;
             }
-            if ($path !== '' && (string)($item['template'] ?? '') === $path) {
+            $id = static::templateId($item);
+            $configuredPath = isset($item['template']) && is_string($item['template']) ? $item['template'] : '';
+            if ($path !== '' && ($path === $id || ($allowConfiguredPath && $configuredPath !== '' && $path === $configuredPath))) {
                 return $item;
             }
-            if ($path === '' && $title !== '' && (string)($item['title'] ?? '') === $title) {
+            $configuredTitle = isset($item['title']) && is_string($item['title']) ? $item['title'] : '';
+            if ($path === '' && $title !== '' && ($title === $id || ($allowConfiguredPath && $configuredTitle === $title))) {
                 return $item;
             }
         }
