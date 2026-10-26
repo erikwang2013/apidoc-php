@@ -93,6 +93,43 @@ class Socket
     }
 
     /**
+     * 精确读取 length 字节:超时返回 null,断连抛异常(用于可超时的链路帧读取)
+     * @throws RuntimeException
+     */
+    public static function readExactOrNull($socket, int $length, float $deadline, string $what): ?string
+    {
+        $data = '';
+        while (strlen($data) < $length) {
+            $left = $deadline - microtime(true);
+            if ($left <= 0) {
+                return null;
+            }
+            $read = [$socket];
+            $write = null;
+            $except = null;
+            $ready = @stream_select($read, $write, $except, (int)$left, (int)(($left - (int)$left) * 1000000));
+            if ($ready === false) {
+                throw new RuntimeException($what . ' read failed');
+            }
+            if ($ready === 0) {
+                return null;
+            }
+            $chunk = @fread($socket, min(8192, $length - strlen($data)));
+            if ($chunk === false) {
+                throw new RuntimeException($what . ' read failed');
+            }
+            if ($chunk === '') {
+                if (feof($socket)) {
+                    throw new RuntimeException($what . ': connection closed');
+                }
+                continue;
+            }
+            $data .= $chunk;
+        }
+        return $data;
+    }
+
+    /**
      * 读一块数据:null 表示超时,空串表示对端关闭
      */
     public static function readSome($socket, float $deadline, int $max = 8192): ?string

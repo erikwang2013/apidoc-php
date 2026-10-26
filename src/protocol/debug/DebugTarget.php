@@ -17,6 +17,8 @@ class DebugTarget
     protected static $schemes = [
         'tcp', 'udp', 'unix', 'http', 'https', 'ws', 'wss',
         'kafka', 'kafkas', 'amqp', 'amqps', 'xmpp', 'xmpps',
+        'dnp3', 'iec104', 'iec-60870-5-104', 'bacnet', 'bacnet-ip',
+        'opc.tcp', 'rtp', 'rtcp', 'rtmp', 'coap', 'lwm2m',
     ];
 
     /**
@@ -26,6 +28,10 @@ class DebugTarget
         'http' => 80, 'https' => 443, 'ws' => 80, 'wss' => 443,
         'kafka' => 9092, 'kafkas' => 9093, 'amqp' => 5672, 'amqps' => 5671,
         'xmpp' => 5222, 'xmpps' => 5223,
+        'dnp3' => 20000, 'iec104' => 2404, 'iec-60870-5-104' => 2404,
+        'bacnet' => 47808, 'bacnet-ip' => 47808, 'opc.tcp' => 4840,
+        'rtp' => 5004, 'rtcp' => 5005, 'rtmp' => 1935,
+        'coap' => 5683, 'lwm2m' => 5683,
     ];
 
     /**

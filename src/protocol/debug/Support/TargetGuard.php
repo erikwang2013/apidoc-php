@@ -167,6 +167,16 @@ class TargetGuard
     }
 
     /**
+     * 已校验的固定 IP 列表;空数组表示上下文未携带 guard
+     * @param array $context
+     * @return array<string>
+     */
+    public static function ips(array $context): array
+    {
+        return static::guardIps($context);
+    }
+
+    /**
      * @param array $context
      * @return array<string>
      */
