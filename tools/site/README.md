@@ -5,7 +5,7 @@ Apidoc 的多语言项目站与使用文档，覆盖 PHP、Go、Rust 三种后�
 ## 页面结构
 
 ```text
-site/
+site/                          # 仅存放部署产物（纯静态）
 ├── index.html                 # 中文首页
 ├── en/index.html              # English home
 ├── docs/index.html            # 中文文档中心
@@ -16,14 +16,15 @@ site/
 ├── 404.html                   # 自定义 404（noindex）
 ├── robots.txt                 # 构建产物
 ├── sitemap.xml                # 构建产物，含中英 hreflang 与图片条目
-├── content/{zh,en}/*.md       # 使用指南正文
-├── assets/                    # CSS、JS、three.js、宠物与项目图片
-├── assets/search-index.json   # 构建期生成的站内搜索索引
-├── assets/img/weixinpay.png   # 微信赞赏收款码
-├── assets/img/alipay.png      # 支付宝赞赏收款码
-├── bench.py                   # TTFB / 整页加载实测
+└── assets/                    # CSS、JS、three.js、宠物与项目图片
+    ├── search-index.json      # 构建期生成的站内搜索索引
+    └── img/{weixinpay,alipay}.png # 微信 / 支付宝赞赏收款码
+
+tools/site/                    # 构建源码，不部署
+├── build.py                   # 生成全部页面
 ├── test_build.py              # 构建产物契约测试
-└── build.py                   # 生成全部页面
+├── bench.py                   # TTFB / 整页加载实测
+└── content/{zh,en}/*.md       # 使用指南正文
 ```
 
 语言切换在页头；每个页面都有对应的另一语言页面。`hreflang` 与 `og:locale` 已同步。
@@ -39,18 +40,18 @@ site/
 ## 构建
 
 ```bash
-cd site
+cd tools/site
 python3 build.py
 ```
 
-依赖 Python 3.9+、`markdown` 与 `Pygments`。修改 `content/zh/*.md` 或 `content/en/*.md` 后重新运行即可生成文档页。
+依赖 Python 3.9+、`markdown` 与 `Pygments`。修改 `content/zh/*.md` 或 `content/en/*.md` 后重新运行即可生成文档页，产物写入 `site/`。
 
 `build.py` 顶部的 `SITE_URL` 是 canonical、`og:url`、hreflang 和 `sitemap.xml` 的唯一域名来源；部署域名变化时只改这一处。
 
 构建产物契约测试：
 
 ```bash
-cd site
+cd tools/site
 python3 -m unittest test_build -v
 ```
 

@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 """Contract tests for the generated static site.
 
-Run from site/:
+Run from tools/site/:
     python3 -m unittest test_build -v
 """
 from __future__ import annotations
@@ -18,7 +18,8 @@ from urllib.parse import urlparse
 
 import build
 
-ROOT = Path(__file__).resolve().parent
+HERE = Path(__file__).resolve().parent
+ROOT = build.ROOT
 SITE_URL = build.SITE_URL
 
 PAGES = {
@@ -82,7 +83,7 @@ class BuildContractTest(unittest.TestCase):
     def setUpClass(cls) -> None:
         subprocess.run(
             [sys.executable, "build.py"],
-            cwd=ROOT,
+            cwd=HERE,
             check=True,
             capture_output=True,
             text=True,

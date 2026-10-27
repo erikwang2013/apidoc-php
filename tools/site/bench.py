@@ -5,7 +5,7 @@ Acceptance:
   * Every page and static asset must have a max TTFB below 10 ms across the samples.
   * With --full, a warm full-page load must have a median at or below 1 s.
 
-Run from site/:
+Run from tools/site/:
     python3 bench.py
     python3 bench.py --full
 """
@@ -21,7 +21,7 @@ import time
 from http.server import SimpleHTTPRequestHandler, ThreadingHTTPServer
 from pathlib import Path
 
-ROOT = Path(__file__).resolve().parent
+ROOT = Path(__file__).resolve().parents[2] / "site"
 TTFB_LIMIT_MS = 10.0
 TTFB_MAX_LIMIT_MS = 10.0
 FULL_LOAD_LIMIT_MS = 1000.0

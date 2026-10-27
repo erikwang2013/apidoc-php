@@ -30,14 +30,15 @@ from pygments.formatters import HtmlFormatter
 from pygments.lexers import TextLexer, get_lexer_by_name
 from pygments.util import ClassNotFound
 
-ROOT = Path(__file__).resolve().parent
+HERE = Path(__file__).resolve().parent
+ROOT = HERE.parent.parent / "site"
 LANGS = ("zh", "en")
 SLUGS = ("php", "go", "rust", "ui")
 
 
 def _search_version() -> str:
     digest = hashlib.sha256()
-    files = [ROOT / "build.py", *sorted((ROOT / "content").rglob("*.md"))]
+    files = [HERE / "build.py", *sorted((HERE / "content").rglob("*.md"))]
     for path in files:
         digest.update(path.read_bytes())
     return digest.hexdigest()[:12]
@@ -711,13 +712,13 @@ def breadcrumb_node(
 
 
 def page_lastmod(rel_path: str) -> str:
-    source = ROOT / "build.py"
+    source = HERE / "build.py"
     if rel_path.endswith(".html") and "/" in rel_path and not rel_path.endswith(
         "index.html"
     ):
         lang = "en" if rel_path.startswith("en/") else "zh"
         slug = rel_path.rsplit("/", 1)[-1].removesuffix(".html")
-        source = ROOT / "content" / lang / f"{slug}.md"
+        source = HERE / "content" / lang / f"{slug}.md"
     if source.is_file():
         return datetime.date.fromtimestamp(source.stat().st_mtime).isoformat()
     return datetime.date.today().isoformat()
@@ -1787,7 +1788,7 @@ def render_doc(lang: str, slug: str) -> None:
     current = f"{DOCS_PREFIX[lang]}{slug}.html"
     d = DOCS[slug]
     t = UI[lang]
-    source_file = ROOT / "content" / lang / f"{slug}.md"
+    source_file = HERE / "content" / lang / f"{slug}.md"
     body_md = source_file.read_text(encoding="utf-8")
     article, toc = render_markdown(body_md, lang, current)
     other_links = "".join(
